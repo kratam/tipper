@@ -1,11 +1,15 @@
-import { useTranslations } from "next-intl";
+import { getLocale } from "next-intl/server";
+import { LandingContent } from "@/components/landing-content";
+import { redirect } from "@/i18n/navigation";
+import { getCurrentUser } from "@/lib/auth/user-sync";
 
-export default function LandingPage() {
-  const t = useTranslations("landing");
-  return (
-    <main className="flex flex-1 flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold">{t("title")}</h1>
-      <p className="mt-4 text-lg text-muted-foreground">{t("subtitle")}</p>
-    </main>
-  );
+export default async function LandingPage() {
+  const user = await getCurrentUser();
+
+  if (user) {
+    const locale = await getLocale();
+    return redirect({ href: "/tournaments", locale });
+  }
+
+  return <LandingContent />;
 }

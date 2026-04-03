@@ -28,9 +28,7 @@ export function parseRegulationScore(periods: ApiPeriods): {
   return { home: h1 + h2 + h3, away: a1 + a2 + a3 };
 }
 
-export function mapApiStatus(
-  apiStatus: string,
-): "scheduled" | "live" | "finished" | "cancelled" {
+export function mapApiStatus(apiStatus: string): "scheduled" | "live" | "finished" | "cancelled" {
   switch (apiStatus) {
     case "NS":
       return "scheduled";
@@ -99,27 +97,19 @@ export function extract3WayOdds(
   return null;
 }
 
-export async function fetchGames(
-  leagueId: number,
-  season: number,
-): Promise<ApiGame[]> {
-  const res = await fetch(
-    `${BASE_URL}/games?league=${leagueId}&season=${season}`,
-    { headers: getHeaders() },
-  );
+export async function fetchGames(leagueId: number, season: number): Promise<ApiGame[]> {
+  const res = await fetch(`${BASE_URL}/games?league=${leagueId}&season=${season}`, {
+    headers: getHeaders(),
+  });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   const data = await res.json();
   return data.response;
 }
 
-export async function fetchOdds(
-  leagueId: number,
-  season: number,
-): Promise<ApiOddsGame[]> {
-  const res = await fetch(
-    `${BASE_URL}/odds?league=${leagueId}&season=${season}`,
-    { headers: getHeaders() },
-  );
+export async function fetchOdds(leagueId: number, season: number): Promise<ApiOddsGame[]> {
+  const res = await fetch(`${BASE_URL}/odds?league=${leagueId}&season=${season}`, {
+    headers: getHeaders(),
+  });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   const data = await res.json();
   return data.response;

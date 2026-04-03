@@ -7,17 +7,26 @@
     "cancel": "Cancel",
     "back": "Back",
     "loading": "Loading...",
-    "error": "Something went wrong"
+    "error": "Something went wrong",
+    "notFound": "Page not found",
+    "unauthorized": "Unauthorized"
   },
   "nav": {
     "tournaments": "Tournaments",
     "groups": "My Groups",
-    "admin": "Admin"
+    "admin": "Admin",
+    "locale": "Language"
   },
   "landing": {
     "title": "Tipper",
     "subtitle": "Predict sports matches, earn points, compete with friends!",
-    "cta": "Sign in with Google"
+    "cta": "Sign in with Google",
+    "featureBet": "Predict",
+    "featureBetDesc": "Predict the exact score of matches and choose your stake.",
+    "featureCompete": "Compete",
+    "featureCompeteDesc": "Create groups and invite your friends to compete.",
+    "featureWin": "Win",
+    "featureWinDesc": "Earn points for accurate predictions and climb the leaderboard."
   },
   "tournaments": {
     "title": "Tournaments",
@@ -25,7 +34,9 @@
     "active": "Active",
     "finished": "Finished",
     "matches": "Matches",
-    "podium": "Podium Prediction"
+    "podium": "Podium Prediction",
+    "matchCount": "{count} matches",
+    "noTournaments": "No tournaments yet"
   },
   "matches": {
     "scheduled": "Scheduled",
@@ -34,7 +45,11 @@
     "yourBet": "Your bet",
     "noBet": "No bet yet",
     "betLocked": "Betting is closed",
-    "oddsNotAvailable": "Odds not yet available. Your bet will use the first available odds."
+    "oddsNotAvailable": "Odds not yet available. Your bet will use the first available odds.",
+    "round": "Round {round}",
+    "vs": "vs",
+    "result": "Result",
+    "noMatches": "No matches yet"
   },
   "betting": {
     "title": "Place Bet",
@@ -45,7 +60,12 @@
     "update": "Update bet",
     "cancel": "Cancel bet",
     "sameForAll": "Same bet for all my groups",
-    "customPerGroup": "Custom per group"
+    "customPerGroup": "Custom per group",
+    "homeScore": "Home",
+    "awayScore": "Away",
+    "success": "Bet placed successfully!",
+    "updateSuccess": "Bet updated successfully!",
+    "cancelSuccess": "Bet cancelled successfully!"
   },
   "groups": {
     "title": "My Groups",
@@ -53,6 +73,7 @@
     "name": "Group name",
     "inviteCode": "Invite code",
     "copyLink": "Copy invite link",
+    "copied": "Link copied!",
     "members": "Members",
     "settings": "Settings",
     "leaderboard": "Leaderboard",
@@ -63,7 +84,13 @@
     "bonusExactScore": "Exact score bonus",
     "bonusPodiumMention": "Podium mention bonus",
     "bonusPodiumExact": "Exact placement bonus",
-    "carryoverPercent": "Carryover %"
+    "carryoverPercent": "Carryover %",
+    "noGroups": "You have no groups yet",
+    "tournament": "Tournament",
+    "tokens": "Tokens",
+    "advanced": "Advanced settings",
+    "removeMember": "Remove",
+    "createSuccess": "Group created successfully!"
   },
   "podium": {
     "title": "Podium Prediction",
@@ -71,7 +98,8 @@
     "silver": "Silver",
     "bronze": "Bronze",
     "locked": "Podium predictions are locked",
-    "submit": "Submit podium prediction"
+    "submit": "Submit podium prediction",
+    "selectTeam": "Select team"
   },
   "leaderboard": {
     "rank": "Rank",
@@ -85,6 +113,21 @@
     "syncNow": "Sync Now",
     "tournamentName": "Name",
     "leagueId": "League ID",
-    "season": "Season"
+    "season": "Season",
+    "podiumLockDate": "Podium lock date",
+    "status": "Status",
+    "actions": "Actions",
+    "setActive": "Set Active",
+    "setFinished": "Set Finished",
+    "existingTournaments": "Existing Tournaments",
+    "createSuccess": "Tournament created successfully!",
+    "syncSuccess": "Sync completed!",
+    "statusUpdateSuccess": "Status updated!"
+  },
+  "join": {
+    "title": "Join Group",
+    "joining": "Joining group...",
+    "notFound": "Group not found",
+    "error": "Failed to join group"
   }
 }

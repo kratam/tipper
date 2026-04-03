@@ -1,0 +1,37 @@
+import { getLocale, getTranslations } from "next-intl/server";
+import { AdminPanel } from "@/components/admin-panel";
+import { redirect } from "@/i18n/navigation";
+import { getCurrentUser } from "@/lib/auth/user-sync";
+import { getTournaments } from "@/queries/tournaments";
+
+export default async function AdminPage() {
+  const user = await getCurrentUser();
+  const locale = await getLocale();
+
+  if (!user) {
+    return redirect({ href: "/", locale });
+  }
+
+  if (!user.isAdmin) {
+    return redirect({ href: "/tournaments", locale });
+  }
+
+  const t = await getTranslations("admin");
+  const tournaments = await getTournaments();
+
+  return (
+    <div className="flex flex-col gap-6">
+      <h1 className="font-mono text-2xl font-bold tracking-tight">{t("title")}</h1>
+      <AdminPanel
+        tournaments={tournaments.map((tour) => ({
+          id: tour.id,
+          name: tour.name,
+          slug: tour.slug,
+          status: tour.status,
+          apiLeagueId: tour.apiLeagueId,
+          apiSeason: tour.apiSeason,
+        }))}
+      />
+    </div>
+  );
+}

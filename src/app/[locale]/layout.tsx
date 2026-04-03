@@ -1,7 +1,9 @@
+import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { Nav } from "@/components/nav";
 import { routing } from "@/i18n/routing";
+import { getCurrentUser } from "@/lib/auth/user-sync";
 
 export default async function LocaleLayout({
   children,
@@ -17,10 +19,21 @@ export default async function LocaleLayout({
   }
 
   const messages = await getMessages();
+  const user = await getCurrentUser();
+
+  const navUser = user
+    ? {
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        isAdmin: user.isAdmin,
+      }
+    : null;
 
   return (
     <NextIntlClientProvider messages={messages}>
-      {children}
+      <Nav user={navUser} />
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
     </NextIntlClientProvider>
   );
 }

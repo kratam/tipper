@@ -1,9 +1,6 @@
 import { get1X2 } from "./scoring";
 
-export function calculateCarryover(
-  unusedTokens: number,
-  carryoverPercent: number,
-): number {
+export function calculateCarryover(unusedTokens: number, carryoverPercent: number): number {
   return Math.floor(unusedTokens * (carryoverPercent / 100));
 }
 

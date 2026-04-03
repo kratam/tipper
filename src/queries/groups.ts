@@ -1,7 +1,7 @@
 import "server-only";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { groups, groupMembers, tokenLedger } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { groupMembers, groups, tokenLedger } from "@/db/schema";
 
 export async function getUserGroups(userId: string) {
   return db.query.groupMembers.findMany({
@@ -41,18 +41,13 @@ export async function getGroupByInviteCode(code: string) {
   });
 }
 
-export async function getTokenBalance(
-  userId: string,
-  groupId: string,
-): Promise<number> {
+export async function getTokenBalance(userId: string, groupId: string): Promise<number> {
   const result = await db
     .select({
       balance: sql<number>`COALESCE(SUM(${tokenLedger.amount}), 0)`,
     })
     .from(tokenLedger)
-    .where(
-      and(eq(tokenLedger.userId, userId), eq(tokenLedger.groupId, groupId)),
-    );
+    .where(and(eq(tokenLedger.userId, userId), eq(tokenLedger.groupId, groupId)));
 
   return result[0]?.balance ?? 0;
 }

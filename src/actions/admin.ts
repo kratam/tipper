@@ -1,8 +1,8 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { tournaments } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { slugify } from "@/lib/utils";
 
@@ -36,16 +36,10 @@ export async function createTournament(input: CreateTournamentInput) {
 
 type TournamentStatus = "upcoming" | "active" | "finished";
 
-export async function updateTournamentStatus(
-  tournamentId: string,
-  status: TournamentStatus,
-) {
+export async function updateTournamentStatus(tournamentId: string, status: TournamentStatus) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
   if (!user.isAdmin) throw new Error("Unauthorized");
 
-  await db
-    .update(tournaments)
-    .set({ status })
-    .where(eq(tournaments.id, tournamentId));
+  await db.update(tournaments).set({ status }).where(eq(tournaments.id, tournamentId));
 }

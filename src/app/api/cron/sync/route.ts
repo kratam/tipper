@@ -1,31 +1,20 @@
+import { and, eq, isNull } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
+import { bets, groups, matches, matchOdds, teams, tokenLedger, tournaments } from "@/db/schema";
 import {
-  tournaments,
-  matches,
-  teams,
-  matchOdds,
-  bets,
-  tokenLedger,
-  groups,
-} from "@/db/schema";
-import { eq, and, isNull } from "drizzle-orm";
-import {
+  extract3WayOdds,
   fetchGames,
   fetchOdds,
-  parseRegulationScore,
-  extract3WayOdds,
   mapApiStatus,
+  parseRegulationScore,
 } from "@/lib/api-sports";
 import { calculateBetPayout } from "@/lib/scoring";
 import { getRelevantOdds } from "@/lib/tokens";
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
-  if (
-    process.env.CRON_SECRET &&
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
+  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -79,20 +68,14 @@ async function syncTournament(tournament: Tournament): Promise<void> {
         .update(matches)
         .set({
           status: newStatus,
-          homeScore:
-            newStatus === "finished" ? regulationScore.home : game.scores.home,
-          awayScore:
-            newStatus === "finished" ? regulationScore.away : game.scores.away,
+          homeScore: newStatus === "finished" ? regulationScore.home : game.scores.home,
+          awayScore: newStatus === "finished" ? regulationScore.away : game.scores.away,
           updatedAt: new Date(),
         })
         .where(eq(matches.id, existingMatch.id));
 
       if (!wasFinished && newStatus === "finished") {
-        await scoreMatch(
-          existingMatch.id,
-          regulationScore.home,
-          regulationScore.away,
-        );
+        await scoreMatch(existingMatch.id, regulationScore.home, regulationScore.away);
       }
 
       if (!wasCancelled && newStatus === "cancelled") {
@@ -104,10 +87,8 @@ async function syncTournament(tournament: Tournament): Promise<void> {
         apiGameId: game.id,
         homeTeamId,
         awayTeamId,
-        homeScore:
-          newStatus === "finished" ? regulationScore.home : game.scores.home,
-        awayScore:
-          newStatus === "finished" ? regulationScore.away : game.scores.away,
+        homeScore: newStatus === "finished" ? regulationScore.home : game.scores.home,
+        awayScore: newStatus === "finished" ? regulationScore.away : game.scores.away,
         status: newStatus,
         scheduledAt: new Date(game.date),
         round: String(game.id),
@@ -116,10 +97,7 @@ async function syncTournament(tournament: Tournament): Promise<void> {
   }
 
   // Sync odds
-  const oddsGames = await fetchOdds(
-    tournament.apiLeagueId,
-    tournament.apiSeason,
-  );
+  const oddsGames = await fetchOdds(tournament.apiLeagueId, tournament.apiSeason);
 
   for (const oddsGame of oddsGames) {
     const threeWay = extract3WayOdds(oddsGame);
@@ -127,10 +105,7 @@ async function syncTournament(tournament: Tournament): Promise<void> {
 
     // Find matching scheduled match
     const match = await db.query.matches.findFirst({
-      where: and(
-        eq(matches.apiGameId, oddsGame.game.id),
-        eq(matches.status, "scheduled"),
-      ),
+      where: and(eq(matches.apiGameId, oddsGame.game.id), eq(matches.status, "scheduled")),
     });
     if (!match) continue;
 
@@ -148,11 +123,7 @@ async function syncTournament(tournament: Tournament): Promise<void> {
     });
 
     for (const bet of betsWithoutOdds) {
-      const relevantOdds = getRelevantOdds(
-        bet.predictedHome,
-        bet.predictedAway,
-        threeWay,
-      );
+      const relevantOdds = getRelevantOdds(bet.predictedHome, bet.predictedAway, threeWay);
       await db
         .update(bets)
         .set({ oddsAtBet: String(relevantOdds), updatedAt: new Date() })
@@ -161,11 +132,7 @@ async function syncTournament(tournament: Tournament): Promise<void> {
   }
 }
 
-async function upsertTeam(
-  apiTeamId: number,
-  name: string,
-  logoUrl: string,
-): Promise<string> {
+async function upsertTeam(apiTeamId: number, name: string, logoUrl: string): Promise<string> {
   const existing = await db.query.teams.findFirst({
     where: eq(teams.apiTeamId, apiTeamId),
   });
@@ -180,11 +147,7 @@ async function upsertTeam(
   return newTeam.id;
 }
 
-async function scoreMatch(
-  matchId: string,
-  homeScore: number,
-  awayScore: number,
-): Promise<void> {
+async function scoreMatch(matchId: string, homeScore: number, awayScore: number): Promise<void> {
   // Find all bets for this match where payout IS NULL
   const pendingBets = await db.query.bets.findMany({
     where: and(eq(bets.matchId, matchId), isNull(bets.payout)),

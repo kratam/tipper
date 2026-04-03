@@ -1,7 +1,7 @@
 import "server-only";
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { tournaments } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
 
 export async function getTournaments() {
   return db.query.tournaments.findMany({

@@ -1,0 +1,200 @@
+"use client";
+
+import { Globe, LogOut, Menu, X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { useState, useTransition } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { authClient } from "@/lib/auth/client";
+
+interface NavProps {
+  user: {
+    name: string;
+    email: string;
+    avatarUrl: string | null;
+    isAdmin: boolean;
+  } | null;
+}
+
+export function Nav({ user }: NavProps) {
+  const t = useTranslations("nav");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  function switchLocale(newLocale: "hu" | "en") {
+    startTransition(() => {
+      router.replace(pathname, { locale: newLocale });
+    });
+  }
+
+  function handleSignIn() {
+    authClient.signIn.social({ provider: "google" });
+  }
+
+  function handleSignOut() {
+    authClient.signOut().then(() => {
+      router.refresh();
+    });
+  }
+
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "?";
+
+  return (
+    <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
+        {/* Logo */}
+        <Link href="/" className="font-mono text-xl font-bold tracking-tight text-foreground">
+          Tipper
+        </Link>
+
+        {/* Desktop nav links */}
+        <div className="hidden items-center gap-1 md:flex">
+          {user && (
+            <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/tournaments">{t("tournaments")}</Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/groups">{t("groups")}</Link>
+              </Button>
+              {user.isAdmin && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/admin">{t("admin")}</Link>
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Right side */}
+        <div className="flex items-center gap-2">
+          {/* Locale switcher */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1.5" disabled={isPending}>
+                <Globe className="size-4" />
+                <span className="text-xs uppercase">{locale}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => switchLocale("hu")}>Magyar</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => switchLocale("en")}>English</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* User menu or login */}
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="hidden gap-2 md:flex">
+                  <Avatar className="size-6">
+                    <AvatarImage src={user.avatarUrl ?? undefined} />
+                    <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                  </Avatar>
+                  <span className="max-w-[120px] truncate text-sm">{user.name}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem className="text-destructive" onClick={handleSignOut}>
+                  <LogOut className="mr-2 size-4" />
+                  {tc("logout")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button size="sm" onClick={handleSignIn} className="hidden md:flex">
+              {tc("login")}
+            </Button>
+          )}
+
+          {/* Mobile hamburger */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {mobileOpen && (
+        <div className="border-t border-border bg-background px-4 pb-4 pt-2 md:hidden">
+          {user ? (
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2 px-2 py-2">
+                <Avatar className="size-8">
+                  <AvatarImage src={user.avatarUrl ?? undefined} />
+                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium">{user.name}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start"
+                asChild
+                onClick={() => setMobileOpen(false)}
+              >
+                <Link href="/tournaments">{t("tournaments")}</Link>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start"
+                asChild
+                onClick={() => setMobileOpen(false)}
+              >
+                <Link href="/groups">{t("groups")}</Link>
+              </Button>
+              {user.isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start"
+                  asChild
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Link href="/admin">{t("admin")}</Link>
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start text-destructive"
+                onClick={handleSignOut}
+              >
+                <LogOut className="mr-2 size-4" />
+                {tc("logout")}
+              </Button>
+            </div>
+          ) : (
+            <Button size="sm" className="w-full" onClick={handleSignIn}>
+              {tc("login")}
+            </Button>
+          )}
+        </div>
+      )}
+    </nav>
+  );
+}

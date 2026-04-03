@@ -24,15 +24,8 @@ interface BetPayoutResult {
 }
 
 export function calculateBetPayout(input: BetPayoutInput): BetPayoutResult {
-  const {
-    predictedHome,
-    predictedAway,
-    actualHome,
-    actualAway,
-    stake,
-    oddsAtBet,
-    groupSettings,
-  } = input;
+  const { predictedHome, predictedAway, actualHome, actualAway, stake, oddsAtBet, groupSettings } =
+    input;
 
   if (oddsAtBet === null) {
     return {
@@ -56,10 +49,8 @@ export function calculateBetPayout(input: BetPayoutInput): BetPayoutResult {
     };
   }
 
-  const goalDiffCorrect =
-    predictedHome - predictedAway === actualHome - actualAway;
-  const exactScoreCorrect =
-    predictedHome === actualHome && predictedAway === actualAway;
+  const goalDiffCorrect = predictedHome - predictedAway === actualHome - actualAway;
+  const exactScoreCorrect = predictedHome === actualHome && predictedAway === actualAway;
 
   let payout = Math.round(stake * oddsAtBet);
   if (goalDiffCorrect) payout += groupSettings.bonusGoalDiff;

@@ -1,12 +1,12 @@
 "use server";
 
+import { and, eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { groups, groupMembers, tournaments } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { groupMembers, groups, tournaments } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { generateInviteCode, slugify } from "@/lib/utils";
 import { getGroupByInviteCode } from "@/queries/groups";
-import { redirect } from "next/navigation";
 
 interface CreateGroupInput {
   name: string;
@@ -57,10 +57,7 @@ export async function joinGroup(inviteCode: string) {
   if (!group) throw new Error("Group not found");
 
   const existing = await db.query.groupMembers.findFirst({
-    where: and(
-      eq(groupMembers.groupId, group.id),
-      eq(groupMembers.userId, user.id),
-    ),
+    where: and(eq(groupMembers.groupId, group.id), eq(groupMembers.userId, user.id)),
   });
   if (existing) throw new Error("Already a member of this group");
 
@@ -81,10 +78,7 @@ interface GroupSettings {
   carryoverPercent?: number;
 }
 
-export async function updateGroupSettings(
-  groupId: string,
-  settings: GroupSettings,
-) {
+export async function updateGroupSettings(groupId: string, settings: GroupSettings) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
@@ -114,10 +108,5 @@ export async function removeMember(groupId: string, targetUserId: string) {
 
   await db
     .delete(groupMembers)
-    .where(
-      and(
-        eq(groupMembers.groupId, groupId),
-        eq(groupMembers.userId, targetUserId),
-      ),
-    );
+    .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUserId)));
 }

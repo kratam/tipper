@@ -1,7 +1,7 @@
 import "server-only";
-import { db } from "@/db";
-import { tokenLedger, groupMembers, users } from "@/db/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { groupMembers, tokenLedger, users } from "@/db/schema";
 
 export async function getGroupLeaderboard(groupId: string) {
   const rows = await db
@@ -15,10 +15,7 @@ export async function getGroupLeaderboard(groupId: string) {
     .innerJoin(users, eq(groupMembers.userId, users.id))
     .leftJoin(
       tokenLedger,
-      and(
-        eq(tokenLedger.userId, groupMembers.userId),
-        eq(tokenLedger.groupId, groupId),
-      ),
+      and(eq(tokenLedger.userId, groupMembers.userId), eq(tokenLedger.groupId, groupId)),
     )
     .where(eq(groupMembers.groupId, groupId))
     .groupBy(groupMembers.userId, users.id, users.name, users.avatarUrl)

@@ -7,16 +7,12 @@ import {
   pgTable,
   text,
   timestamp,
-  uuid,
   uniqueIndex,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 // Enums
-export const tournamentStatusEnum = pgEnum("tournament_status", [
-  "upcoming",
-  "active",
-  "finished",
-]);
+export const tournamentStatusEnum = pgEnum("tournament_status", ["upcoming", "active", "finished"]);
 
 export const matchStatusEnum = pgEnum("match_status", [
   "scheduled",
@@ -65,10 +61,16 @@ export const teams = pgTable("teams", {
 
 export const matches = pgTable("matches", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
+  tournamentId: uuid("tournament_id")
+    .references(() => tournaments.id)
+    .notNull(),
   apiGameId: integer("api_game_id").unique().notNull(),
-  homeTeamId: uuid("home_team_id").references(() => teams.id).notNull(),
-  awayTeamId: uuid("away_team_id").references(() => teams.id).notNull(),
+  homeTeamId: uuid("home_team_id")
+    .references(() => teams.id)
+    .notNull(),
+  awayTeamId: uuid("away_team_id")
+    .references(() => teams.id)
+    .notNull(),
   homeScore: integer("home_score"),
   awayScore: integer("away_score"),
   status: matchStatusEnum("status").default("scheduled").notNull(),
@@ -80,7 +82,9 @@ export const matches = pgTable("matches", {
 
 export const matchOdds = pgTable("match_odds", {
   id: uuid("id").defaultRandom().primaryKey(),
-  matchId: uuid("match_id").references(() => matches.id).notNull(),
+  matchId: uuid("match_id")
+    .references(() => matches.id)
+    .notNull(),
   homeOdds: decimal("home_odds", { precision: 6, scale: 2 }).notNull(),
   drawOdds: decimal("draw_odds", { precision: 6, scale: 2 }).notNull(),
   awayOdds: decimal("away_odds", { precision: 6, scale: 2 }).notNull(),
@@ -92,8 +96,12 @@ export const groups = pgTable("groups", {
   name: text("name").notNull(),
   slug: text("slug").unique().notNull(),
   inviteCode: text("invite_code").unique().notNull(),
-  ownerId: uuid("owner_id").references(() => users.id).notNull(),
-  tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
+  ownerId: uuid("owner_id")
+    .references(() => users.id)
+    .notNull(),
+  tournamentId: uuid("tournament_id")
+    .references(() => tournaments.id)
+    .notNull(),
   tokenPerRound: integer("token_per_round").default(100).notNull(),
   bonusGoalDiff: integer("bonus_goal_diff").default(5).notNull(),
   bonusExactScore: integer("bonus_exact_score").default(10).notNull(),
@@ -107,8 +115,12 @@ export const groupMembers = pgTable(
   "group_members",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    groupId: uuid("group_id").references(() => groups.id).notNull(),
-    userId: uuid("user_id").references(() => users.id).notNull(),
+    groupId: uuid("group_id")
+      .references(() => groups.id)
+      .notNull(),
+    userId: uuid("user_id")
+      .references(() => users.id)
+      .notNull(),
     joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [uniqueIndex("group_user_idx").on(table.groupId, table.userId)],
@@ -118,9 +130,15 @@ export const bets = pgTable(
   "bets",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id").references(() => users.id).notNull(),
-    matchId: uuid("match_id").references(() => matches.id).notNull(),
-    groupId: uuid("group_id").references(() => groups.id).notNull(),
+    userId: uuid("user_id")
+      .references(() => users.id)
+      .notNull(),
+    matchId: uuid("match_id")
+      .references(() => matches.id)
+      .notNull(),
+    groupId: uuid("group_id")
+      .references(() => groups.id)
+      .notNull(),
     predictedHome: integer("predicted_home").notNull(),
     predictedAway: integer("predicted_away").notNull(),
     stake: integer("stake").notNull(),
@@ -139,12 +157,24 @@ export const podiumBets = pgTable(
   "podium_bets",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id").references(() => users.id).notNull(),
-    tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
-    groupId: uuid("group_id").references(() => groups.id).notNull(),
-    goldTeamId: uuid("gold_team_id").references(() => teams.id).notNull(),
-    silverTeamId: uuid("silver_team_id").references(() => teams.id).notNull(),
-    bronzeTeamId: uuid("bronze_team_id").references(() => teams.id).notNull(),
+    userId: uuid("user_id")
+      .references(() => users.id)
+      .notNull(),
+    tournamentId: uuid("tournament_id")
+      .references(() => tournaments.id)
+      .notNull(),
+    groupId: uuid("group_id")
+      .references(() => groups.id)
+      .notNull(),
+    goldTeamId: uuid("gold_team_id")
+      .references(() => teams.id)
+      .notNull(),
+    silverTeamId: uuid("silver_team_id")
+      .references(() => teams.id)
+      .notNull(),
+    bronzeTeamId: uuid("bronze_team_id")
+      .references(() => teams.id)
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [uniqueIndex("podium_unique_idx").on(table.userId, table.tournamentId, table.groupId)],
@@ -152,9 +182,15 @@ export const podiumBets = pgTable(
 
 export const tokenLedger = pgTable("token_ledger", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
-  groupId: uuid("group_id").references(() => groups.id).notNull(),
-  tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
+  groupId: uuid("group_id")
+    .references(() => groups.id)
+    .notNull(),
+  tournamentId: uuid("tournament_id")
+    .references(() => tournaments.id)
+    .notNull(),
   amount: integer("amount").notNull(),
   type: tokenTypeEnum("type").notNull(),
   referenceId: uuid("reference_id"),

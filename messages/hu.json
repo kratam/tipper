@@ -7,17 +7,26 @@
     "cancel": "Mégse",
     "back": "Vissza",
     "loading": "Betöltés...",
-    "error": "Hiba történt"
+    "error": "Hiba történt",
+    "notFound": "Az oldal nem található",
+    "unauthorized": "Nincs jogosultságod"
   },
   "nav": {
     "tournaments": "Versenysorozatok",
     "groups": "Csoportjaim",
-    "admin": "Admin"
+    "admin": "Admin",
+    "locale": "Nyelv"
   },
   "landing": {
     "title": "Tipper",
     "subtitle": "Tippelj sportmeccsekre, gyűjts pontokat, versenyezz barátaiddal!",
-    "cta": "Bejelentkezés Google-lel"
+    "cta": "Bejelentkezés Google-lel",
+    "featureBet": "Tippelj",
+    "featureBetDesc": "Tippeld meg a meccsek pontos eredményét és válaszd ki a tétedet.",
+    "featureCompete": "Versenyezz",
+    "featureCompeteDesc": "Hozz létre csoportokat és hívd meg barátaidat a versenyre.",
+    "featureWin": "Nyerj",
+    "featureWinDesc": "Gyűjts pontokat a pontos tippekért és kerülj a ranglista élére."
   },
   "tournaments": {
     "title": "Versenysorozatok",
@@ -25,7 +34,9 @@
     "active": "Aktív",
     "finished": "Befejezett",
     "matches": "Meccsek",
-    "podium": "Dobogós tipp"
+    "podium": "Dobogós tipp",
+    "matchCount": "{count} meccs",
+    "noTournaments": "Nincsenek versenysorozatok"
   },
   "matches": {
     "scheduled": "Tervezett",
@@ -34,7 +45,11 @@
     "yourBet": "A tipped",
     "noBet": "Még nem tippeltél",
     "betLocked": "A tippelés lezárult",
-    "oddsNotAvailable": "Az odds még nem elérhető, az első betöltött odds alapján számolunk."
+    "oddsNotAvailable": "Az odds még nem elérhető, az első betöltött odds alapján számolunk.",
+    "round": "Forduló {round}",
+    "vs": "vs",
+    "result": "Eredmény",
+    "noMatches": "Nincsenek meccsek"
   },
   "betting": {
     "title": "Tippelés",
@@ -45,7 +60,12 @@
     "update": "Tipp módosítása",
     "cancel": "Tipp visszavonása",
     "sameForAll": "Ugyanez a tipp minden csoportomban",
-    "customPerGroup": "Csoportonként külön"
+    "customPerGroup": "Csoportonként külön",
+    "homeScore": "Hazai",
+    "awayScore": "Vendég",
+    "success": "Tipp sikeresen leadva!",
+    "updateSuccess": "Tipp sikeresen módosítva!",
+    "cancelSuccess": "Tipp sikeresen visszavonva!"
   },
   "groups": {
     "title": "Csoportjaim",
@@ -53,6 +73,7 @@
     "name": "Csoport neve",
     "inviteCode": "Meghívó kód",
     "copyLink": "Meghívó link másolása",
+    "copied": "Link másolva!",
     "members": "Tagok",
     "settings": "Beállítások",
     "leaderboard": "Ranglista",
@@ -63,7 +84,13 @@
     "bonusExactScore": "Pontos eredmény bónusz",
     "bonusPodiumMention": "Dobogós említés bónusz",
     "bonusPodiumExact": "Pontos helyezés bónusz",
-    "carryoverPercent": "Átvitel %"
+    "carryoverPercent": "Átvitel %",
+    "noGroups": "Még nincs csoportod",
+    "tournament": "Versenysorozat",
+    "tokens": "Tokenek",
+    "advanced": "Haladó beállítások",
+    "removeMember": "Eltávolítás",
+    "createSuccess": "Csoport sikeresen létrehozva!"
   },
   "podium": {
     "title": "Dobogós tipp",
@@ -71,7 +98,8 @@
     "silver": "Ezüstérem",
     "bronze": "Bronzérem",
     "locked": "A dobogós tippelés lezárult",
-    "submit": "Dobogós tipp leadása"
+    "submit": "Dobogós tipp leadása",
+    "selectTeam": "Válassz csapatot"
   },
   "leaderboard": {
     "rank": "Helyezés",
@@ -85,6 +113,21 @@
     "syncNow": "Szinkronizálás most",
     "tournamentName": "Név",
     "leagueId": "Liga ID",
-    "season": "Szezon"
+    "season": "Szezon",
+    "podiumLockDate": "Dobogós tipp záró dátuma",
+    "status": "Státusz",
+    "actions": "Műveletek",
+    "setActive": "Aktiválás",
+    "setFinished": "Befejezés",
+    "existingTournaments": "Meglévő versenysorozatok",
+    "createSuccess": "Versenysorozat sikeresen létrehozva!",
+    "syncSuccess": "Szinkronizálás sikeres!",
+    "statusUpdateSuccess": "Státusz sikeresen frissítve!"
+  },
+  "join": {
+    "title": "Csatlakozás csoporthoz",
+    "joining": "Csatlakozás folyamatban...",
+    "notFound": "Csoport nem található",
+    "error": "Hiba történt a csatlakozás során"
   }
 }

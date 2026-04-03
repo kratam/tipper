@@ -130,12 +130,8 @@
           "name": "bets_user_id_users_id_fk",
           "tableFrom": "bets",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -143,12 +139,8 @@
           "name": "bets_match_id_matches_id_fk",
           "tableFrom": "bets",
           "tableTo": "matches",
-          "columnsFrom": [
-            "match_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["match_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -156,12 +148,8 @@
           "name": "bets_group_id_groups_id_fk",
           "tableFrom": "bets",
           "tableTo": "groups",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -231,12 +219,8 @@
           "name": "group_members_group_id_groups_id_fk",
           "tableFrom": "group_members",
           "tableTo": "groups",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -244,12 +228,8 @@
           "name": "group_members_user_id_users_id_fk",
           "tableFrom": "group_members",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -357,12 +337,8 @@
           "name": "groups_owner_id_users_id_fk",
           "tableFrom": "groups",
           "tableTo": "users",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -370,12 +346,8 @@
           "name": "groups_tournament_id_tournaments_id_fk",
           "tableFrom": "groups",
           "tableTo": "tournaments",
-          "columnsFrom": [
-            "tournament_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tournament_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -385,16 +357,12 @@
         "groups_slug_unique": {
           "name": "groups_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         },
         "groups_invite_code_unique": {
           "name": "groups_invite_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "invite_code"
-          ]
+          "columns": ["invite_code"]
         }
       },
       "policies": {},
@@ -450,12 +418,8 @@
           "name": "match_odds_match_id_matches_id_fk",
           "tableFrom": "match_odds",
           "tableTo": "matches",
-          "columnsFrom": [
-            "match_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["match_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -554,12 +518,8 @@
           "name": "matches_tournament_id_tournaments_id_fk",
           "tableFrom": "matches",
           "tableTo": "tournaments",
-          "columnsFrom": [
-            "tournament_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tournament_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -567,12 +527,8 @@
           "name": "matches_home_team_id_teams_id_fk",
           "tableFrom": "matches",
           "tableTo": "teams",
-          "columnsFrom": [
-            "home_team_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["home_team_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -580,12 +536,8 @@
           "name": "matches_away_team_id_teams_id_fk",
           "tableFrom": "matches",
           "tableTo": "teams",
-          "columnsFrom": [
-            "away_team_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["away_team_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -595,9 +547,7 @@
         "matches_api_game_id_unique": {
           "name": "matches_api_game_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "api_game_id"
-          ]
+          "columns": ["api_game_id"]
         }
       },
       "policies": {},
@@ -693,12 +643,8 @@
           "name": "podium_bets_user_id_users_id_fk",
           "tableFrom": "podium_bets",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -706,12 +652,8 @@
           "name": "podium_bets_tournament_id_tournaments_id_fk",
           "tableFrom": "podium_bets",
           "tableTo": "tournaments",
-          "columnsFrom": [
-            "tournament_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tournament_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -719,12 +661,8 @@
           "name": "podium_bets_group_id_groups_id_fk",
           "tableFrom": "podium_bets",
           "tableTo": "groups",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -732,12 +670,8 @@
           "name": "podium_bets_gold_team_id_teams_id_fk",
           "tableFrom": "podium_bets",
           "tableTo": "teams",
-          "columnsFrom": [
-            "gold_team_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["gold_team_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -745,12 +679,8 @@
           "name": "podium_bets_silver_team_id_teams_id_fk",
           "tableFrom": "podium_bets",
           "tableTo": "teams",
-          "columnsFrom": [
-            "silver_team_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["silver_team_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -758,12 +688,8 @@
           "name": "podium_bets_bronze_team_id_teams_id_fk",
           "tableFrom": "podium_bets",
           "tableTo": "teams",
-          "columnsFrom": [
-            "bronze_team_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["bronze_team_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -818,9 +744,7 @@
         "teams_api_team_id_unique": {
           "name": "teams_api_team_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "api_team_id"
-          ]
+          "columns": ["api_team_id"]
         }
       },
       "policies": {},
@@ -889,12 +813,8 @@
           "name": "token_ledger_user_id_users_id_fk",
           "tableFrom": "token_ledger",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -902,12 +822,8 @@
           "name": "token_ledger_group_id_groups_id_fk",
           "tableFrom": "token_ledger",
           "tableTo": "groups",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -915,12 +831,8 @@
           "name": "token_ledger_tournament_id_tournaments_id_fk",
           "tableFrom": "token_ledger",
           "tableTo": "tournaments",
-          "columnsFrom": [
-            "tournament_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tournament_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -995,9 +907,7 @@
         "tournaments_slug_unique": {
           "name": "tournaments_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -1061,16 +971,12 @@
         "users_google_id_unique": {
           "name": "users_google_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "google_id"
-          ]
+          "columns": ["google_id"]
         },
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -1082,32 +988,17 @@
     "public.match_status": {
       "name": "match_status",
       "schema": "public",
-      "values": [
-        "scheduled",
-        "live",
-        "finished",
-        "cancelled"
-      ]
+      "values": ["scheduled", "live", "finished", "cancelled"]
     },
     "public.token_type": {
       "name": "token_type",
       "schema": "public",
-      "values": [
-        "distribution",
-        "bet",
-        "win",
-        "carryover",
-        "refund"
-      ]
+      "values": ["distribution", "bet", "win", "carryover", "refund"]
     },
     "public.tournament_status": {
       "name": "tournament_status",
       "schema": "public",
-      "values": [
-        "upcoming",
-        "active",
-        "finished"
-      ]
+      "values": ["upcoming", "active", "finished"]
     }
   },
   "schemas": {},

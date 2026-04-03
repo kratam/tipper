@@ -1,12 +1,12 @@
 "use server";
 
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { bets, groups, tokenLedger, groupMembers, matches } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { bets, groupMembers, groups, matches, tokenLedger } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { getRelevantOdds } from "@/lib/tokens";
 import { getTokenBalance } from "@/queries/groups";
 import { getLatestOdds } from "@/queries/matches";
-import { getRelevantOdds } from "@/lib/tokens";
 
 interface PlaceBetInput {
   matchId: string;
@@ -24,10 +24,7 @@ export async function placeBet(input: PlaceBetInput) {
 
   // Verify membership
   const membership = await db.query.groupMembers.findFirst({
-    where: and(
-      eq(groupMembers.groupId, groupId),
-      eq(groupMembers.userId, user.id),
-    ),
+    where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, user.id)),
   });
   if (!membership) throw new Error("Not a member of this group");
 
@@ -53,11 +50,7 @@ export async function placeBet(input: PlaceBetInput) {
 
   // Check for existing bet
   const existingBet = await db.query.bets.findFirst({
-    where: and(
-      eq(bets.userId, user.id),
-      eq(bets.matchId, matchId),
-      eq(bets.groupId, groupId),
-    ),
+    where: and(eq(bets.userId, user.id), eq(bets.matchId, matchId), eq(bets.groupId, groupId)),
   });
 
   if (existingBet) {

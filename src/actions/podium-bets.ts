@@ -1,8 +1,8 @@
 "use server";
 
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { podiumBets, tournaments, groupMembers } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { groupMembers, podiumBets, tournaments } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 
 interface PlacePodiumBetInput {
@@ -17,15 +17,11 @@ export async function placePodiumBet(input: PlacePodiumBetInput) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
-  const { tournamentId, groupId, goldTeamId, silverTeamId, bronzeTeamId } =
-    input;
+  const { tournamentId, groupId, goldTeamId, silverTeamId, bronzeTeamId } = input;
 
   // Verify membership
   const membership = await db.query.groupMembers.findFirst({
-    where: and(
-      eq(groupMembers.groupId, groupId),
-      eq(groupMembers.userId, user.id),
-    ),
+    where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, user.id)),
   });
   if (!membership) throw new Error("Not a member of this group");
 
