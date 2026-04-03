@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { bets, matches } from "@/db/schema";
+import { bets } from "@/db/schema";
 
 export async function getUserBetsForMatch(userId: string, matchId: string) {
   return db.query.bets.findMany({

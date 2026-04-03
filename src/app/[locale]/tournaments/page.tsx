@@ -55,7 +55,7 @@ export default async function TournamentsPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-xs text-muted-foreground">
-                    {t("active") === tournament.status
+                    {tournament.status === "active"
                       ? t("active")
                       : tournament.status === "upcoming"
                         ? t("upcoming")

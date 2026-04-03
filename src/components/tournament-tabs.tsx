@@ -2,6 +2,7 @@
 
 import { Circle } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { PodiumForm } from "@/components/podium-form";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,11 +40,29 @@ interface MatchData {
   userBets: UserBet[];
 }
 
+interface TeamOption {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+}
+
+interface PodiumGroupData {
+  groupId: string;
+  groupName: string;
+  existingBet: {
+    goldTeamId: string;
+    silverTeamId: string;
+    bronzeTeamId: string;
+  } | null;
+}
+
 interface TournamentTabsProps {
   tournamentSlug: string;
   matches: MatchData[];
   tournamentId: string;
   podiumLockDate: string;
+  teams: TeamOption[];
+  podiumGroups: PodiumGroupData[];
 }
 
 function TeamDisplay({ name, logoUrl }: { name: string; logoUrl: string | null }) {
@@ -104,8 +123,10 @@ function MatchStatusIndicator({ status }: { status: string }) {
 export function TournamentTabs({
   tournamentSlug,
   matches,
-  tournamentId: _tournamentId,
+  tournamentId,
   podiumLockDate,
+  teams,
+  podiumGroups,
 }: TournamentTabsProps) {
   const t = useTranslations("tournaments");
   const tMatches = useTranslations("matches");
@@ -208,20 +229,25 @@ export function TournamentTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="podium" className="mt-4">
-        {isLocked ? (
-          <Card>
-            <CardContent className="p-6 text-center text-muted-foreground">
-              {tPodium("locked")}
-            </CardContent>
-          </Card>
-        ) : (
+      <TabsContent value="podium" className="mt-4 flex flex-col gap-4">
+        {podiumGroups.length === 0 ? (
           <Card>
             <CardContent className="p-6 text-center text-muted-foreground">
               {tPodium("title")}
-              {/* Podium form is rendered on the match detail page via groups */}
             </CardContent>
           </Card>
+        ) : (
+          podiumGroups.map((pg) => (
+            <PodiumForm
+              key={pg.groupId}
+              tournamentId={tournamentId}
+              groupId={pg.groupId}
+              groupName={pg.groupName}
+              teams={teams}
+              existingBet={pg.existingBet}
+              isLocked={isLocked}
+            />
+          ))
         )}
       </TabsContent>
     </Tabs>

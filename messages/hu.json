@@ -90,6 +90,9 @@
     "tokens": "Tokenek",
     "advanced": "Haladó beállítások",
     "removeMember": "Eltávolítás",
+    "settingsLocked": "A beállítások csak akkor módosíthatók, amíg a versenysorozat nem kezdődött el.",
+    "leaveConfirm": "Biztosan ki szeretnél lépni a csoportból?",
+    "leaveSuccess": "Sikeresen kiléptél a csoportból!",
     "createSuccess": "Csoport sikeresen létrehozva!"
   },
   "podium": {
@@ -122,7 +125,8 @@
     "existingTournaments": "Meglévő versenysorozatok",
     "createSuccess": "Versenysorozat sikeresen létrehozva!",
     "syncSuccess": "Szinkronizálás sikeres!",
-    "statusUpdateSuccess": "Státusz sikeresen frissítve!"
+    "statusUpdateSuccess": "Státusz sikeresen frissítve!",
+    "selectTeam": "Válassz csapatot"
   },
   "join": {
     "title": "Csatlakozás csoporthoz",

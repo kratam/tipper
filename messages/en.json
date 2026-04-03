@@ -90,6 +90,9 @@
     "tokens": "Tokens",
     "advanced": "Advanced settings",
     "removeMember": "Remove",
+    "settingsLocked": "Settings can only be changed while the tournament is upcoming.",
+    "leaveConfirm": "Are you sure you want to leave this group?",
+    "leaveSuccess": "You have left the group!",
     "createSuccess": "Group created successfully!"
   },
   "podium": {
@@ -122,7 +125,8 @@
     "existingTournaments": "Existing Tournaments",
     "createSuccess": "Tournament created successfully!",
     "syncSuccess": "Sync completed!",
-    "statusUpdateSuccess": "Status updated!"
+    "statusUpdateSuccess": "Status updated!",
+    "selectTeam": "Select team"
   },
   "join": {
     "title": "Join Group",

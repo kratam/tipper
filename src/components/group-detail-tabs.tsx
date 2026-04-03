@@ -1,10 +1,10 @@
 "use client";
 
-import { ClipboardCopy, Trash2 } from "lucide-react";
+import { ClipboardCopy, LogOut, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { removeMember, updateGroupSettings } from "@/actions/groups";
+import { leaveGroup, removeMember, updateGroupSettings } from "@/actions/groups";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,6 +101,20 @@ export function GroupDetailTabs({
     });
   }
 
+  function handleLeaveGroup() {
+    startTransition(async () => {
+      try {
+        await leaveGroup(groupId);
+        toast.success(t("leaveSuccess"));
+        router.push("/groups");
+        router.refresh();
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        toast.error(message);
+      }
+    });
+  }
+
   return (
     <Tabs defaultValue="leaderboard">
       <TabsList>
@@ -168,6 +182,20 @@ export function GroupDetailTabs({
             </div>
           </CardContent>
         </Card>
+
+        {/* Leave group button (non-owners only) */}
+        {!isOwner && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-fit gap-2 text-destructive"
+            onClick={handleLeaveGroup}
+            disabled={isPending}
+          >
+            <LogOut className="size-4" />
+            {t("leave")}
+          </Button>
+        )}
       </TabsContent>
 
       {/* Settings (owner only) */}
@@ -274,9 +302,7 @@ export function GroupDetailTabs({
                   </Button>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Settings can only be changed while the tournament is upcoming.
-                </p>
+                <p className="text-sm text-muted-foreground">{t("settingsLocked")}</p>
               )}
             </CardContent>
           </Card>

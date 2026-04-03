@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  extract3WayOdds,
-  mapApiStatus,
-  parsePeriodsString,
-  parseRegulationScore,
-} from "@/lib/api-sports";
+import { mapApiStatus, parsePeriodsString, parseRegulationScore } from "@/lib/api-sports";
 
 describe("parsePeriodsString", () => {
   it("parses '2-1' to [2, 1]", () => {

@@ -48,6 +48,9 @@ export const tournaments = pgTable("tournaments", {
   apiSeason: integer("api_season").notNull(),
   status: tournamentStatusEnum("status").default("upcoming").notNull(),
   podiumLockDate: timestamp("podium_lock_date", { withTimezone: true }).notNull(),
+  goldTeamId: uuid("gold_team_id").references(() => teams.id),
+  silverTeamId: uuid("silver_team_id").references(() => teams.id),
+  bronzeTeamId: uuid("bronze_team_id").references(() => teams.id),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

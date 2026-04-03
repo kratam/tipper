@@ -4,7 +4,9 @@ import { TournamentTabs } from "@/components/tournament-tabs";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { getUserBetsForTournament } from "@/queries/bets";
+import { getUserGroups } from "@/queries/groups";
 import { getMatchesForTournament } from "@/queries/matches";
+import { getPodiumBet, getTournamentTeams } from "@/queries/podium";
 import { getTournamentBySlug } from "@/queries/tournaments";
 
 export default async function TournamentDetailPage({
@@ -32,6 +34,30 @@ export default async function TournamentDetailPage({
     const existing = betsByMatch.get(bet.matchId) ?? [];
     betsByMatch.set(bet.matchId, [...existing, bet]);
   }
+
+  // Podium data
+  const tournamentTeams = await getTournamentTeams(tournament.id);
+  const userGroupMemberships = await getUserGroups(user.id);
+  const relevantGroups = userGroupMemberships.filter(
+    (gm) => gm.group.tournamentId === tournament.id,
+  );
+
+  const podiumData = await Promise.all(
+    relevantGroups.map(async (gm) => {
+      const existingBet = await getPodiumBet(user.id, tournament.id, gm.group.id);
+      return {
+        groupId: gm.group.id,
+        groupName: gm.group.name,
+        existingBet: existingBet
+          ? {
+              goldTeamId: existingBet.goldTeamId,
+              silverTeamId: existingBet.silverTeamId,
+              bronzeTeamId: existingBet.bronzeTeamId,
+            }
+          : null,
+      };
+    }),
+  );
 
   // Serialize for client component
   const matchesData = matches.map((m) => ({
@@ -77,6 +103,8 @@ export default async function TournamentDetailPage({
         matches={matchesData}
         tournamentId={tournament.id}
         podiumLockDate={tournament.podiumLockDate.toISOString()}
+        teams={tournamentTeams}
+        podiumGroups={podiumData}
       />
     </div>
   );

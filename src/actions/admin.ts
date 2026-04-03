@@ -1,10 +1,28 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { tournaments } from "@/db/schema";
+import { groups, podiumBets, tokenLedger, tournaments } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { calculatePodiumPoints } from "@/lib/scoring";
 import { slugify } from "@/lib/utils";
+
+export async function triggerSync() {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+  if (!user.isAdmin) throw new Error("Unauthorized");
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const res = await fetch(`${baseUrl}/api/cron/sync`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${process.env.CRON_SECRET}`,
+    },
+  });
+
+  if (!res.ok) throw new Error("Sync failed");
+  return res.json();
+}
 
 interface CreateTournamentInput {
   name: string;
@@ -42,4 +60,68 @@ export async function updateTournamentStatus(tournamentId: string, status: Tourn
   if (!user.isAdmin) throw new Error("Unauthorized");
 
   await db.update(tournaments).set({ status }).where(eq(tournaments.id, tournamentId));
+}
+
+interface FinishTournamentInput {
+  tournamentId: string;
+  goldTeamId: string;
+  silverTeamId: string;
+  bronzeTeamId: string;
+}
+
+/**
+ * Finish a tournament: set status to finished, record podium results,
+ * and score all podium bets.
+ */
+export async function finishTournament(input: FinishTournamentInput) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+  if (!user.isAdmin) throw new Error("Unauthorized");
+
+  const { tournamentId, goldTeamId, silverTeamId, bronzeTeamId } = input;
+
+  // Update tournament with podium results and set finished
+  await db
+    .update(tournaments)
+    .set({
+      status: "finished",
+      goldTeamId,
+      silverTeamId,
+      bronzeTeamId,
+    })
+    .where(eq(tournaments.id, tournamentId));
+
+  // Score all podium bets for this tournament
+  const allPodiumBets = await db.query.podiumBets.findMany({
+    where: eq(podiumBets.tournamentId, tournamentId),
+  });
+
+  const actual = { gold: goldTeamId, silver: silverTeamId, bronze: bronzeTeamId };
+
+  for (const bet of allPodiumBets) {
+    const group = await db.query.groups.findFirst({
+      where: and(eq(groups.id, bet.groupId), eq(groups.tournamentId, tournamentId)),
+    });
+    if (!group) continue;
+
+    const points = calculatePodiumPoints(
+      { gold: bet.goldTeamId, silver: bet.silverTeamId, bronze: bet.bronzeTeamId },
+      actual,
+      {
+        bonusPodiumMention: group.bonusPodiumMention,
+        bonusPodiumExact: group.bonusPodiumExact,
+      },
+    );
+
+    if (points > 0) {
+      await db.insert(tokenLedger).values({
+        userId: bet.userId,
+        groupId: bet.groupId,
+        tournamentId,
+        amount: points,
+        type: "win",
+        referenceId: bet.id,
+      });
+    }
+  }
 }
