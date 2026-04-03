@@ -1,43 +1,28 @@
 "use client";
 
-import { Circle } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
+import { BetDialog } from "@/components/bet-dialog";
+import { MatchCard, type MatchCardData } from "@/components/match-card";
 import { PodiumForm } from "@/components/podium-form";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "@/i18n/navigation";
-import { formatDate } from "@/lib/utils";
 
-interface MatchOdds {
-  homeOdds: string;
-  drawOdds: string;
-  awayOdds: string;
-}
-
-interface UserBet {
-  id: string;
-  predictedHome: number;
-  predictedAway: number;
-  stake: number;
-  result1x2Correct: boolean | null;
-  goalDiffCorrect: boolean | null;
-  exactScoreCorrect: boolean | null;
-  payout: number | null;
+interface GroupBetInfo {
+  groupId: string;
   groupName: string;
-}
-
-interface MatchData {
-  id: string;
-  homeTeam: { name: string; logoUrl: string | null };
-  awayTeam: { name: string; logoUrl: string | null };
-  homeScore: number | null;
-  awayScore: number | null;
-  status: string;
-  scheduledAt: string;
-  round: string;
-  odds: MatchOdds | null;
-  userBets: UserBet[];
+  balance: number;
+  existingBet: {
+    id: string;
+    predictedHome: number;
+    predictedAway: number;
+    stake: number;
+  } | null;
 }
 
 interface TeamOption {
@@ -57,199 +42,223 @@ interface PodiumGroupData {
 }
 
 interface TournamentTabsProps {
-  tournamentSlug: string;
-  matches: MatchData[];
+  matches: MatchCardData[];
   tournamentId: string;
   podiumLockDate: string;
   teams: TeamOption[];
   podiumGroups: PodiumGroupData[];
+  groupBetInfosByMatch: Record<string, GroupBetInfo[]>;
 }
 
-function TeamDisplay({ name, logoUrl }: { name: string; logoUrl: string | null }) {
-  return (
-    <div className="flex items-center gap-2">
-      {logoUrl ? (
-        <img src={logoUrl} alt={name} className="size-6 rounded-sm object-contain" />
-      ) : (
-        <span className="flex size-6 items-center justify-center rounded-sm bg-muted font-mono text-[10px] font-bold">
-          {name.slice(0, 3).toUpperCase()}
-        </span>
-      )}
-      <span className="text-sm font-medium">{name}</span>
-    </div>
-  );
+type MatchFilter = "upcoming" | "played" | "all";
+
+function formatDayHeader(dateStr: string, locale: string): string {
+  const d = new Date(dateStr);
+  return new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  }).format(d);
 }
 
-function BetIndicator({ bet }: { bet: UserBet }) {
-  if (bet.result1x2Correct === null) {
-    return (
-      <Badge variant="outline" className="bg-muted/50 font-mono text-xs">
-        {bet.predictedHome} - {bet.predictedAway}
-      </Badge>
-    );
-  }
-  if (bet.result1x2Correct) {
-    return (
-      <Badge variant="outline" className="bg-emerald-500/10 font-mono text-xs text-emerald-500">
-        {bet.predictedHome} - {bet.predictedAway}
-        {bet.payout != null && ` (+${bet.payout})`}
-      </Badge>
-    );
-  }
-  return (
-    <Badge variant="destructive" className="font-mono text-xs">
-      {bet.predictedHome} - {bet.predictedAway}
-    </Badge>
-  );
+function getDateKey(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function MatchStatusIndicator({ status }: { status: string }) {
-  const tMatches = useTranslations("matches");
+function isToday(dateKey: string): boolean {
+  const now = new Date();
+  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  return dateKey === todayKey;
+}
 
-  if (status === "live") {
-    return (
-      <span className="flex items-center gap-1 text-xs font-medium text-red-500">
-        <Circle className="size-2 animate-pulse fill-red-500 text-red-500" />
-        {tMatches("live")}
-      </span>
-    );
-  }
-  if (status === "finished") {
-    return <span className="text-xs text-muted-foreground">{tMatches("finished")}</span>;
-  }
-  return null;
+function isTomorrow(dateKey: string): boolean {
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowKey = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`;
+  return dateKey === tomorrowKey;
+}
+
+function isFutureOrToday(dateKey: string): boolean {
+  const now = new Date();
+  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  return dateKey >= todayKey;
 }
 
 export function TournamentTabs({
-  tournamentSlug,
   matches,
   tournamentId,
   podiumLockDate,
   teams,
   podiumGroups,
+  groupBetInfosByMatch,
 }: TournamentTabsProps) {
   const t = useTranslations("tournaments");
   const tMatches = useTranslations("matches");
   const tPodium = useTranslations("podium");
   const locale = useLocale();
 
-  // Group matches by round
-  const roundMap = new Map<string, MatchData[]>();
-  for (const match of matches) {
-    const existing = roundMap.get(match.round) ?? [];
-    roundMap.set(match.round, [...existing, match]);
-  }
+  const [filter, setFilter] = useState<MatchFilter>("upcoming");
+  const [selectedMatch, setSelectedMatch] = useState<MatchCardData | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Group matches by day
+  const dayGroups = useMemo(() => {
+    const map = new Map<string, { dateKey: string; label: string; matches: MatchCardData[] }>();
+    for (const match of matches) {
+      const dateKey = getDateKey(match.scheduledAt);
+      const existing = map.get(dateKey);
+      if (existing) {
+        existing.matches.push(match);
+      } else {
+        map.set(dateKey, {
+          dateKey,
+          label: formatDayHeader(match.scheduledAt, locale),
+          matches: [match],
+        });
+      }
+    }
+    return Array.from(map.values());
+  }, [matches, locale]);
+
+  // Filter days based on selected filter
+  const filteredDays = useMemo(() => {
+    if (filter === "upcoming") {
+      return dayGroups
+        .filter((day) => isFutureOrToday(day.dateKey))
+        .sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+    }
+    if (filter === "played") {
+      return dayGroups
+        .filter((day) => !isFutureOrToday(day.dateKey))
+        .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+    }
+    // "all"
+    return dayGroups.sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+  }, [dayGroups, filter]);
+
+  // Default open accordion items: today and tomorrow
+  const defaultOpenDays = useMemo(() => {
+    return filteredDays
+      .filter((day) => isToday(day.dateKey) || isTomorrow(day.dateKey))
+      .map((day) => day.dateKey);
+  }, [filteredDays]);
+
+  // If no today/tomorrow, open the first day
+  const initialOpen = defaultOpenDays.length > 0 ? defaultOpenDays : filteredDays.length > 0 ? [filteredDays[0].dateKey] : [];
 
   const isLocked = new Date() > new Date(podiumLockDate);
 
+  function handleMatchClick(match: MatchCardData) {
+    setSelectedMatch(match);
+    setDialogOpen(true);
+  }
+
   return (
-    <Tabs defaultValue="matches">
-      <TabsList>
-        <TabsTrigger value="matches">{t("matches")}</TabsTrigger>
-        <TabsTrigger value="podium">{t("podium")}</TabsTrigger>
-      </TabsList>
+    <>
+      <Tabs defaultValue="matches">
+        <TabsList>
+          <TabsTrigger value="matches">{t("matches")}</TabsTrigger>
+          <TabsTrigger value="podium">{t("podium")}</TabsTrigger>
+        </TabsList>
 
-      <TabsContent value="matches" className="mt-4 flex flex-col gap-6">
-        {matches.length === 0 ? (
-          <p className="text-muted-foreground">{tMatches("noMatches")}</p>
-        ) : (
-          Array.from(roundMap.entries()).map(([round, roundMatches]) => (
-            <div key={round} className="flex flex-col gap-3">
-              <h3 className="font-mono text-sm font-medium text-muted-foreground">
-                {tMatches("round", { round })}
-              </h3>
-              <div className="flex flex-col gap-2">
-                {roundMatches.map((match) => (
-                  <Link key={match.id} href={`/tournaments/${tournamentSlug}/matches/${match.id}`}>
-                    <Card className="cursor-pointer transition-colors hover:ring-foreground/20">
-                      <CardContent className="flex flex-col gap-3 p-4">
-                        {/* Header: time + status */}
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs text-muted-foreground">
-                            {formatDate(match.scheduledAt, locale)}
-                          </span>
-                          <MatchStatusIndicator status={match.status} />
-                        </div>
+        <TabsContent value="matches" className="mt-4 flex flex-col gap-4">
+          {/* Match filter */}
+          <div className="flex gap-1 rounded-lg bg-muted p-1">
+            <button
+              type="button"
+              onClick={() => setFilter("upcoming")}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                filter === "upcoming"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tMatches("upcoming")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilter("played")}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                filter === "played"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tMatches("played")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilter("all")}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                filter === "all"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tMatches("all")}
+            </button>
+          </div>
 
-                        {/* Teams + Score */}
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex flex-1 flex-col gap-2">
-                            <TeamDisplay
-                              name={match.homeTeam.name}
-                              logoUrl={match.homeTeam.logoUrl}
-                            />
-                            <TeamDisplay
-                              name={match.awayTeam.name}
-                              logoUrl={match.awayTeam.logoUrl}
-                            />
-                          </div>
+          {filteredDays.length === 0 ? (
+            <p className="py-8 text-center text-muted-foreground">{tMatches("noMatches")}</p>
+          ) : (
+            <Accordion type="multiple" defaultValue={initialOpen} className="flex flex-col gap-2">
+              {filteredDays.map((day) => (
+                <AccordionItem key={day.dateKey} value={day.dateKey} className="border-none">
+                  <AccordionTrigger className="rounded-lg bg-muted/50 px-4 py-2.5 hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{day.label}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {t("matchCount", { count: day.matches.length })}
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-2 pb-0">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {day.matches.map((match) => (
+                        <MatchCard
+                          key={match.id}
+                          match={match}
+                          onClick={() => handleMatchClick(match)}
+                        />
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
+        </TabsContent>
 
-                          {/* Score or Odds */}
-                          <div className="flex flex-col items-center gap-1">
-                            {match.status === "finished" || match.status === "live" ? (
-                              <div className="font-mono text-2xl font-bold tracking-wider">
-                                {match.homeScore} - {match.awayScore}
-                              </div>
-                            ) : match.odds ? (
-                              <div className="flex gap-2 font-mono text-xs">
-                                <span className="rounded bg-muted px-2 py-1 text-amber-500">
-                                  {match.odds.homeOdds}
-                                </span>
-                                <span className="rounded bg-muted px-2 py-1 text-amber-500">
-                                  {match.odds.drawOdds}
-                                </span>
-                                <span className="rounded bg-muted px-2 py-1 text-amber-500">
-                                  {match.odds.awayOdds}
-                                </span>
-                              </div>
-                            ) : null}
-                          </div>
-                        </div>
+        <TabsContent value="podium" className="mt-4 flex flex-col gap-4">
+          {podiumGroups.length === 0 ? (
+            <p className="py-8 text-center text-muted-foreground">{tPodium("title")}</p>
+          ) : (
+            podiumGroups.map((pg) => (
+              <PodiumForm
+                key={pg.groupId}
+                tournamentId={tournamentId}
+                groupId={pg.groupId}
+                groupName={pg.groupName}
+                teams={teams}
+                existingBet={pg.existingBet}
+                isLocked={isLocked}
+              />
+            ))
+          )}
+        </TabsContent>
+      </Tabs>
 
-                        {/* User bets */}
-                        {match.userBets.length > 0 && (
-                          <div className="flex flex-wrap items-center gap-2 border-t border-border pt-2">
-                            {match.userBets.map((bet) => (
-                              <div key={bet.id} className="flex items-center gap-1">
-                                <span className="text-xs text-muted-foreground">
-                                  {bet.groupName}:
-                                </span>
-                                <BetIndicator bet={bet} />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))
-        )}
-      </TabsContent>
-
-      <TabsContent value="podium" className="mt-4 flex flex-col gap-4">
-        {podiumGroups.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center text-muted-foreground">
-              {tPodium("title")}
-            </CardContent>
-          </Card>
-        ) : (
-          podiumGroups.map((pg) => (
-            <PodiumForm
-              key={pg.groupId}
-              tournamentId={tournamentId}
-              groupId={pg.groupId}
-              groupName={pg.groupName}
-              teams={teams}
-              existingBet={pg.existingBet}
-              isLocked={isLocked}
-            />
-          ))
-        )}
-      </TabsContent>
-    </Tabs>
+      {/* Bet dialog */}
+      <BetDialog
+        match={selectedMatch}
+        groups={selectedMatch ? (groupBetInfosByMatch[selectedMatch.id] ?? []) : []}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
+    </>
   );
 }

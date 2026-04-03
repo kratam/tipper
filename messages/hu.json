@@ -41,7 +41,7 @@
   "matches": {
     "scheduled": "Tervezett",
     "live": "Élő",
-    "finished": "Befejezett",
+    "finished": "Vége",
     "yourBet": "A tipped",
     "noBet": "Még nem tippeltél",
     "betLocked": "A tippelés lezárult",
@@ -49,7 +49,10 @@
     "round": "Forduló {round}",
     "vs": "vs",
     "result": "Eredmény",
-    "noMatches": "Nincsenek meccsek"
+    "noMatches": "Nincsenek meccsek",
+    "upcoming": "Közelgő",
+    "played": "Lejátszott",
+    "all": "Mind"
   },
   "betting": {
     "title": "Tippelés",

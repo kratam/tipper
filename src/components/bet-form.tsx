@@ -1,14 +1,14 @@
 "use client";
 
+import { Minus, Plus } from "lucide-react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { cancelBet, placeBet } from "@/actions/bets";
-import { Badge } from "@/components/ui/badge";
+import { FormattedDate } from "@/components/formatted-date";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "@/i18n/navigation";
 
 interface GroupBetInfo {
@@ -27,16 +27,54 @@ interface BetFormProps {
   matchId: string;
   groups: GroupBetInfo[];
   odds: { homeOdds: string; drawOdds: string; awayOdds: string } | null;
-  matchStarted: boolean;
+  homeTeam: { name: string; logoUrl: string | null };
+  awayTeam: { name: string; logoUrl: string | null };
+  scheduledAt: string;
 }
 
-export function BetForm({ matchId, groups, odds, matchStarted }: BetFormProps) {
+function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(0, value - 1))}
+        className="flex size-7 items-center justify-center rounded-full bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
+      >
+        <Minus className="size-3" />
+      </button>
+      <span className="w-7 text-center font-mono text-2xl font-bold tabular-nums">{value}</span>
+      <button
+        type="button"
+        onClick={() => onChange(Math.min(99, value + 1))}
+        className="flex size-7 items-center justify-center rounded-full bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
+      >
+        <Plus className="size-3" />
+      </button>
+    </div>
+  );
+}
+
+function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
+  if (logoUrl) {
+    return (
+      <Image src={logoUrl} alt={name} width={40} height={40} className="size-10 object-contain" />
+    );
+  }
+  return (
+    <span className="flex size-10 items-center justify-center rounded bg-muted font-mono text-xs font-bold">
+      {name.slice(0, 3).toUpperCase()}
+    </span>
+  );
+}
+
+const STAKE_PRESETS = [5, 10, 25, 50];
+
+export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt }: BetFormProps) {
   const t = useTranslations("betting");
   const tMatches = useTranslations("matches");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  // Initialize state from existing bets or defaults
   const [homeScore, setHomeScore] = useState<number>(groups[0]?.existingBet?.predictedHome ?? 0);
   const [awayScore, setAwayScore] = useState<number>(groups[0]?.existingBet?.predictedAway ?? 0);
   const [stakes, setStakes] = useState<Record<string, number>>(() => {
@@ -47,7 +85,6 @@ export function BetForm({ matchId, groups, odds, matchStarted }: BetFormProps) {
     return initial;
   });
 
-  // Determine which outcome the prediction maps to
   const predictedOutcome = homeScore > awayScore ? "1" : homeScore === awayScore ? "X" : "2";
 
   function handleSubmit(groupId: string) {
@@ -64,9 +101,7 @@ export function BetForm({ matchId, groups, odds, matchStarted }: BetFormProps) {
         return;
       }
       toast.success(
-        groups.find((g) => g.groupId === groupId)?.existingBet
-          ? t("updateSuccess")
-          : t("success"),
+        groups.find((g) => g.groupId === groupId)?.existingBet ? t("updateSuccess") : t("success"),
       );
       router.refresh();
     });
@@ -84,57 +119,48 @@ export function BetForm({ matchId, groups, odds, matchStarted }: BetFormProps) {
     });
   }
 
-  if (matchStarted) {
-    return (
-      <Card>
-        <CardContent className="p-6 text-center text-muted-foreground">
-          {tMatches("betLocked")}
-        </CardContent>
-      </Card>
-    );
-  }
-
   if (groups.length === 0) {
     return null;
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Score prediction */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t("prediction")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center justify-center gap-4">
-            <div className="flex flex-col items-center gap-1">
-              <Label className="text-xs text-muted-foreground">{t("homeScore")}</Label>
-              <Input
-                type="number"
-                min={0}
-                max={99}
-                value={homeScore}
-                onChange={(e) => setHomeScore(Number(e.target.value))}
-                className="h-14 w-20 text-center font-mono text-3xl font-bold"
-              />
+    <Card className="overflow-hidden">
+      <CardContent className="p-0">
+        {/* Match header + score prediction */}
+        <div className="flex flex-col items-center gap-4 px-5 pt-5 pb-4">
+          <span className="font-mono text-[11px] text-muted-foreground">
+            <FormattedDate date={scheduledAt} />
+          </span>
+
+          {/* Teams + inline score steppers */}
+          <div className="grid w-full max-w-xs grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-1.5">
+            {/* Logos */}
+            <div className="flex justify-center">
+              <TeamLogo name={homeTeam.name} logoUrl={homeTeam.logoUrl} />
             </div>
-            <span className="pt-5 font-mono text-2xl text-muted-foreground">:</span>
-            <div className="flex flex-col items-center gap-1">
-              <Label className="text-xs text-muted-foreground">{t("awayScore")}</Label>
-              <Input
-                type="number"
-                min={0}
-                max={99}
-                value={awayScore}
-                onChange={(e) => setAwayScore(Number(e.target.value))}
-                className="h-14 w-20 text-center font-mono text-3xl font-bold"
-              />
+            <div />
+            <div className="flex justify-center">
+              <TeamLogo name={awayTeam.name} logoUrl={awayTeam.logoUrl} />
+            </div>
+
+            {/* Names */}
+            <span className="text-center text-xs font-medium leading-tight">{homeTeam.name}</span>
+            <div />
+            <span className="text-center text-xs font-medium leading-tight">{awayTeam.name}</span>
+
+            {/* Score steppers with colon */}
+            <div className="flex justify-center pt-1">
+              <ScoreStepper value={homeScore} onChange={setHomeScore} />
+            </div>
+            <span className="pt-1 text-center font-mono text-lg text-muted-foreground">:</span>
+            <div className="flex justify-center pt-1">
+              <ScoreStepper value={awayScore} onChange={setAwayScore} />
             </div>
           </div>
 
-          {/* Odds display */}
+          {/* Odds */}
           {odds ? (
-            <div className="flex justify-center gap-3">
+            <div className="flex gap-2">
               {[
                 { label: "1", value: odds.homeOdds, outcome: "1" },
                 { label: "X", value: odds.drawOdds, outcome: "X" },
@@ -142,55 +168,80 @@ export function BetForm({ matchId, groups, odds, matchStarted }: BetFormProps) {
               ].map((o) => (
                 <div
                   key={o.label}
-                  className={`flex flex-col items-center rounded-lg px-4 py-2 font-mono ${
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-mono text-sm transition-colors ${
                     predictedOutcome === o.outcome
-                      ? "bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/50"
+                      ? "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30"
                       : "bg-muted text-muted-foreground"
                   }`}
                 >
-                  <span className="text-xs">{o.label}</span>
-                  <span className="text-lg font-bold">{o.value}</span>
+                  <span className="text-[10px] opacity-50">{o.label}</span>
+                  <span className="font-semibold">{o.value}</span>
                 </div>
               ))}
             </div>
           ) : (
             <p className="text-center text-xs text-amber-500">{tMatches("oddsNotAvailable")}</p>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Per-group stake + submit */}
-      {groups.map((group) => (
-        <Card key={group.groupId}>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">{group.groupName}</CardTitle>
-            <Badge variant="outline" className="font-mono">
-              {t("availableTokens")}: {group.balance}
-            </Badge>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col gap-1">
-                <Label className="text-xs text-muted-foreground">{t("stake")}</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={group.balance}
-                  value={stakes[group.groupId] ?? 10}
-                  onChange={(e) =>
-                    setStakes({
-                      ...stakes,
-                      [group.groupId]: Number(e.target.value),
-                    })
-                  }
-                  className="w-24 font-mono"
-                />
-              </div>
+        {/* Per-group stake + submit */}
+        {groups.map((group) => (
+          <div key={group.groupId} className="border-t border-border px-5 py-4">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-sm font-medium">{group.groupName}</span>
+              <span className="font-mono text-xs text-muted-foreground">{group.balance} token</span>
             </div>
+
+            {/* Stake chips + custom input */}
+            <div className="mb-3 flex items-center gap-1.5">
+              <span className="mr-1 shrink-0 text-xs text-muted-foreground">{t("stake")}</span>
+              {STAKE_PRESETS.filter((p) => p <= group.balance).map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setStakes({ ...stakes, [group.groupId]: preset })}
+                  className={`rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors ${
+                    stakes[group.groupId] === preset
+                      ? "bg-foreground text-background"
+                      : "bg-muted text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+              {group.balance > 0 && !STAKE_PRESETS.includes(group.balance) && (
+                <button
+                  type="button"
+                  onClick={() => setStakes({ ...stakes, [group.groupId]: group.balance })}
+                  className={`rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors ${
+                    stakes[group.groupId] === group.balance
+                      ? "bg-foreground text-background"
+                      : "bg-muted text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  MAX
+                </button>
+              )}
+              <input
+                type="number"
+                min={1}
+                max={group.balance}
+                value={stakes[group.groupId] ?? 10}
+                onChange={(e) => setStakes({ ...stakes, [group.groupId]: Number(e.target.value) })}
+                className="ml-auto w-14 rounded-md border border-input bg-transparent px-2 py-1 text-center font-mono text-xs"
+              />
+            </div>
+
+            {/* Submit + cancel */}
             <div className="flex gap-2">
               <Button
                 onClick={() => handleSubmit(group.groupId)}
-                disabled={isPending}
+                disabled={
+                  isPending ||
+                  (stakes[group.groupId] ?? 0) > group.balance ||
+                  (stakes[group.groupId] ?? 0) < 1
+                }
+                size="sm"
                 className="flex-1"
               >
                 {group.existingBet ? t("update") : t("submit")}
@@ -198,6 +249,7 @@ export function BetForm({ matchId, groups, odds, matchStarted }: BetFormProps) {
               {group.existingBet && (
                 <Button
                   variant="destructive"
+                  size="sm"
                   onClick={() => handleCancel(group.existingBet?.id ?? "")}
                   disabled={isPending}
                 >
@@ -205,9 +257,9 @@ export function BetForm({ matchId, groups, odds, matchStarted }: BetFormProps) {
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }

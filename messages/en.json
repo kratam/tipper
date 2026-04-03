@@ -49,7 +49,10 @@
     "round": "Round {round}",
     "vs": "vs",
     "result": "Result",
-    "noMatches": "No matches yet"
+    "noMatches": "No matches yet",
+    "upcoming": "Upcoming",
+    "played": "Played",
+    "all": "All"
   },
   "betting": {
     "title": "Place Bet",
