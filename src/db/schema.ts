@@ -246,6 +246,10 @@ export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
   user: one(users, { fields: [groupMembers.userId], references: [users.id] }),
 }));
 
+export const matchOddsRelations = relations(matchOdds, ({ one }) => ({
+  match: one(matches, { fields: [matchOdds.matchId], references: [matches.id] }),
+}));
+
 export const betsRelations = relations(bets, ({ one }) => ({
   user: one(users, { fields: [bets.userId], references: [users.id] }),
   match: one(matches, { fields: [bets.matchId], references: [matches.id] }),
