@@ -311,20 +311,7 @@ if (!shouldCallApi) {
 - API hívás csak meccskezdés/-vége körül → ~90%-kal kevesebb request
 - Request budget: 56 meccs × 2 request (fixtures+odds) × ~3 hívás meccsenként = ~336 request az egész VB-re (vs. korábbi ~1736)
 
-**Cron triggerelés: külső szolgáltatás**
-
-A Vercel Hobby plan cron-ja naponta max 1x fut — ez nem elég. A `/api/cron/sync` endpoint viszont sima HTTP GET, bárki hívhatja a CRON_SECRET-tel. Használj ingyenes külső cron szolgáltatást:
-
-- **cron-job.org** (ingyenes, 5 perces minimum, korlátlan)
-- Vagy: EasyCron, Upstash QStash, GitHub Actions scheduled workflow
-
-Beállítás (cron-job.org):
-1. Regisztráció: https://cron-job.org
-2. Új job: URL = `https://tipper-chi.vercel.app/api/cron/sync`
-3. Schedule: `*/5 * * * *` (5 percenként)
-4. HTTP Method: GET
-5. Header: `Authorization: Bearer <CRON_SECRET értéke>`
-6. A `vercel.json` cron bejegyzés törölhető (vagy hagyd napi 1x fallback-nek)
+**Cron:** A projekt a GuestGuru Vercel Pro team-en van, ahol a `*/5 * * * *` cron natívan működik. A `vercel.json`-ban már be van állítva.
 
 **Fontos:** a meccs elején is kell sync (scheduled → live átmenet a tippek lezárásához). Ehhez bővítsd a feltételt:
 ```ts

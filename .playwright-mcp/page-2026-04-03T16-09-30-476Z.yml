@@ -1,0 +1,43 @@
+- generic:
+  - navigation:
+    - generic:
+      - link:
+        - /url: /hu
+        - text: Tipper
+      - generic:
+        - button [expanded]:
+          - img
+          - generic: hu
+        - button: Bejelentkezés
+  - main:
+    - generic:
+      - generic:
+        - heading [level=1]: Tipper
+        - paragraph: Tippelj sportmeccsekre, gyűjts pontokat, versenyezz barátaiddal!
+        - button: Bejelentkezés Google-lel
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - img
+            - generic: Tippelj
+          - generic:
+            - paragraph: Tippeld meg a meccsek pontos eredményét és válaszd ki a tétedet.
+        - generic:
+          - generic:
+            - generic:
+              - img
+            - generic: Versenyezz
+          - generic:
+            - paragraph: Hozz létre csoportokat és hívd meg barátaidat a versenyre.
+        - generic:
+          - generic:
+            - generic:
+              - img
+            - generic: Nyerj
+          - generic:
+            - paragraph: Gyűjts pontokat a pontos tippekért és kerülj a ranglista élére.
+  - alert
+  - menu "hu" [active] [ref=e50]:
+    - menuitem "Magyar" [ref=e51]
+    - menuitem "English" [ref=e52]

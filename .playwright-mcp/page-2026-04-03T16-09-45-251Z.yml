@@ -1,0 +1,33 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e49]
+  - navigation [ref=e53]:
+    - generic [ref=e54]:
+      - link "Tipper" [ref=e55] [cursor=pointer]:
+        - /url: /en
+      - generic [ref=e56]:
+        - button "en" [ref=e57]:
+          - img
+          - generic [ref=e58]: en
+        - button "Sign in" [ref=e59]
+  - main [ref=e60]:
+    - generic [ref=e61]:
+      - generic [ref=e62]:
+        - heading "Tipper" [level=1] [ref=e63]
+        - paragraph [ref=e64]: Predict sports matches, earn points, compete with friends!
+        - button "Sign in with Google" [ref=e65]
+      - generic [ref=e66]:
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - img [ref=e70]
+            - generic [ref=e74]: Predict
+          - paragraph [ref=e76]: Predict the exact score of matches and choose your stake.
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - img [ref=e80]
+            - generic [ref=e85]: Compete
+          - paragraph [ref=e87]: Create groups and invite your friends to compete.
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - img [ref=e91]
+            - generic [ref=e97]: Win
+          - paragraph [ref=e99]: Earn points for accurate predictions and climb the leaderboard.
