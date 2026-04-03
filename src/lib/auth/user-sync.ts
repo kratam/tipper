@@ -5,26 +5,47 @@ import { users } from "@/db/schema";
 import { auth } from "./server";
 
 export async function getCurrentUser() {
-  const { data: session } = await auth.getSession();
-  if (!session?.user) return null;
+  try {
+    const { data: session } = await auth.getSession();
+    if (!session?.user) return null;
 
-  const authUser = session.user;
+    const authUser = session.user;
 
-  const existing = await db.query.users.findFirst({
-    where: eq(users.email, authUser.email),
-  });
+    // Try to find by email first
+    const existing = await db.query.users.findFirst({
+      where: eq(users.email, authUser.email),
+    });
 
-  if (existing) return existing;
+    if (existing) return existing;
 
-  const [newUser] = await db
-    .insert(users)
-    .values({
-      googleId: authUser.id,
-      email: authUser.email,
-      name: authUser.name ?? authUser.email,
-      avatarUrl: authUser.image ?? null,
-    })
-    .returning();
+    // Try to find by googleId (neon auth user ID)
+    const existingByGoogleId = await db.query.users.findFirst({
+      where: eq(users.googleId, authUser.id),
+    });
 
-  return newUser;
+    if (existingByGoogleId) return existingByGoogleId;
+
+    // Create new user
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        googleId: authUser.id,
+        email: authUser.email,
+        name: authUser.name ?? authUser.email,
+        avatarUrl: authUser.image ?? null,
+      })
+      .onConflictDoUpdate({
+        target: users.email,
+        set: {
+          name: authUser.name ?? authUser.email,
+          avatarUrl: authUser.image ?? null,
+        },
+      })
+      .returning();
+
+    return newUser;
+  } catch (error) {
+    console.error("[getCurrentUser] Error:", error);
+    return null;
+  }
 }
