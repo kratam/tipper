@@ -1,0 +1,34 @@
+import "server-only";
+import { db } from "@/db";
+import { bets, matches } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+
+export async function getUserBetsForMatch(userId: string, matchId: string) {
+  return db.query.bets.findMany({
+    where: and(eq(bets.userId, userId), eq(bets.matchId, matchId)),
+    with: {
+      group: true,
+    },
+  });
+}
+
+export async function getUserBetsForTournament(
+  userId: string,
+  tournamentId: string,
+) {
+  return db.query.bets.findMany({
+    where: eq(bets.userId, userId),
+    with: {
+      match: {
+        with: {
+          homeTeam: true,
+          awayTeam: true,
+          tournament: true,
+        },
+      },
+      group: true,
+    },
+  }).then((allBets) =>
+    allBets.filter((bet) => bet.match.tournamentId === tournamentId),
+  );
+}
