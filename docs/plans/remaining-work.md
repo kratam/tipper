@@ -269,20 +269,83 @@ A cron sync jelenleg NEM oszt ki tokeneket. A spec szerint:
 
 Ez kritikus — nélküle a játékosoknak nincs tokenjük tippelni!
 
-### 3.2 Odds sync a 2026-os VB-hez
+### 3.2 Smart cron — API hívás csak meccsvége körül
+
+A cron gyakran fut (5-10 percenként), de az API-t NEM kell minden alkalommal meghívni. Egy jégkorong meccs ~2.5-3 óra (3×20 perc + szünetek). Az API-t ténylegesen csak akkor érdemes hívni, ha:
+- Van `live` státuszú meccs a DB-ben (ilyenkor mindenképp frissítsünk)
+- Van `scheduled` meccs aminek a várható vége ±30 percen belül van (`scheduled_at + 3 óra ± 30 perc`)
+- Vagy ha a legutóbbi sync óta eltelt >6 óra (naponta legalább pár sync a fixtures/odds frissítéséhez)
+
+**Logika a cron route elején:**
+```ts
+const MATCH_DURATION_MS = 3 * 60 * 60 * 1000; // ~3 óra
+const WINDOW_MS = 30 * 60 * 1000; // ±30 perc
+const now = Date.now();
+
+// Van-e live meccs?
+const liveMatches = await db.query.matches.findMany({
+  where: eq(matches.status, "live"),
+});
+
+// Van-e meccs aminek a várható vége közel?
+const nearEndMatches = await db.query.matches.findMany({
+  where: and(
+    eq(matches.status, "scheduled"),
+    // scheduled_at + 3h - 30m < now < scheduled_at + 3h + 30m
+    gte(matches.scheduledAt, new Date(now - MATCH_DURATION_MS - WINDOW_MS)),
+    lte(matches.scheduledAt, new Date(now - MATCH_DURATION_MS + WINDOW_MS)),
+  ),
+});
+
+const shouldCallApi = liveMatches.length > 0
+  || nearEndMatches.length > 0
+  || lastSyncWasMoreThan6HoursAgo;
+
+if (!shouldCallApi) {
+  return NextResponse.json({ ok: true, skipped: true, reason: "no matches near end" });
+}
+```
+
+**Előnyök:**
+- Cron futhat akár 5 percenként (Vercel Pro-n) → gyorsabb eredmény
+- API hívás csak meccsvége körül → ~90%-kal kevesebb request
+- Request budget: 56 meccs × 2 request (fixtures+odds) × ~3 hívás meccsenként = ~336 request az egész VB-re (vs. korábbi ~1736)
+
+**`vercel.json` frissítés** (Vercel Pro-ra váltás esetén):
+```json
+{
+  "crons": [{ "path": "/api/cron/sync", "schedule": "*/5 * * * *" }]
+}
+```
+
+A Hobby plan-en marad a napi 1x, de a logika készen áll a Pro-ra.
+
+**Fontos:** a meccs elején is kell sync (scheduled → live átmenet a tippek lezárásához). Ehhez bővítsd a feltételt:
+```ts
+// Van-e meccs ami hamarosan kezdődik? (±15 perc)
+const nearStartMatches = await db.query.matches.findMany({
+  where: and(
+    eq(matches.status, "scheduled"),
+    gte(matches.scheduledAt, new Date(now - 15 * 60 * 1000)),
+    lte(matches.scheduledAt, new Date(now + 15 * 60 * 1000)),
+  ),
+});
+```
+
+### 3.3 Odds sync a 2026-os VB-hez
 
 A 2026-os VB-hez nincsenek oddsok az API-ban (még nem elérhető). Az admin felületen legyen lehetőség kézzel oddsot megadni, VAGY a cron figyelje és töltse be amint elérhetővé válnak.
 
 **Tennivaló:** Az admin panelre adj hozzá meccsenkénti odds megadás lehetőséget (egyszerű form: match select + home/draw/away odds input).
 
-### 3.3 Join oldal hibaüzenetek
+### 3.4 Join oldal hibaüzenetek
 
 `src/app/[locale]/join/[code]/page.tsx` — ha a csoport nem található vagy a user már tag, a `joinGroup` action throw-ol. A page-nek kell error handling:
 - "Csoport nem található" üzenet
 - "Már tag vagy ebben a csoportban" → redirect a csoport oldalra
 - Sikeres csatlakozás → redirect a csoport oldalra (ez már működik)
 
-### 3.4 Nav — bejelentkezett állapot server-side
+### 3.5 Nav — bejelentkezett állapot server-side
 
 A `nav.tsx` client component, de a bejelentkezett állapotot nem kapja meg. A `getCurrentUser()` server-only. Megoldás:
 - A `[locale]/layout.tsx`-ben hívd meg a `getCurrentUser()`-t
