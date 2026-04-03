@@ -3,12 +3,12 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { BetForm } from "@/components/bet-form";
+import { FormattedDate } from "@/components/formatted-date";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
-import { formatDate } from "@/lib/utils";
 import { getUserBetsForMatch } from "@/queries/bets";
 import { getTokenBalance, getUserGroups } from "@/queries/groups";
 import { getMatchById } from "@/queries/matches";
@@ -87,7 +87,7 @@ export default async function MatchDetailPage({
         <CardContent className="flex flex-col gap-4 p-6">
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs text-muted-foreground">
-              {formatDate(match.scheduledAt, locale)}
+              <FormattedDate date={match.scheduledAt.toISOString()} />
             </span>
             {match.status === "live" && (
               <span className="flex items-center gap-1 text-xs font-medium text-red-500">
