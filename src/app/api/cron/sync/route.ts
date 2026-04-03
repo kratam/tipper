@@ -91,7 +91,7 @@ async function syncTournament(tournament: Tournament): Promise<void> {
         awayScore: newStatus === "finished" ? regulationScore.away : game.scores.away,
         status: newStatus,
         scheduledAt: new Date(game.date),
-        round: String(game.id),
+        round: new Date(game.date).toISOString().split("T")[0],
       });
     }
   }
