@@ -10,7 +10,10 @@ export function LandingContent() {
   const t = useTranslations("landing");
 
   function handleSignIn() {
-    authClient.signIn.social({ provider: "google" });
+    authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/tournaments",
+    });
   }
 
   return (

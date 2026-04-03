@@ -39,7 +39,7 @@ export function Nav({ user }: NavProps) {
   }
 
   function handleSignIn() {
-    authClient.signIn.social({ provider: "google" });
+    authClient.signIn.social({ provider: "google", callbackURL: "/tournaments" });
   }
 
   function handleSignOut() {
