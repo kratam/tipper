@@ -52,37 +52,35 @@ export function BetForm({ matchId, groups, odds, matchStarted }: BetFormProps) {
 
   function handleSubmit(groupId: string) {
     startTransition(async () => {
-      try {
-        await placeBet({
-          matchId,
-          groupId,
-          predictedHome: homeScore,
-          predictedAway: awayScore,
-          stake: stakes[groupId] ?? 10,
-        });
-        toast.success(
-          groups.find((g) => g.groupId === groupId)?.existingBet
-            ? t("updateSuccess")
-            : t("success"),
-        );
-        router.refresh();
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        toast.error(message);
+      const result = await placeBet({
+        matchId,
+        groupId,
+        predictedHome: homeScore,
+        predictedAway: awayScore,
+        stake: stakes[groupId] ?? 10,
+      });
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      toast.success(
+        groups.find((g) => g.groupId === groupId)?.existingBet
+          ? t("updateSuccess")
+          : t("success"),
+      );
+      router.refresh();
     });
   }
 
   function handleCancel(betId: string) {
     startTransition(async () => {
-      try {
-        await cancelBet(betId);
-        toast.success(t("cancelSuccess"));
-        router.refresh();
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        toast.error(message);
+      const result = await cancelBet(betId);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      toast.success(t("cancelSuccess"));
+      router.refresh();
     });
   }
 

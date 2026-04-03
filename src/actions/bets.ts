@@ -16,9 +16,11 @@ interface PlaceBetInput {
   stake: number;
 }
 
-export async function placeBet(input: PlaceBetInput) {
+type ActionResult = { success: true } | { success: false; error: string };
+
+export async function placeBet(input: PlaceBetInput): Promise<ActionResult> {
   const user = await getCurrentUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const { matchId, groupId, predictedHome, predictedAway, stake } = input;
 
@@ -26,21 +28,23 @@ export async function placeBet(input: PlaceBetInput) {
   const membership = await db.query.groupMembers.findFirst({
     where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, user.id)),
   });
-  if (!membership) throw new Error("Not a member of this group");
+  if (!membership) return { success: false, error: "Not a member of this group" };
 
   // Verify match is scheduled and hasn't started
   const matchRow = await db.query.matches.findFirst({
     where: eq(matches.id, matchId),
   });
-  if (!matchRow) throw new Error("Match not found");
-  if (matchRow.status !== "scheduled") throw new Error("Match already started or finished");
-  if (matchRow.scheduledAt <= new Date()) throw new Error("Match has already started");
+  if (!matchRow) return { success: false, error: "Match not found" };
+  if (matchRow.status !== "scheduled")
+    return { success: false, error: "Match already started or finished" };
+  if (matchRow.scheduledAt <= new Date())
+    return { success: false, error: "Match has already started" };
 
   // Get group info for tournamentId
   const group = await db.query.groups.findFirst({
     where: eq(groups.id, groupId),
   });
-  if (!group) throw new Error("Group not found");
+  if (!group) return { success: false, error: "Group not found" };
 
   // Get latest odds
   const latestOdds = await getLatestOdds(matchId);
@@ -66,7 +70,8 @@ export async function placeBet(input: PlaceBetInput) {
 
     // Check balance after refund
     const balanceAfterRefund = await getTokenBalance(user.id, groupId);
-    if (balanceAfterRefund < stake) throw new Error("Insufficient token balance");
+    if (balanceAfterRefund < stake)
+      return { success: false, error: "Insufficient token balance" };
 
     // Deduct new stake
     await db.insert(tokenLedger).values({
@@ -94,12 +99,12 @@ export async function placeBet(input: PlaceBetInput) {
       })
       .where(eq(bets.id, existingBet.id));
 
-    return existingBet;
+    return { success: true };
   }
 
   // New bet — check balance
   const balance = await getTokenBalance(user.id, groupId);
-  if (balance < stake) throw new Error("Insufficient token balance");
+  if (balance < stake) return { success: false, error: "Insufficient token balance" };
 
   const [newBet] = await db
     .insert(bets)
@@ -123,20 +128,21 @@ export async function placeBet(input: PlaceBetInput) {
     referenceId: newBet.id,
   });
 
-  return newBet;
+  return { success: true };
 }
 
-export async function cancelBet(betId: string) {
+export async function cancelBet(betId: string): Promise<ActionResult> {
   const user = await getCurrentUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const bet = await db.query.bets.findFirst({
     where: eq(bets.id, betId),
     with: { match: true, group: true },
   });
-  if (!bet) throw new Error("Bet not found");
-  if (bet.userId !== user.id) throw new Error("Unauthorized");
-  if (bet.match.scheduledAt <= new Date()) throw new Error("Match has already started");
+  if (!bet) return { success: false, error: "Bet not found" };
+  if (bet.userId !== user.id) return { success: false, error: "Unauthorized" };
+  if (bet.match.scheduledAt <= new Date())
+    return { success: false, error: "Match has already started" };
 
   // Refund stake
   await db.insert(tokenLedger).values({
@@ -149,4 +155,5 @@ export async function cancelBet(betId: string) {
   });
 
   await db.delete(bets).where(eq(bets.id, betId));
+  return { success: true };
 }
