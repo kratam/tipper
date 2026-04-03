@@ -1,0 +1,217 @@
+import { relations } from "drizzle-orm";
+import {
+  boolean,
+  decimal,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
+
+// Enums
+export const tournamentStatusEnum = pgEnum("tournament_status", [
+  "upcoming",
+  "active",
+  "finished",
+]);
+
+export const matchStatusEnum = pgEnum("match_status", [
+  "scheduled",
+  "live",
+  "finished",
+  "cancelled",
+]);
+
+export const tokenTypeEnum = pgEnum("token_type", [
+  "distribution",
+  "bet",
+  "win",
+  "carryover",
+  "refund",
+]);
+
+// Tables
+export const users = pgTable("users", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  googleId: text("google_id").unique().notNull(),
+  email: text("email").unique().notNull(),
+  name: text("name").notNull(),
+  avatarUrl: text("avatar_url"),
+  isAdmin: boolean("is_admin").default(false).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const tournaments = pgTable("tournaments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").unique().notNull(),
+  apiLeagueId: integer("api_league_id").notNull(),
+  apiSeason: integer("api_season").notNull(),
+  status: tournamentStatusEnum("status").default("upcoming").notNull(),
+  podiumLockDate: timestamp("podium_lock_date", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const teams = pgTable("teams", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  apiTeamId: integer("api_team_id").unique().notNull(),
+  name: text("name").notNull(),
+  logoUrl: text("logo_url"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const matches = pgTable("matches", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
+  apiGameId: integer("api_game_id").unique().notNull(),
+  homeTeamId: uuid("home_team_id").references(() => teams.id).notNull(),
+  awayTeamId: uuid("away_team_id").references(() => teams.id).notNull(),
+  homeScore: integer("home_score"),
+  awayScore: integer("away_score"),
+  status: matchStatusEnum("status").default("scheduled").notNull(),
+  scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
+  round: text("round").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const matchOdds = pgTable("match_odds", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  matchId: uuid("match_id").references(() => matches.id).notNull(),
+  homeOdds: decimal("home_odds", { precision: 6, scale: 2 }).notNull(),
+  drawOdds: decimal("draw_odds", { precision: 6, scale: 2 }).notNull(),
+  awayOdds: decimal("away_odds", { precision: 6, scale: 2 }).notNull(),
+  fetchedAt: timestamp("fetched_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const groups = pgTable("groups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").unique().notNull(),
+  inviteCode: text("invite_code").unique().notNull(),
+  ownerId: uuid("owner_id").references(() => users.id).notNull(),
+  tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
+  tokenPerRound: integer("token_per_round").default(100).notNull(),
+  bonusGoalDiff: integer("bonus_goal_diff").default(5).notNull(),
+  bonusExactScore: integer("bonus_exact_score").default(10).notNull(),
+  bonusPodiumMention: integer("bonus_podium_mention").default(20).notNull(),
+  bonusPodiumExact: integer("bonus_podium_exact").default(20).notNull(),
+  carryoverPercent: integer("carryover_percent").default(50).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const groupMembers = pgTable(
+  "group_members",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    groupId: uuid("group_id").references(() => groups.id).notNull(),
+    userId: uuid("user_id").references(() => users.id).notNull(),
+    joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("group_user_idx").on(table.groupId, table.userId)],
+);
+
+export const bets = pgTable(
+  "bets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").references(() => users.id).notNull(),
+    matchId: uuid("match_id").references(() => matches.id).notNull(),
+    groupId: uuid("group_id").references(() => groups.id).notNull(),
+    predictedHome: integer("predicted_home").notNull(),
+    predictedAway: integer("predicted_away").notNull(),
+    stake: integer("stake").notNull(),
+    oddsAtBet: decimal("odds_at_bet", { precision: 6, scale: 2 }),
+    result1x2Correct: boolean("result_1x2_correct"),
+    goalDiffCorrect: boolean("goal_diff_correct"),
+    exactScoreCorrect: boolean("exact_score_correct"),
+    payout: integer("payout"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("bet_unique_idx").on(table.userId, table.matchId, table.groupId)],
+);
+
+export const podiumBets = pgTable(
+  "podium_bets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").references(() => users.id).notNull(),
+    tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
+    groupId: uuid("group_id").references(() => groups.id).notNull(),
+    goldTeamId: uuid("gold_team_id").references(() => teams.id).notNull(),
+    silverTeamId: uuid("silver_team_id").references(() => teams.id).notNull(),
+    bronzeTeamId: uuid("bronze_team_id").references(() => teams.id).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("podium_unique_idx").on(table.userId, table.tournamentId, table.groupId)],
+);
+
+export const tokenLedger = pgTable("token_ledger", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  groupId: uuid("group_id").references(() => groups.id).notNull(),
+  tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
+  amount: integer("amount").notNull(),
+  type: tokenTypeEnum("type").notNull(),
+  referenceId: uuid("reference_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  groupMemberships: many(groupMembers),
+  bets: many(bets),
+  podiumBets: many(podiumBets),
+  ownedGroups: many(groups),
+}));
+
+export const tournamentsRelations = relations(tournaments, ({ many }) => ({
+  matches: many(matches),
+  groups: many(groups),
+}));
+
+export const teamsRelations = relations(teams, ({ many }) => ({
+  homeMatches: many(matches, { relationName: "homeTeam" }),
+  awayMatches: many(matches, { relationName: "awayTeam" }),
+}));
+
+export const matchesRelations = relations(matches, ({ one, many }) => ({
+  tournament: one(tournaments, {
+    fields: [matches.tournamentId],
+    references: [tournaments.id],
+  }),
+  homeTeam: one(teams, {
+    fields: [matches.homeTeamId],
+    references: [teams.id],
+    relationName: "homeTeam",
+  }),
+  awayTeam: one(teams, {
+    fields: [matches.awayTeamId],
+    references: [teams.id],
+    relationName: "awayTeam",
+  }),
+  odds: many(matchOdds),
+  bets: many(bets),
+}));
+
+export const groupsRelations = relations(groups, ({ one, many }) => ({
+  owner: one(users, { fields: [groups.ownerId], references: [users.id] }),
+  tournament: one(tournaments, { fields: [groups.tournamentId], references: [tournaments.id] }),
+  members: many(groupMembers),
+  bets: many(bets),
+}));
+
+export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
+  group: one(groups, { fields: [groupMembers.groupId], references: [groups.id] }),
+  user: one(users, { fields: [groupMembers.userId], references: [users.id] }),
+}));
+
+export const betsRelations = relations(bets, ({ one }) => ({
+  user: one(users, { fields: [bets.userId], references: [users.id] }),
+  match: one(matches, { fields: [bets.matchId], references: [matches.id] }),
+  group: one(groups, { fields: [bets.groupId], references: [groups.id] }),
+}));
