@@ -35,12 +35,12 @@
 
 ## Fázis 1: Tesztelési infrastruktúra
 
-### 1.1 Neon test branch
+### 1.1 Neon test branch (prod másolat)
 
-Neon branch-ek a produkcióstól izolált test környezetet adnak.
+A Neon instant branching copy-on-write másolatot csinál a produkcióról — az összes adat (meccsek, csapatok, userek, oddsok) azonnal benne van. Nem kell kézzel seed-elni.
 
 **Lépések:**
-1. Neon MCP-vel hozz létre egy `test` branch-et:
+1. Neon MCP-vel hozz létre egy `test` branch-et a production-ról:
    ```
    mcp__Neon__create_branch(projectId: "patient-leaf-69938778", branchName: "test")
    ```
@@ -57,40 +57,56 @@ Neon branch-ek a produkcióstól izolált test környezetet adnak.
    NEXT_PUBLIC_APP_URL=http://localhost:3000
    CRON_SECRET=test-secret
    ```
+4. Ha a tesztek elrontják az adatokat, dobd el és hozd újra létre a branch-et (instant, 0 költség):
+   ```
+   mcp__Neon__delete_branch(projectId: "patient-leaf-69938778", branchId: "<test-branch-id>")
+   mcp__Neon__create_branch(projectId: "patient-leaf-69938778", branchName: "test")
+   ```
+   Vagy használd a `reset_from_parent` funkciót:
+   ```
+   mcp__Neon__reset_from_parent(projectId: "patient-leaf-69938778", branchId: "<test-branch-id>")
+   ```
 
-### 1.2 Test seed script
+### 1.2 Test user seed (minimális)
 
-Hozz létre `src/db/seed.ts` — seed data a test branch-en:
+A branch a produkció másolata, szóval a meccsek/csapatok/oddsok megvannak. Csak ami hiányzik:
+- Test user a `neon_auth` sémában (session cookie-hoz)
+- Test user a `public.users` táblában (isAdmin: true)
+- 2 csoport a test userrel (token kiosztással)
+
+Hozz létre `src/db/seed-test-user.ts`:
 
 ```ts
 // Tartalma:
-// 1. Test user (isAdmin: true) — googleId: "test-user-1", email: "test@tipper.dev"
-// 2. Tournament: "Test VB 2026" (upcoming, majd active-ra állítjuk)
-// 3. 2 csoport: "Teszt Csoport A" és "Teszt Csoport B" (különböző szabályokkal)
-// 4. Test user tagja mindkét csoportnak
-// 5. Token kiosztás: distribution bejegyzések a token_ledger-be (100 token / csoport)
-// 6. 4-5 scheduled meccs (kézzel létrehozott, nem API-ból) fake csapatokkal
-// 7. Odds az első 3 meccshez
-// 8. 1 finished meccs eredménnyel (a pontozás teszteléséhez)
+// 1. INSERT INTO neon_auth.user — test user (id: "test-user-uuid", email: "test@tipper.dev", name: "Test Admin")
+// 2. INSERT INTO neon_auth.session — aktív session token ehhez a userhez (token: "test-session-token", expiresAt: +30 nap)
+// 3. INSERT INTO public.users — (googleId: "test-user-uuid", email: "test@tipper.dev", isAdmin: true)
+// 4. INSERT INTO public.groups — 2 csoport a "Jégkorong VB 2026" tournament-hez, owner: test user
+// 5. INSERT INTO public.group_members — test user tagja mindkét csoportnak
+// 6. INSERT INTO public.token_ledger — 200 token kiosztás csoportonként (type: "distribution")
 ```
 
-Futtatás: `npx tsx src/db/seed.ts` (dotenv-vel a `.env.test.local`-ból olvasson)
+Futtatás: `npx tsx src/db/seed-test-user.ts` (dotenv-vel a `.env.test.local`-ból olvasson)
 
-Adj hozzá script-et a `package.json`-be:
+Adj hozzá script-eket a `package.json`-be:
 ```json
 {
-  "db:seed": "dotenv -e .env.test.local -- npx tsx src/db/seed.ts"
+  "db:seed-test": "dotenv -e .env.test.local -- npx tsx src/db/seed-test-user.ts",
+  "db:reset-test": "neon branches reset --project-id patient-leaf-69938778 --branch test"
 }
 ```
 
 ### 1.3 Playwright E2E tesztek auth-tal
 
-A Neon Auth nem tesztelhető headless Google OAuth-on keresztül. Megoldás: **test user session cookie inject.**
+A Neon Auth nem tesztelhető headless Google OAuth-on keresztül. Megoldás: **test session cookie inject.**
+
+A seed script már létrehozott egy session-t a `neon_auth.session` táblában. A Playwright tesztnek ezt a session token-t kell cookie-ként inject-álnia.
 
 **Megközelítés:**
-1. A seed script létrehoz egy test usert a `neon_auth.user` és `neon_auth.session` táblákban
-2. A Playwright teszt a session token-t cookie-ként inject-álja a böngészőbe a `auth.api.setSession()` vagy közvetlen cookie set-tel
-3. Alternatíva: adj hozzá egy `/api/auth/test-login` route-ot ami CSAK `NODE_ENV=test` esetén működik, és létrehozza a session-t
+1. A seed script ismert session token-t ír a `neon_auth.session` táblába (pl. `"test-session-token-abc123"`)
+2. A Playwright `globalSetup` a Neon Auth cookie formátumát használva inject-álja a cookie-t a böngészőbe
+3. Minden teszt előtt a `storageState`-ből betöltődik a session → a user bejelentkezve van
+4. Alternatíva: adj hozzá egy `GET /api/auth/test-login` route-ot ami CSAK `process.env.CRON_SECRET === "test-secret"` esetén működik, és a Neon Auth `getSession()`-t hívva létrehozza a session cookie-t. A Playwright ezt hívja meg `page.goto()` előtt.
 
 Hozz létre `tests/e2e/` mappát:
 ```
