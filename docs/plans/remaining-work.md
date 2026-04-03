@@ -5,7 +5,7 @@
 ## Jelenlegi állapot
 
 - **Repo:** github.com/kratam/tipper
-- **Deploy:** https://tipper-chi.vercel.app (Vercel, auto deploy on push)
+- **Deploy:** https://tipper-guestguru.vercel.app (Vercel Pro, GuestGuru team, auto deploy on push)
 - **DB:** Neon `patient-leaf-69938778` (eu-central-1), Drizzle ORM
 - **Auth:** Neon Auth (`@neondatabase/auth@0.2.0-beta.1`), Google login, shared OAuth keys
 - **Stack:** Next.js 16.2.2, TypeScript, Shadcn UI (nova), Tailwind v4, Biome 2.4.10, next-intl, Vitest
