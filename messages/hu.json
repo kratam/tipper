@@ -1,0 +1,90 @@
+{
+  "common": {
+    "appName": "Tipper",
+    "login": "Bejelentkezés",
+    "logout": "Kijelentkezés",
+    "save": "Mentés",
+    "cancel": "Mégse",
+    "back": "Vissza",
+    "loading": "Betöltés...",
+    "error": "Hiba történt"
+  },
+  "nav": {
+    "tournaments": "Versenysorozatok",
+    "groups": "Csoportjaim",
+    "admin": "Admin"
+  },
+  "landing": {
+    "title": "Tipper",
+    "subtitle": "Tippelj sportmeccsekre, gyűjts pontokat, versenyezz barátaiddal!",
+    "cta": "Bejelentkezés Google-lel"
+  },
+  "tournaments": {
+    "title": "Versenysorozatok",
+    "upcoming": "Közelgő",
+    "active": "Aktív",
+    "finished": "Befejezett",
+    "matches": "Meccsek",
+    "podium": "Dobogós tipp"
+  },
+  "matches": {
+    "scheduled": "Tervezett",
+    "live": "Élő",
+    "finished": "Befejezett",
+    "yourBet": "A tipped",
+    "noBet": "Még nem tippeltél",
+    "betLocked": "A tippelés lezárult",
+    "oddsNotAvailable": "Az odds még nem elérhető, az első betöltött odds alapján számolunk."
+  },
+  "betting": {
+    "title": "Tippelés",
+    "prediction": "Tipped",
+    "stake": "Tét",
+    "availableTokens": "Elérhető tokenek",
+    "submit": "Tipp leadása",
+    "update": "Tipp módosítása",
+    "cancel": "Tipp visszavonása",
+    "sameForAll": "Ugyanez a tipp minden csoportomban",
+    "customPerGroup": "Csoportonként külön"
+  },
+  "groups": {
+    "title": "Csoportjaim",
+    "create": "Új csoport létrehozása",
+    "name": "Csoport neve",
+    "inviteCode": "Meghívó kód",
+    "copyLink": "Meghívó link másolása",
+    "members": "Tagok",
+    "settings": "Beállítások",
+    "leaderboard": "Ranglista",
+    "join": "Csatlakozás",
+    "leave": "Kilépés",
+    "tokenPerRound": "Token/kör",
+    "bonusGoalDiff": "Gólkülönbség bónusz",
+    "bonusExactScore": "Pontos eredmény bónusz",
+    "bonusPodiumMention": "Dobogós említés bónusz",
+    "bonusPodiumExact": "Pontos helyezés bónusz",
+    "carryoverPercent": "Átvitel %"
+  },
+  "podium": {
+    "title": "Dobogós tipp",
+    "gold": "Aranyérem",
+    "silver": "Ezüstérem",
+    "bronze": "Bronzérem",
+    "locked": "A dobogós tippelés lezárult",
+    "submit": "Dobogós tipp leadása"
+  },
+  "leaderboard": {
+    "rank": "Helyezés",
+    "player": "Játékos",
+    "points": "Pontok",
+    "balance": "Egyenleg"
+  },
+  "admin": {
+    "title": "Admin",
+    "createTournament": "Versenysorozat létrehozása",
+    "syncNow": "Szinkronizálás most",
+    "tournamentName": "Név",
+    "leagueId": "Liga ID",
+    "season": "Szezon"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "common": {
+    "appName": "Tipper",
+    "login": "Sign in",
+    "logout": "Sign out",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "loading": "Loading...",
+    "error": "Something went wrong"
+  },
+  "nav": {
+    "tournaments": "Tournaments",
+    "groups": "My Groups",
+    "admin": "Admin"
+  },
+  "landing": {
+    "title": "Tipper",
+    "subtitle": "Predict sports matches, earn points, compete with friends!",
+    "cta": "Sign in with Google"
+  },
+  "tournaments": {
+    "title": "Tournaments",
+    "upcoming": "Upcoming",
+    "active": "Active",
+    "finished": "Finished",
+    "matches": "Matches",
+    "podium": "Podium Prediction"
+  },
+  "matches": {
+    "scheduled": "Scheduled",
+    "live": "Live",
+    "finished": "Finished",
+    "yourBet": "Your bet",
+    "noBet": "No bet yet",
+    "betLocked": "Betting is closed",
+    "oddsNotAvailable": "Odds not yet available. Your bet will use the first available odds."
+  },
+  "betting": {
+    "title": "Place Bet",
+    "prediction": "Your prediction",
+    "stake": "Stake",
+    "availableTokens": "Available tokens",
+    "submit": "Place bet",
+    "update": "Update bet",
+    "cancel": "Cancel bet",
+    "sameForAll": "Same bet for all my groups",
+    "customPerGroup": "Custom per group"
+  },
+  "groups": {
+    "title": "My Groups",
+    "create": "Create new group",
+    "name": "Group name",
+    "inviteCode": "Invite code",
+    "copyLink": "Copy invite link",
+    "members": "Members",
+    "settings": "Settings",
+    "leaderboard": "Leaderboard",
+    "join": "Join",
+    "leave": "Leave",
+    "tokenPerRound": "Tokens/round",
+    "bonusGoalDiff": "Goal difference bonus",
+    "bonusExactScore": "Exact score bonus",
+    "bonusPodiumMention": "Podium mention bonus",
+    "bonusPodiumExact": "Exact placement bonus",
+    "carryoverPercent": "Carryover %"
+  },
+  "podium": {
+    "title": "Podium Prediction",
+    "gold": "Gold",
+    "silver": "Silver",
+    "bronze": "Bronze",
+    "locked": "Podium predictions are locked",
+    "submit": "Submit podium prediction"
+  },
+  "leaderboard": {
+    "rank": "Rank",
+    "player": "Player",
+    "points": "Points",
+    "balance": "Balance"
+  },
+  "admin": {
+    "title": "Admin",
+    "createTournament": "Create Tournament",
+    "syncNow": "Sync Now",
+    "tournamentName": "Name",
+    "leagueId": "League ID",
+    "season": "Season"
+  }
+}
