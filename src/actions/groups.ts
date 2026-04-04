@@ -47,7 +47,13 @@ export async function createGroup(input: CreateGroupInput) {
   });
 
   // Distribute initial tokens for the current round
-  await distributeInitialTokens(user.id, group.id, input.tournamentId, group.tokenPerRound);
+  await distributeInitialTokens(
+    user.id,
+    group.id,
+    input.tournamentId,
+    group.initialTokens,
+    group.tokenPerMatch,
+  );
 
   return group;
 }
@@ -70,18 +76,25 @@ export async function joinGroup(inviteCode: string) {
   });
 
   // Distribute initial tokens for the current round
-  await distributeInitialTokens(user.id, group.id, group.tournamentId, group.tokenPerRound);
+  await distributeInitialTokens(
+    user.id,
+    group.id,
+    group.tournamentId,
+    group.initialTokens,
+    group.tokenPerMatch,
+  );
 
   redirect(`/groups/${group.slug}`);
 }
 
 interface GroupSettings {
-  tokenPerRound?: number;
+  tokenPerMatch?: number;
+  initialTokens?: number;
+  distributionDaysBefore?: number;
   bonusGoalDiff?: number;
   bonusExactScore?: number;
   bonusPodiumMention?: number;
   bonusPodiumExact?: number;
-  carryoverPercent?: number;
 }
 
 export async function updateGroupSettings(groupId: string, settings: GroupSettings) {
@@ -135,19 +148,18 @@ export async function leaveGroup(groupId: string) {
 }
 
 /**
- * Give a user their initial token_per_round distribution when they join/create a group.
- * Idempotent: skips if they already received distribution today.
+ * Give a user their initial tokens + catch-up tokens for all matches
+ * that have already been distributed in this group.
  */
 async function distributeInitialTokens(
   userId: string,
   groupId: string,
   tournamentId: string,
-  tokenPerRound: number,
+  initialTokens: number,
+  tokenPerMatch: number,
 ): Promise<void> {
-  const today = new Date().toISOString().split("T")[0];
-
-  // Idempotency: skip if user already received distribution today for this group
-  const existing = await db
+  // 1. Initial tokens (one-time, referenceId=NULL)
+  const existingInitial = await db
     .select({ count: sql<number>`count(*)` })
     .from(tokenLedger)
     .where(
@@ -155,17 +167,56 @@ async function distributeInitialTokens(
         eq(tokenLedger.userId, userId),
         eq(tokenLedger.groupId, groupId),
         eq(tokenLedger.type, "distribution"),
-        sql`${tokenLedger.createdAt}::date = ${today}::date`,
+        sql`${tokenLedger.referenceId} IS NULL`,
       ),
     );
 
-  if (Number(existing[0].count) > 0) return;
+  if (Number(existingInitial[0].count) === 0) {
+    await db.insert(tokenLedger).values({
+      userId,
+      groupId,
+      tournamentId,
+      amount: initialTokens,
+      type: "distribution",
+    });
+  }
 
-  await db.insert(tokenLedger).values({
-    userId,
-    groupId,
-    tournamentId,
-    amount: tokenPerRound,
-    type: "distribution",
-  });
+  // 2. Catch-up: find all matches that have been distributed to ANY member in this group
+  const distributedMatchIds = await db
+    .selectDistinct({ matchId: tokenLedger.referenceId })
+    .from(tokenLedger)
+    .where(
+      and(
+        eq(tokenLedger.groupId, groupId),
+        eq(tokenLedger.type, "distribution"),
+        sql`${tokenLedger.referenceId} IS NOT NULL`,
+      ),
+    );
+
+  for (const { matchId } of distributedMatchIds) {
+    if (!matchId) continue;
+
+    const existing = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(tokenLedger)
+      .where(
+        and(
+          eq(tokenLedger.userId, userId),
+          eq(tokenLedger.groupId, groupId),
+          eq(tokenLedger.type, "distribution"),
+          eq(tokenLedger.referenceId, matchId),
+        ),
+      );
+
+    if (Number(existing[0].count) > 0) continue;
+
+    await db.insert(tokenLedger).values({
+      userId,
+      groupId,
+      tournamentId,
+      amount: tokenPerMatch,
+      type: "distribution",
+      referenceId: matchId,
+    });
+  }
 }
