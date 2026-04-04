@@ -69,7 +69,11 @@ export async function placeBet(input: PlaceBetInput): Promise<ActionResult> {
     });
 
     // Check projected balance after refund
-    const { projected: projectedAfterRefund } = await getProjectedBalance(user.id, groupId, matchId);
+    const { projected: projectedAfterRefund } = await getProjectedBalance(
+      user.id,
+      groupId,
+      matchId,
+    );
     if (projectedAfterRefund < stake)
       return { success: false, error: "Insufficient token balance" };
 

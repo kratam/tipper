@@ -76,6 +76,16 @@ users, tournaments, teams, matches, match_odds, groups, group_members, bets, pod
 
 A `neon_auth` schema külön (Better Auth által kezelt): user, session, account, verification, jwks
 
+## Token rendszer
+
+Per-meccs token modell:
+- `groups.token_per_match` — meccsenként ennyi tokent kap mindenki
+- `groups.initial_tokens` — egyszeri indulótőke csatlakozáskor
+- `groups.distribution_days_before` — hány nappal meccs előtt jön a kiosztás
+- Carryover nincs — ami megmarad, megmarad
+- Vetített egyenleg (projected balance): a tippelhető összeg meccs-specifikus, aktuális egyenleg + pending kiosztások × tokenPerMatch
+- Csatlakozáskor catch-up: megkapja a múltbeli meccsek tokenjeit is
+
 ## Cron sync logika
 
 `/api/cron/sync` — minden aktív versenysorozathoz:
@@ -83,6 +93,7 @@ A `neon_auth` schema külön (Better Auth által kezelt): user, session, account
 2. Odds sync → match_odds tábla + NULL odds_at_bet kitöltés
 3. Finished meccsek pontozása → bets.payout + token_ledger
 4. Cancelled meccsek → refund
+5. Per-meccs token kiosztás (distributionDaysBefore napon belüli meccsekre)
 
 ## Ismert korlátok
 
