@@ -216,6 +216,38 @@
       "text": "For privacy-related questions, contact the application operator at krasser.tamas@gmail.com."
     }
   },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: April 4, 2026",
+    "service": {
+      "title": "Service description",
+      "text": "TippCasino (tippcasino.vercel.app) is a free entertainment-only prediction game where users predict sports match results using virtual tokens. The application does not involve real-money gambling."
+    },
+    "accounts": {
+      "title": "Accounts and access",
+      "text": "A Google account is required to use the service. Users are responsible for all activity under their account. The operator reserves the right to suspend or delete any account without notice."
+    },
+    "usage": {
+      "title": "Acceptable use",
+      "text": "The service is for entertainment purposes only. Manipulating the system, automated betting, harassing other users, or any illegal activity is prohibited."
+    },
+    "tokens": {
+      "title": "Virtual tokens",
+      "text": "Tokens used in the application are purely virtual and hold no real-world value. Tokens cannot be exchanged for money or transferred between users."
+    },
+    "liability": {
+      "title": "Limitation of liability",
+      "text": "The service is provided as-is, without warranty. The operator is not liable for service outages, data loss, or any damages incurred by users."
+    },
+    "changes": {
+      "title": "Changes to terms",
+      "text": "The operator reserves the right to modify these terms at any time. Changes will be posted on this page. Continued use of the service constitutes acceptance of the modified terms."
+    },
+    "contact": {
+      "title": "Contact",
+      "text": "For questions, contact the application operator at krasser.tamas@gmail.com."
+    }
+  },
   "profile": {
     "displayNameLabel": "Display name",
     "displayNameDescription": "This is how others will see you. Leave empty to use your Google name.",

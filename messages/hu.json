@@ -216,6 +216,38 @@
       "text": "Adatvédelmi kérdésekkel az alkalmazás üzemeltetőjéhez fordulhatsz a krasser.tamas@gmail.com e-mail címen."
     }
   },
+  "terms": {
+    "title": "Felhasználási feltételek",
+    "lastUpdated": "Utolsó frissítés: 2026. április 4.",
+    "service": {
+      "title": "A szolgáltatás leírása",
+      "text": "A TippCasino (tippcasino.vercel.app) egy ingyenes, szórakozási célú tippjáték, amelyben a felhasználók sportmeccsek eredményeire tippelhetnek virtuális tokenekkel. Az alkalmazás nem tartalmaz valódi pénzes fogadást."
+    },
+    "accounts": {
+      "title": "Fiók és hozzáférés",
+      "text": "A szolgáltatás használatához Google-fiókkal kell bejelentkezni. A felhasználó felelős a fiókjával végzett tevékenységekért. Az üzemeltető fenntartja a jogot bármely fiók felfüggesztésére vagy törlésére indoklás nélkül."
+    },
+    "usage": {
+      "title": "Elfogadható használat",
+      "text": "A szolgáltatást kizárólag szórakozási célra lehet használni. Tilos a rendszer manipulálása, automatizált tippelés, más felhasználók zavarása, vagy bármilyen jogellenes tevékenység."
+    },
+    "tokens": {
+      "title": "Virtuális tokenek",
+      "text": "Az alkalmazásban használt tokenek kizárólag virtuálisak, semmilyen valódi értéket nem képviselnek. A tokenek nem válthatók pénzre, és nem ruházhatók át."
+    },
+    "liability": {
+      "title": "Felelősség kizárása",
+      "text": "A szolgáltatás minden garancia nélkül, a jelenlegi formájában érhető el. Az üzemeltető nem vállal felelősséget a szolgáltatás kieséseiért, adatvesztésért, vagy a felhasználó által elszenvedett bármilyen kárért."
+    },
+    "changes": {
+      "title": "Feltételek módosítása",
+      "text": "Az üzemeltető fenntartja a jogot a feltételek bármikori módosítására. A módosításokat az oldalon tesszük közzé. A szolgáltatás további használata a módosított feltételek elfogadását jelenti."
+    },
+    "contact": {
+      "title": "Kapcsolat",
+      "text": "Kérdésekkel az alkalmazás üzemeltetőjéhez fordulhatsz a krasser.tamas@gmail.com e-mail címen."
+    }
+  },
   "profile": {
     "displayNameLabel": "Becenév",
     "displayNameDescription": "Így fognak látni mások. Ha üresen hagyod, a Google neved jelenik meg.",
