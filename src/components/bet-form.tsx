@@ -72,15 +72,17 @@ function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
   );
 }
 
-function computeStakePresets(balance: number): { value: number; label: string }[] {
-  const quarter = Math.floor(balance * 0.25);
-  const half = Math.floor(balance * 0.5);
+function computeStakePresets(balance: number, matchCount: number): { value: number; label: string }[] {
+  const evenShare = Math.floor(balance / matchCount);
+  const doubleShare = Math.floor((balance * 2) / matchCount);
+  const evenPct = Math.round(100 / matchCount);
+  const doublePct = Math.min(100, evenPct * 2);
   const presets: { value: number; label: string }[] = [];
   const seen = new Set<number>();
 
   for (const { value, label } of [
-    { value: quarter, label: "25%" },
-    { value: half, label: "50%" },
+    { value: evenShare, label: `${evenPct}%` },
+    { value: doubleShare, label: `${doublePct}%` },
     { value: balance, label: "MAX" },
   ]) {
     if (value >= 1 && !seen.has(value)) {
@@ -254,7 +256,7 @@ export function BetForm({ matchId, groups, bettableMatchCountToday, odds, homeTe
             {/* Stake chips + custom input */}
             <div className="mb-3 flex items-center gap-1.5">
               <span className="mr-1 shrink-0 text-xs text-muted-foreground">{t("stake")}</span>
-              {computeStakePresets(group.projectedBalance).map((preset) => (
+              {computeStakePresets(group.projectedBalance, bettableMatchCountToday).map((preset) => (
                 <button
                   key={preset.label}
                   type="button"
