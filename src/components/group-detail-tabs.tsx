@@ -38,6 +38,7 @@ interface GroupSettings {
   bonusExactScore: number;
   bonusPodiumMention: number;
   bonusPodiumExact: number;
+  oddsBoost: number;
 }
 
 interface GroupDetailTabsProps {
@@ -325,6 +326,23 @@ export function GroupDetailTabs({
                           setSettings({
                             ...settings,
                             bonusPodiumExact: Number(e.target.value),
+                          })
+                        }
+                        className="font-mono"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="text-xs">{t("oddsBoost")}</Label>
+                      <Input
+                        type="number"
+                        min={1.0}
+                        max={3.0}
+                        step={0.1}
+                        value={settings.oddsBoost}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            oddsBoost: Number(e.target.value),
                           })
                         }
                         className="font-mono"

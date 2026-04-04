@@ -37,6 +37,7 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
     bonusExactScore: 10,
     bonusPodiumMention: 20,
     bonusPodiumExact: 20,
+    oddsBoost: 1.0,
   });
 
   function handleSubmit(e: React.FormEvent) {
@@ -175,6 +176,20 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
                     value={settings.bonusPodiumExact}
                     onChange={(e) =>
                       setSettings({ ...settings, bonusPodiumExact: Number(e.target.value) })
+                    }
+                    className="font-mono"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">{t("oddsBoost")}</Label>
+                  <Input
+                    type="number"
+                    min={1.0}
+                    max={3.0}
+                    step={0.1}
+                    value={settings.oddsBoost}
+                    onChange={(e) =>
+                      setSettings({ ...settings, oddsBoost: Number(e.target.value) })
                     }
                     className="font-mono"
                   />
