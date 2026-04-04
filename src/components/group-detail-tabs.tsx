@@ -30,12 +30,13 @@ interface MemberInfo {
 }
 
 interface GroupSettings {
-  tokenPerRound: number;
+  tokenPerMatch: number;
+  initialTokens: number;
+  distributionDaysBefore: number;
   bonusGoalDiff: number;
   bonusExactScore: number;
   bonusPodiumMention: number;
   bonusPodiumExact: number;
-  carryoverPercent: number;
 }
 
 interface GroupDetailTabsProps {
@@ -211,14 +212,44 @@ export function GroupDetailTabs({
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1">
-                      <Label className="text-xs">{t("tokenPerRound")}</Label>
+                      <Label className="text-xs">{t("tokenPerMatch")}</Label>
                       <Input
                         type="number"
-                        value={settings.tokenPerRound}
+                        value={settings.tokenPerMatch}
                         onChange={(e) =>
                           setSettings({
                             ...settings,
-                            tokenPerRound: Number(e.target.value),
+                            tokenPerMatch: Number(e.target.value),
+                          })
+                        }
+                        className="font-mono"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="text-xs">{t("initialTokens")}</Label>
+                      <Input
+                        type="number"
+                        value={settings.initialTokens}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            initialTokens: Number(e.target.value),
+                          })
+                        }
+                        className="font-mono"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="text-xs">{t("distributionDaysBefore")}</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={30}
+                        value={settings.distributionDaysBefore}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            distributionDaysBefore: Number(e.target.value),
                           })
                         }
                         className="font-mono"
@@ -275,22 +306,6 @@ export function GroupDetailTabs({
                           setSettings({
                             ...settings,
                             bonusPodiumExact: Number(e.target.value),
-                          })
-                        }
-                        className="font-mono"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">{t("carryoverPercent")}</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={settings.carryoverPercent}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            carryoverPercent: Number(e.target.value),
                           })
                         }
                         className="font-mono"

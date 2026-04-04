@@ -60,12 +60,13 @@ export default async function GroupDetailPage({
           avatarUrl: m.user.avatarUrl,
         }))}
         settings={{
-          tokenPerRound: group.tokenPerRound,
+          tokenPerMatch: group.tokenPerMatch,
+          initialTokens: group.initialTokens,
+          distributionDaysBefore: group.distributionDaysBefore,
           bonusGoalDiff: group.bonusGoalDiff,
           bonusExactScore: group.bonusExactScore,
           bonusPodiumMention: group.bonusPodiumMention,
           bonusPodiumExact: group.bonusPodiumExact,
-          carryoverPercent: group.carryoverPercent,
         }}
       />
     </div>
