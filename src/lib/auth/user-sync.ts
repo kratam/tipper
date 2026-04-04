@@ -1,12 +1,36 @@
 import "server-only";
 import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { auth } from "./server";
+
+// Direct read-only session fetch — avoids cookies().set() which Next.js prohibits
+// in Server Components. The auth SDK internally caches sessions via Set-Cookie,
+// causing "Cookies can only be modified in a Server Action or Route Handler".
+async function fetchSession(): Promise<{
+  user: { id: string; email: string; name?: string | null; image?: string | null };
+} | null> {
+  const headerStore = await headers();
+  const cookieHeader = headerStore.get("cookie") ?? "";
+  if (!cookieHeader.includes("neon-auth.session_token")) return null;
+
+  const baseUrl = process.env.NEON_AUTH_BASE_URL;
+  if (!baseUrl) return null;
+
+  const url = new URL("get-session", baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`).toString();
+
+  const response = await fetch(url, {
+    headers: { Cookie: cookieHeader, "x-neon-auth-proxy": "nextjs" },
+    cache: "no-store",
+  });
+
+  if (!response.ok) return null;
+  return response.json().catch(() => null);
+}
 
 export async function getCurrentUser() {
   try {
-    const { data: session } = await auth.getSession();
+    const session = await fetchSession();
     if (!session?.user) return null;
 
     const authUser = session.user;
