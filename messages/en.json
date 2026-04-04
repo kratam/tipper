@@ -15,6 +15,7 @@
     "tournaments": "Tournaments",
     "groups": "My Groups",
     "admin": "Admin",
+    "displayName": "Display name",
     "locale": "Language"
   },
   "landing": {
@@ -151,5 +152,11 @@
     "joining": "Joining group...",
     "notFound": "Group not found",
     "error": "Failed to join group"
+  },
+  "profile": {
+    "displayNameLabel": "Display name",
+    "displayNameDescription": "This is how others will see you. Leave empty to use your Google name.",
+    "displayNamePlaceholder": "e.g. Tipper King",
+    "saved": "Saved!"
   }
 }

@@ -15,6 +15,7 @@
     "tournaments": "Versenysorozatok",
     "groups": "Csoportjaim",
     "admin": "Admin",
+    "displayName": "Becenév",
     "locale": "Nyelv"
   },
   "landing": {
@@ -151,5 +152,11 @@
     "joining": "Csatlakozás folyamatban...",
     "notFound": "Csoport nem található",
     "error": "Hiba történt a csatlakozás során"
+  },
+  "profile": {
+    "displayNameLabel": "Becenév",
+    "displayNameDescription": "Így fognak látni mások. Ha üresen hagyod, a Google neved jelenik meg.",
+    "displayNamePlaceholder": "pl. Tipper King",
+    "saved": "Mentve!"
   }
 }
