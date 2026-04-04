@@ -98,6 +98,7 @@
     "bonusExactScore": "Exact score bonus",
     "bonusPodiumMention": "Podium mention bonus",
     "bonusPodiumExact": "Exact placement bonus",
+    "oddsBoost": "Odds boost",
     "initialTokens": "Starting tokens",
     "distributionDaysBefore": "Distribution days before",
     "noGroups": "You have no groups yet",
