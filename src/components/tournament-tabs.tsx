@@ -12,6 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMatchPolling } from "@/hooks/use-match-polling";
 
 interface GroupBetInfo {
   groupId: string;
@@ -107,10 +108,13 @@ export function TournamentTabs({
   const [selectedMatch, setSelectedMatch] = useState<MatchCardData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  // Live polling: merge fresh score/status/bet data from SWR
+  const liveMatches = useMatchPolling(tournamentId, matches);
+
   // Group matches by day
   const dayGroups = useMemo(() => {
     const map = new Map<string, { dateKey: string; label: string; matches: MatchCardData[] }>();
-    for (const match of matches) {
+    for (const match of liveMatches) {
       const dateKey = getDateKey(match.scheduledAt);
       const existing = map.get(dateKey);
       if (existing) {
@@ -124,7 +128,7 @@ export function TournamentTabs({
       }
     }
     return Array.from(map.values());
-  }, [matches, locale]);
+  }, [liveMatches, locale]);
 
   // Filter days based on selected filter
   const filteredDays = useMemo(() => {

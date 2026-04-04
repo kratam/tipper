@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLeaderboardPolling } from "@/hooks/use-leaderboard-polling";
 import { useRouter } from "@/i18n/navigation";
 
 interface LeaderboardRow {
@@ -66,6 +67,9 @@ export function GroupDetailTabs({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [settings, setSettings] = useState(initialSettings);
+
+  // Live polling: merge fresh balance/rank data from SWR
+  const liveLeaderboard = useLeaderboardPolling(groupId, tournamentStatus, leaderboard);
 
   const inviteLink =
     typeof window !== "undefined"
@@ -165,7 +169,7 @@ export function GroupDetailTabs({
                 <span className="w-20 text-right font-mono">{tLeaderboard("balance")}</span>
               </div>
               {/* Rows */}
-              {leaderboard.map((row) => {
+              {liveLeaderboard.map((row) => {
                 const isCurrentUser = row.userId === currentUserId;
                 return (
                   <div

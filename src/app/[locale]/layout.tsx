@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { Nav } from "@/components/nav";
+import { SWRProvider } from "@/components/swr-provider";
 import { routing } from "@/i18n/routing";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 
@@ -32,8 +33,10 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <Nav user={navUser} />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
+      <SWRProvider>
+        <Nav user={navUser} />
+        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
+      </SWRProvider>
     </NextIntlClientProvider>
   );
 }

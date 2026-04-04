@@ -25,9 +25,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "@/i18n/navigation";
 
-const SUPPORTED_LEAGUES = [
-  { id: 111, name: "IIHF World Championship" },
-] as const;
+const SUPPORTED_LEAGUES = [{ id: 111, name: "IIHF World Championship" }] as const;
 
 interface TeamInfo {
   id: string;
@@ -48,7 +46,6 @@ interface TournamentInfo {
 interface AdminPanelProps {
   tournaments: TournamentInfo[];
 }
-
 
 export function AdminPanel({ tournaments }: AdminPanelProps) {
   const t = useTranslations("admin");
@@ -215,7 +212,8 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-medium">{tournament.name}</span>
                   <span className="font-mono text-xs text-muted-foreground">
-                    {t("leagueId")}: {tournament.apiLeagueId} | {t("season")}: {tournament.apiSeason}
+                    {t("leagueId")}: {tournament.apiLeagueId} | {t("season")}:{" "}
+                    {tournament.apiSeason}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
