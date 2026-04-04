@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { createGroup } from "@/actions/groups";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -29,6 +29,15 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
   const [name, setName] = useState("");
   const [tournamentId, setTournamentId] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [settings, setSettings] = useState({
+    tokenPerMatch: 100,
+    initialTokens: 200,
+    distributionDaysBefore: 3,
+    bonusGoalDiff: 5,
+    bonusExactScore: 10,
+    bonusPodiumMention: 20,
+    bonusPodiumExact: 20,
+  });
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,7 +45,7 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
 
     startTransition(async () => {
       try {
-        const group = await createGroup({ name: name.trim(), tournamentId });
+        const group = await createGroup({ name: name.trim(), tournamentId, ...settings });
         toast.success(t("createSuccess"));
         router.push(`/groups/${group.slug}`);
       } catch (error: unknown) {
@@ -90,18 +99,86 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
 
           {showAdvanced && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">{t("advanced")}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3">
-                <p className="text-xs text-muted-foreground">
-                  {t("tokenPerRound")}: 100, {t("bonusGoalDiff")}: 5, {t("bonusExactScore")}: 10,{" "}
-                  {t("bonusPodiumMention")}: 20, {t("bonusPodiumExact")}: 20,{" "}
-                  {t("carryoverPercent")}: 50%
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  ({t("defaultsApplied")})
-                </p>
+              <CardContent className="grid grid-cols-2 gap-4 pt-6">
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">{t("tokenPerMatch")}</Label>
+                  <Input
+                    type="number"
+                    value={settings.tokenPerMatch}
+                    onChange={(e) =>
+                      setSettings({ ...settings, tokenPerMatch: Number(e.target.value) })
+                    }
+                    className="font-mono"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">{t("initialTokens")}</Label>
+                  <Input
+                    type="number"
+                    value={settings.initialTokens}
+                    onChange={(e) =>
+                      setSettings({ ...settings, initialTokens: Number(e.target.value) })
+                    }
+                    className="font-mono"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">{t("distributionDaysBefore")}</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={30}
+                    value={settings.distributionDaysBefore}
+                    onChange={(e) =>
+                      setSettings({ ...settings, distributionDaysBefore: Number(e.target.value) })
+                    }
+                    className="font-mono"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">{t("bonusGoalDiff")}</Label>
+                  <Input
+                    type="number"
+                    value={settings.bonusGoalDiff}
+                    onChange={(e) =>
+                      setSettings({ ...settings, bonusGoalDiff: Number(e.target.value) })
+                    }
+                    className="font-mono"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">{t("bonusExactScore")}</Label>
+                  <Input
+                    type="number"
+                    value={settings.bonusExactScore}
+                    onChange={(e) =>
+                      setSettings({ ...settings, bonusExactScore: Number(e.target.value) })
+                    }
+                    className="font-mono"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">{t("bonusPodiumMention")}</Label>
+                  <Input
+                    type="number"
+                    value={settings.bonusPodiumMention}
+                    onChange={(e) =>
+                      setSettings({ ...settings, bonusPodiumMention: Number(e.target.value) })
+                    }
+                    className="font-mono"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs">{t("bonusPodiumExact")}</Label>
+                  <Input
+                    type="number"
+                    value={settings.bonusPodiumExact}
+                    onChange={(e) =>
+                      setSettings({ ...settings, bonusPodiumExact: Number(e.target.value) })
+                    }
+                    className="font-mono"
+                  />
+                </div>
               </CardContent>
             </Card>
           )}

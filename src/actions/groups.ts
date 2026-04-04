@@ -11,6 +11,13 @@ import { getGroupByInviteCode } from "@/queries/groups";
 interface CreateGroupInput {
   name: string;
   tournamentId: string;
+  tokenPerMatch?: number;
+  initialTokens?: number;
+  distributionDaysBefore?: number;
+  bonusGoalDiff?: number;
+  bonusExactScore?: number;
+  bonusPodiumMention?: number;
+  bonusPodiumExact?: number;
 }
 
 export async function createGroup(input: CreateGroupInput) {
@@ -37,6 +44,15 @@ export async function createGroup(input: CreateGroupInput) {
       inviteCode,
       ownerId: user.id,
       tournamentId: input.tournamentId,
+      ...(input.tokenPerMatch != null && { tokenPerMatch: input.tokenPerMatch }),
+      ...(input.initialTokens != null && { initialTokens: input.initialTokens }),
+      ...(input.distributionDaysBefore != null && {
+        distributionDaysBefore: input.distributionDaysBefore,
+      }),
+      ...(input.bonusGoalDiff != null && { bonusGoalDiff: input.bonusGoalDiff }),
+      ...(input.bonusExactScore != null && { bonusExactScore: input.bonusExactScore }),
+      ...(input.bonusPodiumMention != null && { bonusPodiumMention: input.bonusPodiumMention }),
+      ...(input.bonusPodiumExact != null && { bonusPodiumExact: input.bonusPodiumExact }),
     })
     .returning();
 
