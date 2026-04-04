@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, ChevronUp } from "lucide-react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -19,7 +20,7 @@ import {
 import { useRouter } from "@/i18n/navigation";
 
 interface CreateGroupFormProps {
-  tournaments: { id: string; name: string }[];
+  tournaments: { id: string; name: string; logoUrl: string | null }[];
 }
 
 export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
@@ -81,7 +82,18 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
               <SelectContent>
                 {tournaments.map((tournament) => (
                   <SelectItem key={tournament.id} value={tournament.id}>
-                    {tournament.name}
+                    <span className="flex items-center gap-2">
+                      {tournament.logoUrl && (
+                        <Image
+                          src={tournament.logoUrl}
+                          alt={tournament.name}
+                          width={20}
+                          height={20}
+                          className="size-5 object-contain"
+                        />
+                      )}
+                      {tournament.name}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>

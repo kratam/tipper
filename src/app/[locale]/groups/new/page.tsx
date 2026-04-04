@@ -23,6 +23,7 @@ export default async function CreateGroupPage() {
         tournaments={availableTournaments.map((t) => ({
           id: t.id,
           name: t.name,
+          logoUrl: t.logoUrl,
         }))}
       />
     </div>

@@ -106,6 +106,16 @@ export async function fetchGames(leagueId: number, season: number): Promise<ApiG
   return data.response;
 }
 
+export async function fetchLeagueLogoUrl(leagueId: number): Promise<string | null> {
+  const res = await fetch(`${BASE_URL}/leagues?id=${leagueId}`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) return null;
+  const data = await res.json();
+  const league = data.response?.[0];
+  return league?.logo ?? null;
+}
+
 export async function fetchOdds(leagueId: number, season: number): Promise<ApiOddsGame[]> {
   const res = await fetch(`${BASE_URL}/odds?league=${leagueId}&season=${season}`, {
     headers: getHeaders(),

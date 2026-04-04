@@ -3,6 +3,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { groups, podiumBets, tokenLedger, tournaments } from "@/db/schema";
+import { fetchLeagueLogoUrl } from "@/lib/api-sports";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { calculatePodiumPoints } from "@/lib/scoring";
 import { slugify } from "@/lib/utils";
@@ -37,6 +38,7 @@ export async function createTournament(input: CreateTournamentInput) {
   if (!user.isAdmin) throw new Error("Unauthorized");
 
   const slug = slugify(input.name);
+  const logoUrl = await fetchLeagueLogoUrl(input.apiLeagueId);
 
   const [tournament] = await db
     .insert(tournaments)
@@ -46,6 +48,7 @@ export async function createTournament(input: CreateTournamentInput) {
       apiLeagueId: input.apiLeagueId,
       apiSeason: input.apiSeason,
       podiumLockDate: input.podiumLockDate,
+      logoUrl,
     })
     .returning();
 

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { TournamentTabs } from "@/components/tournament-tabs";
@@ -147,7 +148,18 @@ export default async function TournamentDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-mono text-2xl font-bold tracking-tight">{tournament.name}</h1>
+      <div className="flex items-center gap-3">
+        {tournament.logoUrl && (
+          <Image
+            src={tournament.logoUrl}
+            alt={tournament.name}
+            width={40}
+            height={40}
+            className="size-10 object-contain"
+          />
+        )}
+        <h1 className="font-mono text-2xl font-bold tracking-tight">{tournament.name}</h1>
+      </div>
       <TournamentTabs
         matches={matchesData}
         tournamentId={tournament.id}

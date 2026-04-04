@@ -14,6 +14,7 @@ import {
 import {
   extract3WayOdds,
   fetchGames,
+  fetchLeagueLogoUrl,
   fetchOdds,
   mapApiStatus,
   parseRegulationScore,
@@ -35,6 +36,17 @@ export async function GET(request: Request) {
   const upcomingTournaments = await db.query.tournaments.findMany({
     where: eq(tournaments.status, "upcoming"),
   });
+
+  // Backfill missing tournament logos (one-time per tournament, 1 API call each)
+  const allTournaments = [...activeTournaments, ...upcomingTournaments];
+  for (const tournament of allTournaments) {
+    if (!tournament.logoUrl) {
+      const logoUrl = await fetchLeagueLogoUrl(tournament.apiLeagueId);
+      if (logoUrl) {
+        await db.update(tournaments).set({ logoUrl }).where(eq(tournaments.id, tournament.id));
+      }
+    }
+  }
 
   // Smart cron: only call API when there's a reason to
   const shouldCallApi = await checkShouldCallApi();

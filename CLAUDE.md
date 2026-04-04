@@ -37,7 +37,7 @@ src/
   lib/auth/              — Neon Auth (server.ts, client.ts, user-sync.ts)
   lib/scoring.ts         — Pontozási logika (pure, tesztelt)
   lib/tokens.ts          — Token kezelés (pure, tesztelt)
-  lib/api-sports.ts      — api-sports.io client + parsers
+  lib/api-sports.ts      — api-sports.io client (games, odds, league logo)
   lib/utils.ts           — Invite code, slugify, formatDate
   i18n/                  — next-intl routing + navigation
 messages/                — hu.json, en.json fordítások
@@ -90,6 +90,7 @@ Per-meccs token modell:
 ## Cron sync logika
 
 `/api/cron/sync` — minden aktív versenysorozathoz:
+0. Tournament logó backfill (ha `logoUrl` NULL → `/leagues?id=` API hívás)
 1. Fixtures sync (api-sports.io → matches tábla)
 2. Odds sync → match_odds tábla + NULL odds_at_bet kitöltés
 3. Finished meccsek pontozása → bets.payout + token_ledger

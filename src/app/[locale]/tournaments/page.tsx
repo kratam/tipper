@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { TournamentStatusBadge } from "@/components/tournament-status-badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +37,18 @@ export default async function TournamentsPage() {
             <Link key={tournament.id} href={`/tournaments/${tournament.slug}`} className="group">
               <Card className="transition-colors group-hover:ring-foreground/20">
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-base">{tournament.name}</CardTitle>
+                  <div className="flex items-center gap-3">
+                    {tournament.logoUrl && (
+                      <Image
+                        src={tournament.logoUrl}
+                        alt={tournament.name}
+                        width={32}
+                        height={32}
+                        className="size-8 object-contain"
+                      />
+                    )}
+                    <CardTitle className="text-base">{tournament.name}</CardTitle>
+                  </div>
                   <TournamentStatusBadge status={tournament.status} />
                 </CardHeader>
               </Card>
