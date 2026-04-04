@@ -25,6 +25,7 @@ export default async function LocaleLayout({
   const navUser = user
     ? {
         name: user.name,
+        displayName: user.displayName,
         email: user.email,
         avatarUrl: user.avatarUrl,
         isAdmin: user.isAdmin,
