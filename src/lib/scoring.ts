@@ -13,7 +13,7 @@ interface BetPayoutInput {
   actualAway: number;
   stake: number;
   oddsAtBet: number | null;
-  groupSettings: { bonusGoalDiff: number; bonusExactScore: number };
+  groupSettings: { bonusGoalDiff: number; bonusExactScore: number; oddsBoost: number };
 }
 
 interface BetPayoutResult {
@@ -52,7 +52,7 @@ export function calculateBetPayout(input: BetPayoutInput): BetPayoutResult {
   const goalDiffCorrect = predictedHome - predictedAway === actualHome - actualAway;
   const exactScoreCorrect = predictedHome === actualHome && predictedAway === actualAway;
 
-  let payout = Math.round(stake * oddsAtBet);
+  let payout = Math.round(stake * oddsAtBet * groupSettings.oddsBoost);
   if (goalDiffCorrect) payout += groupSettings.bonusGoalDiff;
   if (exactScoreCorrect) payout += groupSettings.bonusExactScore;
 

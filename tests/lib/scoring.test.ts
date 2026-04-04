@@ -14,7 +14,7 @@ describe("get1X2", () => {
 });
 
 describe("calculateBetPayout", () => {
-  const groupSettings = { bonusGoalDiff: 5, bonusExactScore: 10 };
+  const groupSettings = { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0 };
 
   it("returns 0 when 1X2 is wrong", () => {
     const result = calculateBetPayout({
@@ -95,6 +95,59 @@ describe("calculateBetPayout", () => {
       stake: 50,
       oddsAtBet: null,
       groupSettings,
+    });
+    expect(result.payout).toBe(0);
+  });
+
+  it("applies oddsBoost to payout", () => {
+    const result = calculateBetPayout({
+      predictedHome: 3,
+      predictedAway: 1,
+      actualHome: 2,
+      actualAway: 0,
+      stake: 100,
+      oddsAtBet: 2.0,
+      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.5 },
+    });
+    expect(result.payout).toBe(305); // round(100 * 2.0 * 1.5) + 5 (goalDiff)
+  });
+
+  it("oddsBoost 1.0 does not change payout", () => {
+    const result = calculateBetPayout({
+      predictedHome: 3,
+      predictedAway: 1,
+      actualHome: 2,
+      actualAway: 0,
+      stake: 50,
+      oddsAtBet: 2.5,
+      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0 },
+    });
+    expect(result.payout).toBe(130); // 50*2.5*1.0 + 5
+  });
+
+  it("oddsBoost does not multiply bonuses", () => {
+    const result = calculateBetPayout({
+      predictedHome: 3,
+      predictedAway: 1,
+      actualHome: 3,
+      actualAway: 1,
+      stake: 100,
+      oddsAtBet: 2.0,
+      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.5 },
+    });
+    // round(100 * 2.0 * 1.5) = 300, + 5 (goalDiff) + 10 (exactScore) = 315
+    expect(result.payout).toBe(315);
+  });
+
+  it("oddsBoost has no effect on wrong prediction", () => {
+    const result = calculateBetPayout({
+      predictedHome: 3,
+      predictedAway: 1,
+      actualHome: 0,
+      actualAway: 2,
+      stake: 100,
+      oddsAtBet: 2.0,
+      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 2.0 },
     });
     expect(result.payout).toBe(0);
   });
