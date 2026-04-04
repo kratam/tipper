@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, notInArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { groupMembers, groups, matches, tokenLedger } from "@/db/schema";
 
@@ -11,6 +11,7 @@ export async function getUserGroups(userId: string) {
         with: {
           tournament: true,
           owner: true,
+          members: true,
         },
       },
     },
@@ -100,4 +101,25 @@ export async function getProjectedBalance(
   const projected = actual + pending * group.tokenPerMatch;
 
   return { projected, actual, pending, tokenPerMatch: group.tokenPerMatch };
+}
+
+export async function getPublicGroups(userId: string) {
+  const userGroupIds = await db
+    .select({ groupId: groupMembers.groupId })
+    .from(groupMembers)
+    .where(eq(groupMembers.userId, userId));
+
+  const excludeIds = userGroupIds.map((r) => r.groupId);
+
+  return db.query.groups.findMany({
+    where: and(
+      eq(groups.isPublic, true),
+      excludeIds.length > 0 ? notInArray(groups.id, excludeIds) : undefined,
+    ),
+    with: {
+      tournament: true,
+      owner: true,
+      members: true,
+    },
+  });
 }
