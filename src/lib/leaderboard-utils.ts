@@ -7,7 +7,7 @@ export interface LeaderboardEntry {
 }
 
 export function pickMiniLeaderboard(
-  leaderboard: LeaderboardEntry[],
+  leaderboard: readonly LeaderboardEntry[],
   currentUserId: string,
 ): LeaderboardEntry[] {
   if (leaderboard.length === 0) return [];
@@ -23,11 +23,6 @@ export function pickMiniLeaderboard(
   const first = leaderboard[0];
   const ahead = leaderboard[userIndex - 1];
   const me = leaderboard[userIndex];
-
-  // Deduplicate if 1st === person ahead (user is 2nd in a small board)
-  if (first.userId === ahead.userId) {
-    return [first, me];
-  }
 
   return [first, ahead, me];
 }

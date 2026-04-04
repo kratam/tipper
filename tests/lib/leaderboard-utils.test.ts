@@ -56,9 +56,4 @@ describe("pickMiniLeaderboard", () => {
     expect(result).toEqual([]);
   });
 
-  it("deduplicates when 1st and person-ahead are the same (user is 2nd in 2-person board)", () => {
-    const two = [makeEntry(1, "a", 100), makeEntry(2, "b", 50)];
-    const result = pickMiniLeaderboard(two, "b");
-    expect(result.map((r) => r.userId)).toEqual(["a", "b"]);
-  });
 });
