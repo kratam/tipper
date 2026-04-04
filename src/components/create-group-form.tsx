@@ -100,7 +100,7 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
                   {t("carryoverPercent")}: 50%
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  (Defaults are applied. Edit after creation in group settings.)
+                  ({t("defaultsApplied")})
                 </p>
               </CardContent>
             </Card>

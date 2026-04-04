@@ -11,7 +11,7 @@ function statusOrder(status: string): number {
   return 2;
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, label }: { status: string; label: string }) {
   const colorMap: Record<string, string> = {
     active: "bg-emerald-500/10 text-emerald-500",
     upcoming: "bg-amber-500/10 text-amber-500",
@@ -20,7 +20,7 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <Badge variant="outline" className={colorMap[status] ?? ""}>
-      {status}
+      {label}
     </Badge>
   );
 }
@@ -51,7 +51,7 @@ export default async function TournamentsPage() {
               <Card className="transition-colors group-hover:ring-foreground/20">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-base">{tournament.name}</CardTitle>
-                  <StatusBadge status={tournament.status} />
+                  <StatusBadge status={tournament.status} label={t(tournament.status)} />
                 </CardHeader>
                 <CardContent>
                   <p className="text-xs text-muted-foreground">

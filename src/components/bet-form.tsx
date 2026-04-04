@@ -256,7 +256,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt
                       : "bg-muted text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  MAX
+                  {t("max")}
                 </button>
               )}
               <input

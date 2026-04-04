@@ -71,7 +71,8 @@
     "cancelSuccess": "Bet cancelled successfully!",
     "projectedBalance": "Available to bet",
     "actualBalance": "Your balance",
-    "pendingTokens": "Upcoming"
+    "pendingTokens": "Upcoming",
+    "max": "MAX"
   },
   "groups": {
     "title": "My Groups",
@@ -103,7 +104,10 @@
     "createSuccess": "Group created successfully!",
     "deleteGroup": "Delete group",
     "deleteConfirm": "Are you sure you want to delete this group? This will permanently remove all bets, tokens, and memberships.",
-    "deleteSuccess": "Group deleted successfully!"
+    "deleteSuccess": "Group deleted successfully!",
+    "tokenPerRound": "Tokens/round",
+    "carryoverPercent": "Carryover",
+    "defaultsApplied": "Defaults applied. Edit after creation in group settings."
   },
   "podium": {
     "title": "Podium Prediction",

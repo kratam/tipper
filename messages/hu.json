@@ -71,7 +71,8 @@
     "cancelSuccess": "Tipp sikeresen visszavonva!",
     "projectedBalance": "Tippelhető",
     "actualBalance": "Egyenleged",
-    "pendingTokens": "Még kapsz"
+    "pendingTokens": "Még kapsz",
+    "max": "MAX"
   },
   "groups": {
     "title": "Csoportjaim",
@@ -103,7 +104,10 @@
     "createSuccess": "Csoport sikeresen létrehozva!",
     "deleteGroup": "Csoport törlése",
     "deleteConfirm": "Biztosan törölni szeretnéd a csoportot? Ez minden tétet, tokent és tagságot véglegesen töröl.",
-    "deleteSuccess": "Csoport sikeresen törölve!"
+    "deleteSuccess": "Csoport sikeresen törölve!",
+    "tokenPerRound": "Token/forduló",
+    "carryoverPercent": "Átvitel",
+    "defaultsApplied": "Alapértékek. Létrehozás után a csoport beállításaiban módosítható."
   },
   "podium": {
     "title": "Dobogós tipp",

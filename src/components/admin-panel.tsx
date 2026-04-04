@@ -220,7 +220,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-medium">{tournament.name}</span>
                   <span className="font-mono text-xs text-muted-foreground">
-                    League: {tournament.apiLeagueId} | Season: {tournament.apiSeason}
+                    {t("leagueId")}: {tournament.apiLeagueId} | {t("season")}: {tournament.apiSeason}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
