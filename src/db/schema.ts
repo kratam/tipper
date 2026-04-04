@@ -51,6 +51,7 @@ export const tournaments = pgTable("tournaments", {
   goldTeamId: uuid("gold_team_id").references(() => teams.id),
   silverTeamId: uuid("silver_team_id").references(() => teams.id),
   bronzeTeamId: uuid("bronze_team_id").references(() => teams.id),
+  useScheduleOverrides: boolean("use_schedule_overrides").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -201,6 +202,16 @@ export const tokenLedger = pgTable("token_ledger", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const matchScheduleOverrides = pgTable("match_schedule_overrides", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  matchId: uuid("match_id")
+    .references(() => matches.id)
+    .unique()
+    .notNull(),
+  scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   groupMemberships: many(groupMembers),
@@ -258,4 +269,11 @@ export const betsRelations = relations(bets, ({ one }) => ({
   user: one(users, { fields: [bets.userId], references: [users.id] }),
   match: one(matches, { fields: [bets.matchId], references: [matches.id] }),
   group: one(groups, { fields: [bets.groupId], references: [groups.id] }),
+}));
+
+export const matchScheduleOverridesRelations = relations(matchScheduleOverrides, ({ one }) => ({
+  match: one(matches, {
+    fields: [matchScheduleOverrides.matchId],
+    references: [matches.id],
+  }),
 }));
