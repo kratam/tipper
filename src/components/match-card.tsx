@@ -102,9 +102,9 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
       onClick={onClick}
       className={`flex w-full flex-col gap-1 rounded-lg border p-2.5 text-left transition-colors ${
         isUrgent
-          ? "border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/30 hover:bg-amber-500/10"
+          ? "border-amber-500/30 border-l-[3px] border-l-amber-500 bg-amber-500/8 hover:bg-amber-500/12"
           : hasNoBet
-            ? "border-amber-400/40 bg-card hover:bg-amber-500/5"
+            ? "border-border border-l-[3px] border-l-amber-400 bg-card hover:bg-amber-500/5"
             : "border-border bg-card hover:bg-accent/50"
       }`}
     >
