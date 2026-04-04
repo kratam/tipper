@@ -83,7 +83,7 @@ export function PublicGroupDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="max-w-md overflow-hidden p-0 sm:max-w-md">
         {/* Gradient header */}
-        <div className="bg-gradient-to-br from-[#1e3a5f] to-[#2d1b69] p-6">
+        <div className="bg-linear-to-br from-[#1e3a5f] to-[#2d1b69] p-6">
           <DialogTitle className="text-lg font-bold text-white">{group.name}</DialogTitle>
           <DialogDescription className="mt-1 text-sm text-white/60">
             {group.tournament.name}
@@ -97,7 +97,7 @@ export function PublicGroupDialog({
         </div>
 
         {/* Body */}
-        <div className="-mt-0 p-6 pt-0">
+        <div className="mt-0 p-6 pt-0">
           <div className="pt-4">
             {/* Description */}
             {group.description && (

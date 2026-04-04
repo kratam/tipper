@@ -62,7 +62,7 @@ function CardInner({ group, memberCount, profit, variant = "own" }: GroupCardPro
       )}
     >
       {/* Gradient header */}
-      <div className="bg-gradient-to-br from-[#1e3a5f] to-[#2d1b69] p-4">
+      <div className="bg-linear-to-br from-[#1e3a5f] to-[#2d1b69] p-4">
         <div className="flex items-start justify-between">
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-bold text-white">{group.name}</div>

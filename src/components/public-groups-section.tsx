@@ -36,10 +36,10 @@ export function PublicGroupsSection({ groups }: PublicGroupsSectionProps) {
     <div>
       <div className="mb-4">
         <div className="mb-1 flex items-center gap-2">
-          <Globe className="size-[18px] text-muted-foreground" />
+          <Globe className="size-4.5 text-muted-foreground" />
           <h2 className="text-lg font-semibold">{t("publicGroups")}</h2>
         </div>
-        <p className="ml-[26px] text-sm text-muted-foreground">{t("publicGroupsSubtitle")}</p>
+        <p className="ml-6.5 text-sm text-muted-foreground">{t("publicGroupsSubtitle")}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
