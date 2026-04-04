@@ -1,11 +1,12 @@
-import { Plus, Users } from "lucide-react";
+import { Plus } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Badge } from "@/components/ui/badge";
+import { GroupCard } from "@/components/group-card";
+import { PublicGroupsSection } from "@/components/public-groups-section";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
-import { getTokenBalance, getUserGroups } from "@/queries/groups";
+import { getPublicGroups, getTokenBalance, getUserGroups } from "@/queries/groups";
 
 export default async function GroupsPage() {
   const user = await getCurrentUser();
@@ -18,16 +19,16 @@ export default async function GroupsPage() {
   const t = await getTranslations("groups");
   const memberships = await getUserGroups(user.id);
 
-  // Get balances for each group
   const groupsWithBalances = await Promise.all(
     memberships.map(async (gm) => {
       const balance = await getTokenBalance(user.id, gm.group.id);
-      return {
-        ...gm,
-        balance,
-      };
+      return { ...gm, balance };
     }),
   );
+
+  // Public groups: not finished, user not a member
+  const allPublicGroups = await getPublicGroups(user.id);
+  const publicGroups = allPublicGroups.filter((g) => g.tournament.status !== "finished");
 
   return (
     <div className="flex flex-col gap-6">
@@ -46,25 +47,22 @@ export default async function GroupsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {groupsWithBalances.map((gm) => (
-            <Link key={gm.group.id} href={`/groups/${gm.group.slug}`} className="group">
-              <Card className="transition-colors group-hover:ring-foreground/20">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-base">{gm.group.name}</CardTitle>
-                  <Badge variant="outline" className="font-mono text-amber-500">
-                    {gm.balance}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2">
-                  <p className="text-sm text-muted-foreground">{gm.group.tournament.name}</p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Users className="size-3" />
-                    {t("members")}
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+            <GroupCard
+              key={gm.group.id}
+              group={gm.group}
+              memberCount={gm.group.members?.length ?? 0}
+              balance={gm.balance}
+              variant="own"
+            />
           ))}
         </div>
+      )}
+
+      {publicGroups.length > 0 && (
+        <>
+          <Separator />
+          <PublicGroupsSection groups={publicGroups} />
+        </>
       )}
     </div>
   );
