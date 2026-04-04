@@ -17,6 +17,9 @@ interface GroupBetInfo {
   groupId: string;
   groupName: string;
   balance: number;
+  projectedBalance: number;
+  pendingDistributions: number;
+  tokenPerMatch: number;
   existingBet: {
     id: string;
     predictedHome: number;

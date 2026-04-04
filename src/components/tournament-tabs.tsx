@@ -17,6 +17,9 @@ interface GroupBetInfo {
   groupId: string;
   groupName: string;
   balance: number;
+  projectedBalance: number;
+  pendingDistributions: number;
+  tokenPerMatch: number;
   existingBet: {
     id: string;
     predictedHome: number;
@@ -147,7 +150,12 @@ export function TournamentTabs({
   }, [filteredDays]);
 
   // If no today/tomorrow, open the first day
-  const initialOpen = defaultOpenDays.length > 0 ? defaultOpenDays : filteredDays.length > 0 ? [filteredDays[0].dateKey] : [];
+  const initialOpen =
+    defaultOpenDays.length > 0
+      ? defaultOpenDays
+      : filteredDays.length > 0
+        ? [filteredDays[0].dateKey]
+        : [];
 
   const isLocked = new Date() > new Date(podiumLockDate);
 

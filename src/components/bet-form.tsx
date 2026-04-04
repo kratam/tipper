@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
+import { Info, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
@@ -9,12 +9,16 @@ import { cancelBet, placeBet } from "@/actions/bets";
 import { FormattedDate } from "@/components/formatted-date";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRouter } from "@/i18n/navigation";
 
 interface GroupBetInfo {
   groupId: string;
   groupName: string;
   balance: number;
+  projectedBalance: number;
+  pendingDistributions: number;
+  tokenPerMatch: number;
   existingBet: {
     id: string;
     predictedHome: number;
@@ -189,13 +193,46 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt
           <div key={group.groupId} className="border-t border-border px-5 py-4">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-sm font-medium">{group.groupName}</span>
-              <span className="font-mono text-xs text-muted-foreground">{group.balance} token</span>
+              <div className="flex items-center gap-1">
+                <span className="font-mono text-xs text-muted-foreground">
+                  {t("projectedBalance")}: {group.projectedBalance}
+                </span>
+                {group.pendingDistributions > 0 && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="size-3.5 text-muted-foreground/50" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="font-mono text-xs">
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex justify-between gap-4">
+                            <span>{t("actualBalance")}:</span>
+                            <span>{group.balance}</span>
+                          </div>
+                          <div className="flex justify-between gap-4">
+                            <span>{t("pendingTokens")}:</span>
+                            <span>
+                              +{group.pendingDistributions * group.tokenPerMatch} (
+                              {group.pendingDistributions} × {group.tokenPerMatch})
+                            </span>
+                          </div>
+                          <div className="my-0.5 border-t border-primary-foreground/20" />
+                          <div className="flex justify-between gap-4 font-bold">
+                            <span>{t("projectedBalance")}:</span>
+                            <span>{group.projectedBalance}</span>
+                          </div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
             </div>
 
             {/* Stake chips + custom input */}
             <div className="mb-3 flex items-center gap-1.5">
               <span className="mr-1 shrink-0 text-xs text-muted-foreground">{t("stake")}</span>
-              {STAKE_PRESETS.filter((p) => p <= group.balance).map((preset) => (
+              {STAKE_PRESETS.filter((p) => p <= group.projectedBalance).map((preset) => (
                 <button
                   key={preset}
                   type="button"
@@ -209,12 +246,12 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt
                   {preset}
                 </button>
               ))}
-              {group.balance > 0 && !STAKE_PRESETS.includes(group.balance) && (
+              {group.projectedBalance > 0 && !STAKE_PRESETS.includes(group.projectedBalance) && (
                 <button
                   type="button"
-                  onClick={() => setStakes({ ...stakes, [group.groupId]: group.balance })}
+                  onClick={() => setStakes({ ...stakes, [group.groupId]: group.projectedBalance })}
                   className={`rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors ${
-                    stakes[group.groupId] === group.balance
+                    stakes[group.groupId] === group.projectedBalance
                       ? "bg-foreground text-background"
                       : "bg-muted text-muted-foreground hover:text-foreground"
                   }`}
@@ -225,7 +262,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt
               <input
                 type="number"
                 min={1}
-                max={group.balance}
+                max={group.projectedBalance}
                 value={stakes[group.groupId] ?? 10}
                 onChange={(e) => setStakes({ ...stakes, [group.groupId]: Number(e.target.value) })}
                 className="ml-auto w-14 rounded-md border border-input bg-transparent px-2 py-1 text-center font-mono text-xs"
@@ -238,7 +275,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt
                 onClick={() => handleSubmit(group.groupId)}
                 disabled={
                   isPending ||
-                  (stakes[group.groupId] ?? 0) > group.balance ||
+                  (stakes[group.groupId] ?? 0) > group.projectedBalance ||
                   (stakes[group.groupId] ?? 0) < 1
                 }
                 size="sm"
