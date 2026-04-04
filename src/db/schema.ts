@@ -117,6 +117,8 @@ export const groups = pgTable("groups", {
   bonusPodiumMention: integer("bonus_podium_mention").default(20).notNull(),
   bonusPodiumExact: integer("bonus_podium_exact").default(20).notNull(),
   oddsBoost: real("odds_boost").default(1.0).notNull(),
+  isPublic: boolean("is_public").default(false).notNull(),
+  description: text("description"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
