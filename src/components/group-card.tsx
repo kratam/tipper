@@ -2,6 +2,7 @@
 
 import { Globe, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
+import ReactMarkdown from "react-markdown";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -104,9 +105,13 @@ function CardInner({
       {/* Body */}
       <div className="bg-card p-3">
         {group.description && (
-          <p className="mb-2.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-            {group.description}
-          </p>
+          <div className="mb-2.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground [&_p]:m-0">
+            <ReactMarkdown
+              allowedElements={["p", "strong", "em"]}
+            >
+              {group.description}
+            </ReactMarkdown>
+          </div>
         )}
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1 text-[11px] text-muted-foreground/70">
