@@ -79,16 +79,34 @@ interface MatchCardProps {
   onClick: () => void;
 }
 
+function isTodayOrTomorrow(dateStr: string): boolean {
+  const now = new Date();
+  const matchDate = new Date(dateStr);
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dayAfterTomorrow = new Date(todayStart);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+  return matchDate >= todayStart && matchDate < dayAfterTomorrow;
+}
+
 export function MatchCard({ match, onClick }: MatchCardProps) {
   const t = useTranslations("matches");
   const isFinished = match.status === "finished";
   const isLive = match.status === "live";
+  const isScheduled = match.status === "scheduled";
+  const hasNoBet = isScheduled && match.userBets.length === 0;
+  const isUrgent = hasNoBet && isTodayOrTomorrow(match.scheduledAt);
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full flex-col gap-1 rounded-lg border bg-card p-2.5 text-left transition-colors hover:bg-accent/50"
+      className={`flex w-full flex-col gap-1 rounded-lg border p-2.5 text-left transition-colors ${
+        isUrgent
+          ? "border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/30 hover:bg-amber-500/10"
+          : hasNoBet
+            ? "border-amber-400/40 bg-card hover:bg-amber-500/5"
+            : "border-border bg-card hover:bg-accent/50"
+      }`}
     >
       {isFinished || isLive ? (
         /* ── Finished / Live ── */
@@ -178,7 +196,7 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
                 ))}
               </div>
             ) : (
-              <span className="text-xs text-muted-foreground/40">{t("noBet")}</span>
+              <span className={`text-xs ${isUrgent ? "font-medium text-amber-600" : "text-muted-foreground/40"}`}>{t("noBet")}</span>
             )}
           </div>
         </>
