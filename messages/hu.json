@@ -40,7 +40,10 @@
     "podium": "Dobogós tipp",
     "matchCount": "{count} meccs",
     "betProgress": "{betCount}/{total} tipp",
-    "noTournaments": "Nincsenek versenysorozatok"
+    "noTournaments": "Nincsenek versenysorozatok",
+    "tokenBalance": "{balance} token",
+    "unbettedMatches": "{count} meccsre nem tippeltél",
+    "allBetsPlaced": "Minden tipp leadva"
   },
   "matches": {
     "scheduled": "Tervezett",

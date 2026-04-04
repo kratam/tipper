@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { BetDialog } from "@/components/bet-dialog";
+import { GroupTokenSummary } from "@/components/group-token-summary";
 import { MatchCard, type MatchCardData } from "@/components/match-card";
 import { PodiumForm } from "@/components/podium-form";
 import {
@@ -111,6 +112,36 @@ export function TournamentTabs({
   // Live polling: merge fresh score/status/bet data from SWR
   const liveMatches = useMatchPolling(tournamentId, matches);
 
+  // Per-group token summary: balance + unbetted upcoming match count
+  const groupTokenSummaries = useMemo(() => {
+    const summaryMap = new Map<
+      string,
+      { groupId: string; groupName: string; balance: number; unbettedCount: number }
+    >();
+
+    for (const match of liveMatches) {
+      if (match.status !== "scheduled") continue;
+      const groupInfos = groupBetInfosByMatch[match.id] ?? [];
+      for (const gi of groupInfos) {
+        const existing = summaryMap.get(gi.groupId);
+        if (!existing) {
+          summaryMap.set(gi.groupId, {
+            groupId: gi.groupId,
+            groupName: gi.groupName,
+            balance: gi.balance,
+            unbettedCount: gi.existingBet ? 0 : 1,
+          });
+        } else {
+          if (!gi.existingBet) {
+            existing.unbettedCount++;
+          }
+        }
+      }
+    }
+
+    return Array.from(summaryMap.values());
+  }, [liveMatches, groupBetInfosByMatch]);
+
   // Group matches by day
   const dayGroups = useMemo(() => {
     const map = new Map<string, { dateKey: string; label: string; matches: MatchCardData[] }>();
@@ -177,6 +208,9 @@ export function TournamentTabs({
         </TabsList>
 
         <TabsContent value="matches" className="mt-4 flex flex-col gap-4">
+          {/* Group token summaries */}
+          <GroupTokenSummary groups={groupTokenSummaries} />
+
           {/* Match filter */}
           <div className="flex gap-1 rounded-lg bg-muted p-1">
             <button
