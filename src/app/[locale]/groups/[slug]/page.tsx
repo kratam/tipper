@@ -1,7 +1,9 @@
+import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { GroupDetailTabs } from "@/components/group-detail-tabs";
 import { InviteCodeBadge } from "@/components/invite-code-badge";
+import { Button } from "@/components/ui/button";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { getGroupBetsForFinishedMatches } from "@/queries/bets";
@@ -38,16 +40,21 @@ export default async function GroupDetailPage({
     notFound();
   }
 
+  const t = await getTranslations("groups");
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
           <h1 className="font-mono text-2xl font-bold tracking-tight">{group.name}</h1>
           <InviteCodeBadge inviteCode={group.inviteCode} />
         </div>
-        <Link href={`/tournaments/${group.tournament.slug}`} className="text-sm text-muted-foreground hover:underline">
-          {group.tournament.name}
-        </Link>
+        <Button variant="outline" asChild>
+          <Link href={`/tournaments/${group.tournament.slug}`}>
+            {t("goToTournament", { name: group.tournament.name })}
+            <ArrowRight className="size-4" />
+          </Link>
+        </Button>
       </div>
 
       <GroupDetailTabs

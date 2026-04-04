@@ -115,6 +115,7 @@
     "deleteGroup": "Delete group",
     "deleteConfirm": "Are you sure you want to delete this group? This will permanently remove all bets, tokens, and memberships.",
     "deleteSuccess": "Group deleted successfully!",
+    "goToTournament": "{name} — Place bets →",
     "tokenPerRound": "Tokens/round",
     "carryoverPercent": "Carryover",
     "defaultsApplied": "Defaults applied. Edit after creation in group settings.",

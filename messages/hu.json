@@ -115,6 +115,7 @@
     "deleteGroup": "Csoport törlése",
     "deleteConfirm": "Biztosan törölni szeretnéd a csoportot? Ez minden tétet, tokent és tagságot véglegesen töröl.",
     "deleteSuccess": "Csoport sikeresen törölve!",
+    "goToTournament": "{name} — Tippelés →",
     "tokenPerRound": "Token/forduló",
     "carryoverPercent": "Átvitel",
     "defaultsApplied": "Alapértékek. Létrehozás után a csoport beállításaiban módosítható.",
