@@ -154,7 +154,10 @@
     "createSuccess": "Versenysorozat sikeresen létrehozva!",
     "syncSuccess": "Szinkronizálás sikeres!",
     "statusUpdateSuccess": "Státusz sikeresen frissítve!",
-    "selectTeam": "Válassz csapatot"
+    "selectTeam": "Válassz csapatot",
+    "logoUrlPlaceholder": "Logó URL (üres = nincs logó)",
+    "saveLogo": "Mentés",
+    "logoUpdateSuccess": "Logó sikeresen frissítve!"
   },
   "join": {
     "title": "Csatlakozás csoporthoz",

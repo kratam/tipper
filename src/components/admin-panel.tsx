@@ -1,6 +1,7 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
+import { Pencil, RefreshCw } from "lucide-react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -8,6 +9,7 @@ import {
   createTournament,
   finishTournament,
   triggerSync,
+  updateTournamentLogo,
   updateTournamentStatus,
 } from "@/actions/admin";
 import { TournamentStatusBadge } from "@/components/tournament-status-badge";
@@ -40,6 +42,7 @@ interface TournamentInfo {
   status: string;
   apiLeagueId: number;
   apiSeason: number;
+  logoUrl: string | null;
   teams: TeamInfo[];
 }
 
@@ -62,6 +65,10 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
   const [podiumGold, setPodiumGold] = useState("");
   const [podiumSilver, setPodiumSilver] = useState("");
   const [podiumBronze, setPodiumBronze] = useState("");
+
+  // Logo editing
+  const [editingLogoId, setEditingLogoId] = useState<string | null>(null);
+  const [logoInput, setLogoInput] = useState("");
 
   function handleCreateTournament(e: React.FormEvent) {
     e.preventDefault();
@@ -116,6 +123,21 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
         setPodiumGold("");
         setPodiumSilver("");
         setPodiumBronze("");
+        router.refresh();
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        toast.error(message);
+      }
+    });
+  }
+
+  function handleSaveLogo(tournamentId: string) {
+    startTransition(async () => {
+      try {
+        await updateTournamentLogo(tournamentId, logoInput);
+        toast.success(t("logoUpdateSuccess"));
+        setEditingLogoId(null);
+        setLogoInput("");
         router.refresh();
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
@@ -209,12 +231,39 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
           <Card key={tournament.id}>
             <CardContent className="flex flex-col gap-4 p-4">
               <div className="flex items-center justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium">{tournament.name}</span>
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {t("leagueId")}: {tournament.apiLeagueId} | {t("season")}:{" "}
-                    {tournament.apiSeason}
-                  </span>
+                <div className="flex items-center gap-3">
+                  {tournament.logoUrl && (
+                    <Image
+                      src={tournament.logoUrl}
+                      alt={tournament.name}
+                      width={32}
+                      height={32}
+                      className="size-8 object-contain"
+                    />
+                  )}
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{tournament.name}</span>
+                      <button
+                        type="button"
+                        className="text-muted-foreground hover:text-foreground"
+                        onClick={() => {
+                          if (editingLogoId === tournament.id) {
+                            setEditingLogoId(null);
+                          } else {
+                            setEditingLogoId(tournament.id);
+                            setLogoInput(tournament.logoUrl ?? "");
+                          }
+                        }}
+                      >
+                        <Pencil className="size-3.5" />
+                      </button>
+                    </div>
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {t("leagueId")}: {tournament.apiLeagueId} | {t("season")}:{" "}
+                      {tournament.apiSeason}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <TournamentStatusBadge status={tournament.status} />
@@ -242,6 +291,25 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                   )}
                 </div>
               </div>
+
+              {/* Logo URL editing */}
+              {editingLogoId === tournament.id && (
+                <div className="flex items-center gap-2 border-t border-border pt-3">
+                  <Input
+                    value={logoInput}
+                    onChange={(e) => setLogoInput(e.target.value)}
+                    placeholder={t("logoUrlPlaceholder")}
+                    className="flex-1 font-mono text-xs"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => handleSaveLogo(tournament.id)}
+                    disabled={isPending}
+                  >
+                    {t("saveLogo")}
+                  </Button>
+                </div>
+              )}
 
               {/* Podium selection for finishing */}
               {finishingId === tournament.id && tournament.teams.length > 0 && (

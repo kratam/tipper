@@ -154,7 +154,10 @@
     "createSuccess": "Tournament created successfully!",
     "syncSuccess": "Sync completed!",
     "statusUpdateSuccess": "Status updated!",
-    "selectTeam": "Select team"
+    "selectTeam": "Select team",
+    "logoUrlPlaceholder": "Logo URL (empty = no logo)",
+    "saveLogo": "Save",
+    "logoUpdateSuccess": "Logo updated!"
   },
   "join": {
     "title": "Join Group",

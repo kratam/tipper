@@ -55,6 +55,17 @@ export async function createTournament(input: CreateTournamentInput) {
   return tournament;
 }
 
+export async function updateTournamentLogo(tournamentId: string, logoUrl: string) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+  if (!user.isAdmin) throw new Error("Unauthorized");
+
+  await db
+    .update(tournaments)
+    .set({ logoUrl: logoUrl.trim() || null })
+    .where(eq(tournaments.id, tournamentId));
+}
+
 type TournamentStatus = "upcoming" | "active" | "finished";
 
 export async function updateTournamentStatus(tournamentId: string, status: TournamentStatus) {
