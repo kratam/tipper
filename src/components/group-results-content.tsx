@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import {
   Accordion,
@@ -43,7 +44,9 @@ interface GroupResultsContentProps {
 
 function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
   if (logoUrl) {
-    return <img src={logoUrl} alt={name} className="size-5 object-contain" />;
+    return (
+      <Image src={logoUrl} alt={name} width={20} height={20} className="size-5 object-contain" />
+    );
   }
   return (
     <span className="flex size-5 items-center justify-center rounded bg-muted font-mono text-[8px] font-bold">
@@ -93,25 +96,17 @@ export function GroupResultsContent({
         <Accordion type="multiple">
           {matches.map((match) => {
             const matchBets = betsByMatch.get(match.id) ?? [];
-            const sortedBets = [...matchBets].sort(
-              (a, b) => (b.payout ?? 0) - (a.payout ?? 0),
-            );
+            const sortedBets = [...matchBets].sort((a, b) => (b.payout ?? 0) - (a.payout ?? 0));
 
             return (
               <AccordionItem key={match.id} value={match.id}>
                 <AccordionTrigger className="px-3 py-2.5 hover:no-underline">
                   <div className="flex flex-1 items-center gap-2">
-                    <TeamLogo
-                      name={match.homeTeam.name}
-                      logoUrl={match.homeTeam.logoUrl}
-                    />
+                    <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
                     <span className="font-mono text-sm font-bold tabular-nums">
                       {match.homeScore}-{match.awayScore}
                     </span>
-                    <TeamLogo
-                      name={match.awayTeam.name}
-                      logoUrl={match.awayTeam.logoUrl}
-                    />
+                    <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
                     <span className="ml-auto text-xs text-muted-foreground">
                       {t("betCount", {
                         count: matchBets.length,
@@ -122,32 +117,22 @@ export function GroupResultsContent({
                 </AccordionTrigger>
                 <AccordionContent>
                   {sortedBets.length === 0 ? (
-                    <p className="px-3 py-2 text-xs text-muted-foreground">
-                      {t("noBetsYet")}
-                    </p>
+                    <p className="px-3 py-2 text-xs text-muted-foreground">{t("noBetsYet")}</p>
                   ) : (
                     <div className="flex flex-col">
                       {/* Header */}
                       <div className="flex items-center gap-2 px-3 pb-1 text-[11px] font-medium text-muted-foreground">
-                        <span className="flex-1">
-                          {/* player column */}
-                        </span>
-                        <span className="w-10 text-center">
-                          {t("prediction")}
-                        </span>
-                        <span className="w-10 text-right">
-                          {tBetting("stake")}
-                        </span>
+                        <span className="flex-1">{/* player column */}</span>
+                        <span className="w-10 text-center">{t("prediction")}</span>
+                        <span className="w-10 text-right">{tBetting("stake")}</span>
                         <span className="w-12 text-right">{t("payout")}</span>
                       </div>
                       {/* Rows */}
                       {sortedBets.map((bet) => {
                         const isCurrentUser = bet.userId === currentUserId;
-                        const won =
-                          bet.result1x2Correct === true && bet.payout != null;
-                        const netProfit = won && bet.payout != null
-                          ? bet.payout - bet.stake
-                          : -(bet.stake);
+                        const won = bet.result1x2Correct === true && bet.payout != null;
+                        const netProfit =
+                          won && bet.payout != null ? bet.payout - bet.stake : -bet.stake;
 
                         return (
                           <div
@@ -161,16 +146,12 @@ export function GroupResultsContent({
                             {/* Player */}
                             <div className="flex flex-1 items-center gap-1.5 overflow-hidden">
                               <Avatar className="size-5">
-                                <AvatarImage
-                                  src={bet.userAvatarUrl ?? undefined}
-                                />
+                                <AvatarImage src={bet.userAvatarUrl ?? undefined} />
                                 <AvatarFallback className="text-[9px]">
                                   {initials(bet.userName)}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="truncate text-xs">
-                                {bet.userName}
-                              </span>
+                              <span className="truncate text-xs">{bet.userName}</span>
                             </div>
                             {/* Prediction */}
                             <span
@@ -193,9 +174,7 @@ export function GroupResultsContent({
                             {/* Net profit */}
                             <span
                               className={`w-12 text-right font-mono text-xs font-bold ${
-                                netProfit > 0
-                                  ? "text-emerald-500"
-                                  : "text-destructive"
+                                netProfit > 0 ? "text-emerald-500" : "text-destructive"
                               }`}
                             >
                               {netProfit > 0 ? "+" : ""}

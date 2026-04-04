@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "assist": {
     "enabled": true,
     "actions": {
@@ -17,7 +17,8 @@
         "noUnusedImports": "error",
         "useExhaustiveDependencies": "warn"
       },
-      "suspicious": { "noExplicitAny": "warn" }
+      "suspicious": { "noExplicitAny": "warn" },
+      "style": { "noNonNullAssertion": "error", "useNodejsImportProtocol": "error" }
     }
   },
   "formatter": {
@@ -41,6 +42,6 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!.next", "!node_modules", "!dist", "!*.min.js"]
+    "includes": ["**", "!.next", "!node_modules", "!dist", "!*.min.js", "!.superpowers"]
   }
 }

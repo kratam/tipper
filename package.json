@@ -14,7 +14,8 @@
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -47,6 +48,7 @@
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^4.1.2",
     "drizzle-kit": "^0.31.10",
+    "husky": "^9.1.7",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.2"

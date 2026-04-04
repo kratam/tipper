@@ -25,12 +25,12 @@ interface GroupBetInfo {
     predictedAway: number;
     stake: number;
   } | null;
+  unbettedMatchCountOnDay: number;
 }
 
 interface BetFormProps {
   matchId: string;
   groups: GroupBetInfo[];
-  bettableMatchCountToday: number;
   odds: { homeOdds: string; drawOdds: string; awayOdds: string } | null;
   homeTeam: { name: string; logoUrl: string | null };
   awayTeam: { name: string; logoUrl: string | null };
@@ -72,7 +72,10 @@ function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
   );
 }
 
-function computeStakePresets(balance: number, matchCount: number): { value: number; label: string }[] {
+function computeStakePresets(
+  balance: number,
+  matchCount: number,
+): { value: number; label: string }[] {
   const evenShare = Math.floor(balance / matchCount);
   const doubleShare = Math.floor((balance * 2) / matchCount);
   const evenPct = Math.round(100 / matchCount);
@@ -97,7 +100,7 @@ function computeDefaultStake(balance: number, matchCount: number): number {
   return Math.max(1, Math.floor(balance / matchCount));
 }
 
-export function BetForm({ matchId, groups, bettableMatchCountToday, odds, homeTeam, awayTeam, scheduledAt }: BetFormProps) {
+export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt }: BetFormProps) {
   const t = useTranslations("betting");
   const tMatches = useTranslations("matches");
   const router = useRouter();
@@ -108,7 +111,8 @@ export function BetForm({ matchId, groups, bettableMatchCountToday, odds, homeTe
   const [stakes, setStakes] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     for (const g of groups) {
-      initial[g.groupId] = g.existingBet?.stake ?? computeDefaultStake(g.projectedBalance, bettableMatchCountToday);
+      initial[g.groupId] =
+        g.existingBet?.stake ?? computeDefaultStake(g.projectedBalance, g.unbettedMatchCountOnDay);
     }
     return initial;
   });
@@ -256,21 +260,23 @@ export function BetForm({ matchId, groups, bettableMatchCountToday, odds, homeTe
             {/* Stake chips + custom input */}
             <div className="mb-3 flex items-center gap-1.5">
               <span className="mr-1 shrink-0 text-xs text-muted-foreground">{t("stake")}</span>
-              {computeStakePresets(group.projectedBalance, bettableMatchCountToday).map((preset) => (
-                <button
-                  key={preset.label}
-                  type="button"
-                  onClick={() => setStakes({ ...stakes, [group.groupId]: preset.value })}
-                  className={`flex flex-col items-center rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors ${
-                    stakes[group.groupId] === preset.value
-                      ? "bg-foreground text-background"
-                      : "bg-muted text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <span className="text-[10px] leading-none opacity-60">{preset.label}</span>
-                  <span>{preset.value}</span>
-                </button>
-              ))}
+              {computeStakePresets(group.projectedBalance, group.unbettedMatchCountOnDay).map(
+                (preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => setStakes({ ...stakes, [group.groupId]: preset.value })}
+                    className={`flex flex-col items-center rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors ${
+                      stakes[group.groupId] === preset.value
+                        ? "bg-foreground text-background"
+                        : "bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <span className="text-[10px] leading-none opacity-60">{preset.label}</span>
+                    <span>{preset.value}</span>
+                  </button>
+                ),
+              )}
               <input
                 type="number"
                 min={1}

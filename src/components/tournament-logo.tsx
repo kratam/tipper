@@ -31,14 +31,14 @@ export function TournamentLogo({ src, alt, size }: TournamentLogoProps) {
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <Image
       src={src}
       alt={alt}
       width={size}
       height={size}
       className="object-contain"
       style={{ width: size, height: size }}
+      unoptimized
     />
   );
 }

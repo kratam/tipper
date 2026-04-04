@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -110,9 +111,11 @@ export function PodiumForm({
                     <SelectItem key={team.id} value={team.id} disabled={isUsedElsewhere}>
                       <div className="flex items-center gap-2">
                         {team.logoUrl ? (
-                          <img
+                          <Image
                             src={team.logoUrl}
                             alt={team.name}
+                            width={20}
+                            height={20}
                             className="size-5 rounded-sm object-contain"
                           />
                         ) : (

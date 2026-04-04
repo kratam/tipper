@@ -1,6 +1,7 @@
 "use client";
 
 import { Circle } from "lucide-react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 
@@ -37,7 +38,9 @@ export interface MatchCardData {
 
 function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
   if (logoUrl) {
-    return <img src={logoUrl} alt={name} className="size-7 object-contain" />;
+    return (
+      <Image src={logoUrl} alt={name} width={28} height={28} className="size-7 object-contain" />
+    );
   }
   return (
     <span className="flex size-7 items-center justify-center rounded bg-muted font-mono text-[9px] font-bold">
@@ -196,7 +199,11 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
                 ))}
               </div>
             ) : (
-              <span className={`text-xs ${isUrgent ? "font-medium text-amber-600" : "text-muted-foreground/40"}`}>{t("noBet")}</span>
+              <span
+                className={`text-xs ${isUrgent ? "font-medium text-amber-600" : "text-muted-foreground/40"}`}
+              >
+                {t("noBet")}
+              </span>
             )}
           </div>
         </>

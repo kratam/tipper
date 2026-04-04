@@ -1,7 +1,9 @@
 const BASE_URL = "https://v1.hockey.api-sports.io";
 
 function getHeaders(): HeadersInit {
-  return { "x-apisports-key": process.env.API_SPORTS_KEY! };
+  const key = process.env.API_SPORTS_KEY;
+  if (!key) throw new Error("API_SPORTS_KEY is not set");
+  return { "x-apisports-key": key };
 }
 
 export function parsePeriodsString(period: string | null): [number, number] {
