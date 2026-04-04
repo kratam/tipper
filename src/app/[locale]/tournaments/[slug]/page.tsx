@@ -6,7 +6,7 @@ import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { pickMiniLeaderboard } from "@/lib/leaderboard-utils";
 import { getUserBetsForTournament } from "@/queries/bets";
-import { getProjectedBalance, getUserGroups } from "@/queries/groups";
+import { getBatchProjectedBalances, getUserGroups } from "@/queries/groups";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
 import { getMatchesForTournament } from "@/queries/matches";
 import { getPodiumBet, getTournamentTeams } from "@/queries/podium";
@@ -18,33 +18,84 @@ export default async function TournamentDetailPage({
   params: Promise<{ slug: string; locale: string }>;
 }) {
   const { slug } = await params;
-  const user = await getCurrentUser();
-  const locale = await getLocale();
+
+  // Phase 1: auth + tournament lookup in parallel
+  const [user, tournament, locale] = await Promise.all([
+    getCurrentUser(),
+    getTournamentBySlug(slug),
+    getLocale(),
+  ]);
 
   if (!user) {
     return redirect({ href: "/", locale });
   }
-
-  const tournament = await getTournamentBySlug(slug);
   if (!tournament) notFound();
 
-  const matches = await getMatchesForTournament(tournament.id);
-  const userBets = await getUserBetsForTournament(user.id, tournament.id);
+  // Phase 2: all independent data in parallel
+  const [matches, userBets, userGroupMemberships, tournamentTeams] = await Promise.all([
+    getMatchesForTournament(tournament.id),
+    getUserBetsForTournament(user.id, tournament.id),
+    getUserGroups(user.id),
+    getTournamentTeams(tournament.id),
+  ]);
 
-  // Build a bet lookup: matchId -> bet[]
+  const relevantGroups = userGroupMemberships.filter(
+    (gm) => gm.group.tournamentId === tournament.id,
+  );
+  const groupsForBalance = relevantGroups.map((gm) => ({
+    id: gm.group.id,
+    tokenPerMatch: gm.group.tokenPerMatch,
+  }));
+
+  // Phase 3: batch balance + podium + leaderboards in parallel
+  const [batchBalances, podiumData, groupLeaderboards] = await Promise.all([
+    getBatchProjectedBalances(user.id, groupsForBalance, matches),
+    Promise.all(
+      relevantGroups.map(async (gm) => {
+        const existingBet = await getPodiumBet(user.id, tournament.id, gm.group.id);
+        return {
+          groupId: gm.group.id,
+          groupName: gm.group.name,
+          existingBet: existingBet
+            ? {
+                goldTeamId: existingBet.goldTeamId,
+                silverTeamId: existingBet.silverTeamId,
+                bronzeTeamId: existingBet.bronzeTeamId,
+              }
+            : null,
+        };
+      }),
+    ),
+    Promise.all(
+      relevantGroups.map(async (gm) => {
+        const leaderboard = await getGroupLeaderboard(gm.group.id);
+        const mini = pickMiniLeaderboard(leaderboard, user.id);
+        const myEntry = leaderboard.find((e) => e.userId === user.id);
+        return {
+          groupId: gm.group.id,
+          groupName: gm.group.name,
+          groupSlug: gm.group.slug,
+          myProfit: myEntry?.profit ?? 0,
+          myRank: myEntry?.rank ?? null,
+          miniLeaderboard: mini.map((e) => ({
+            rank: e.rank,
+            userId: e.userId,
+            userName: e.userName,
+            profit: e.profit,
+          })),
+        };
+      }),
+    ),
+  ]);
+
+  // Build bet lookup: matchId -> bet[]
   const betsByMatch = new Map<string, typeof userBets>();
   for (const bet of userBets) {
     const existing = betsByMatch.get(bet.matchId) ?? [];
     betsByMatch.set(bet.matchId, [...existing, bet]);
   }
 
-  // User's group memberships for this tournament
-  const userGroupMemberships = await getUserGroups(user.id);
-  const relevantGroups = userGroupMemberships.filter(
-    (gm) => gm.group.tournamentId === tournament.id,
-  );
-
-  // Build group bet info per match with projected balances
+  // Build groupBetInfosByMatch from batch results
   const groupBetInfosByMatch: Record<
     string,
     {
@@ -65,74 +116,27 @@ export default async function TournamentDetailPage({
 
   for (const match of matches) {
     const matchBets = betsByMatch.get(match.id) ?? [];
-    groupBetInfosByMatch[match.id] = await Promise.all(
-      relevantGroups.map(async (gm) => {
-        const existingBet = matchBets.find((b) => b.groupId === gm.group.id);
-        const { projected, actual, pending, tokenPerMatch } = await getProjectedBalance(
-          user.id,
-          gm.group.id,
-          match.id,
-        );
-        return {
-          groupId: gm.group.id,
-          groupName: gm.group.name,
-          balance: actual,
-          projectedBalance: projected,
-          pendingDistributions: pending,
-          tokenPerMatch,
-          existingBet: existingBet
-            ? {
-                id: existingBet.id,
-                predictedHome: existingBet.predictedHome,
-                predictedAway: existingBet.predictedAway,
-                stake: existingBet.stake,
-              }
-            : null,
-        };
-      }),
-    );
-  }
-
-  // Podium data
-  const tournamentTeams = await getTournamentTeams(tournament.id);
-  const podiumData = await Promise.all(
-    relevantGroups.map(async (gm) => {
-      const existingBet = await getPodiumBet(user.id, tournament.id, gm.group.id);
+    groupBetInfosByMatch[match.id] = relevantGroups.map((gm) => {
+      const bal = batchBalances[match.id]?.[gm.group.id];
+      const existingBet = matchBets.find((b) => b.groupId === gm.group.id);
       return {
         groupId: gm.group.id,
         groupName: gm.group.name,
+        balance: bal?.actual ?? 0,
+        projectedBalance: bal?.projected ?? 0,
+        pendingDistributions: bal?.pending ?? 0,
+        tokenPerMatch: bal?.tokenPerMatch ?? gm.group.tokenPerMatch,
         existingBet: existingBet
           ? {
-              goldTeamId: existingBet.goldTeamId,
-              silverTeamId: existingBet.silverTeamId,
-              bronzeTeamId: existingBet.bronzeTeamId,
+              id: existingBet.id,
+              predictedHome: existingBet.predictedHome,
+              predictedAway: existingBet.predictedAway,
+              stake: existingBet.stake,
             }
           : null,
       };
-    }),
-  );
-
-  // Mini leaderboard per group
-  const groupLeaderboards = await Promise.all(
-    relevantGroups.map(async (gm) => {
-      const leaderboard = await getGroupLeaderboard(gm.group.id);
-      const mini = pickMiniLeaderboard(leaderboard, user.id);
-      const myEntry = leaderboard.find((e) => e.userId === user.id);
-      return {
-        groupId: gm.group.id,
-        groupName: gm.group.name,
-        groupSlug: gm.group.slug,
-        myProfit: myEntry?.profit ?? 0,
-        myRank: myEntry?.rank ?? null,
-        miniLeaderboard: mini.map((e) => ({
-          rank: e.rank,
-          userId: e.userId,
-          userName: e.userName,
-          profit: e.profit,
-        })),
-      };
-    }),
-  );
+    });
+  }
 
   // Serialize matches for client component
   const matchesData = matches.map((m) => ({

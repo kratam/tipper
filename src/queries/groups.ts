@@ -129,6 +129,96 @@ export async function getUserProfit(userId: string, groupId: string): Promise<nu
   return Number(result[0]?.profit ?? 0);
 }
 
+/**
+ * Batch-compute projected balances for all (group, match) pairs in 2 DB queries.
+ * Returns result[matchId][groupId] = { projected, actual, pending, tokenPerMatch }
+ *
+ * Replaces N×M×4 sequential getProjectedBalance calls on the tournament page.
+ */
+export async function getBatchProjectedBalances(
+  userId: string,
+  groupsData: Array<{ id: string; tokenPerMatch: number }>,
+  allMatches: Array<{ id: string; scheduledAt: Date; status: string }>,
+): Promise<
+  Record<
+    string,
+    Record<string, { projected: number; actual: number; pending: number; tokenPerMatch: number }>
+  >
+> {
+  if (groupsData.length === 0 || allMatches.length === 0) return {};
+
+  const groupIds = groupsData.map((g) => g.id);
+
+  // Query 1: actual balances per group
+  const balanceRows = await db
+    .select({
+      groupId: tokenLedger.groupId,
+      balance: sql<number>`COALESCE(SUM(${tokenLedger.amount}), 0)`,
+    })
+    .from(tokenLedger)
+    .where(and(eq(tokenLedger.userId, userId), inArray(tokenLedger.groupId, groupIds)))
+    .groupBy(tokenLedger.groupId);
+
+  const actualByGroup = new Map<string, number>(
+    balanceRows.map((r) => [r.groupId, Number(r.balance)]),
+  );
+
+  // Query 2: already-distributed matchIds per group
+  const distributionRows = await db
+    .select({ groupId: tokenLedger.groupId, matchId: tokenLedger.referenceId })
+    .from(tokenLedger)
+    .where(
+      and(
+        eq(tokenLedger.userId, userId),
+        inArray(tokenLedger.groupId, groupIds),
+        eq(tokenLedger.type, "distribution"),
+      ),
+    );
+
+  const distributedByGroup = new Map<string, Set<string>>();
+  for (const r of distributionRows) {
+    if (!r.matchId) continue;
+    if (!distributedByGroup.has(r.groupId)) distributedByGroup.set(r.groupId, new Set());
+    const groupSet = distributedByGroup.get(r.groupId);
+    if (groupSet) groupSet.add(r.matchId);
+  }
+
+  // In-memory computation — same logic as getProjectedBalance but for all pairs
+  // DATE comparison uses UTC (consistent with PostgreSQL default timezone)
+  const toDateNum = (d: Date) =>
+    d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+
+  const scheduledMatches = allMatches.filter((m) => m.status === "scheduled");
+
+  const result: Record<
+    string,
+    Record<string, { projected: number; actual: number; pending: number; tokenPerMatch: number }>
+  > = {};
+
+  for (const match of allMatches) {
+    result[match.id] = {};
+    const matchDateNum = toDateNum(match.scheduledAt);
+
+    for (const group of groupsData) {
+      const actual = actualByGroup.get(group.id) ?? 0;
+      const distributed = distributedByGroup.get(group.id) ?? new Set<string>();
+
+      const pending = scheduledMatches.filter(
+        (m) => toDateNum(m.scheduledAt) <= matchDateNum && !distributed.has(m.id),
+      ).length;
+
+      result[match.id][group.id] = {
+        projected: actual + pending * group.tokenPerMatch,
+        actual,
+        pending,
+        tokenPerMatch: group.tokenPerMatch,
+      };
+    }
+  }
+
+  return result;
+}
+
 export async function getPublicGroups(userId: string) {
   const userGroupIds = await db
     .select({ groupId: groupMembers.groupId })

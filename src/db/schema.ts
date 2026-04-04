@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   decimal,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -66,26 +67,30 @@ export const teams = pgTable("teams", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const matches = pgTable("matches", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  tournamentId: uuid("tournament_id")
-    .references(() => tournaments.id)
-    .notNull(),
-  apiGameId: integer("api_game_id").unique().notNull(),
-  homeTeamId: uuid("home_team_id")
-    .references(() => teams.id)
-    .notNull(),
-  awayTeamId: uuid("away_team_id")
-    .references(() => teams.id)
-    .notNull(),
-  homeScore: integer("home_score"),
-  awayScore: integer("away_score"),
-  status: matchStatusEnum("status").default("scheduled").notNull(),
-  scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
-  round: text("round").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const matches = pgTable(
+  "matches",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tournamentId: uuid("tournament_id")
+      .references(() => tournaments.id)
+      .notNull(),
+    apiGameId: integer("api_game_id").unique().notNull(),
+    homeTeamId: uuid("home_team_id")
+      .references(() => teams.id)
+      .notNull(),
+    awayTeamId: uuid("away_team_id")
+      .references(() => teams.id)
+      .notNull(),
+    homeScore: integer("home_score"),
+    awayScore: integer("away_score"),
+    status: matchStatusEnum("status").default("scheduled").notNull(),
+    scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
+    round: text("round").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("matches_tournament_status_idx").on(table.tournamentId, table.status)],
+);
 
 export const matchOdds = pgTable("match_odds", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -190,22 +195,28 @@ export const podiumBets = pgTable(
   (table) => [uniqueIndex("podium_unique_idx").on(table.userId, table.tournamentId, table.groupId)],
 );
 
-export const tokenLedger = pgTable("token_ledger", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .references(() => users.id)
-    .notNull(),
-  groupId: uuid("group_id")
-    .references(() => groups.id)
-    .notNull(),
-  tournamentId: uuid("tournament_id")
-    .references(() => tournaments.id)
-    .notNull(),
-  amount: integer("amount").notNull(),
-  type: tokenTypeEnum("type").notNull(),
-  referenceId: uuid("reference_id"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const tokenLedger = pgTable(
+  "token_ledger",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .references(() => users.id)
+      .notNull(),
+    groupId: uuid("group_id")
+      .references(() => groups.id)
+      .notNull(),
+    tournamentId: uuid("tournament_id")
+      .references(() => tournaments.id)
+      .notNull(),
+    amount: integer("amount").notNull(),
+    type: tokenTypeEnum("type").notNull(),
+    referenceId: uuid("reference_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("token_ledger_user_group_type_idx").on(table.userId, table.groupId, table.type),
+  ],
+);
 
 export const matchScheduleOverrides = pgTable("match_schedule_overrides", {
   id: uuid("id").defaultRandom().primaryKey(),
