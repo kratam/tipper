@@ -70,9 +70,9 @@ CRON_SECRET=...           # Cron endpoint védelem
 - Commit: conventional commits (feat/fix/chore/docs)
 - Tesztek: Vitest, TDD a pure logikára
 
-## DB séma (10 tábla)
+## DB séma (11 tábla)
 
-users, tournaments, teams, matches, match_odds, groups, group_members, bets, podium_bets, token_ledger
+users, tournaments, teams, matches, match_odds, groups, group_members, bets, podium_bets, token_ledger, match_schedule_overrides
 
 A `neon_auth` schema külön (Better Auth által kezelt): user, session, account, verification, jwks
 
@@ -94,6 +94,14 @@ Per-meccs token modell:
 3. Finished meccsek pontozása → bets.payout + token_ledger
 4. Cancelled meccsek → refund
 5. Per-meccs token kiosztás (distributionDaysBefore napon belüli meccsekre)
+6. Schedule override: hibás menetrend detektálás (>80% egy napon → override bekapcsolás), API javulás (≥90% egyezés ±2h → kikapcsolás)
+
+## Schedule Override
+
+Ha az API placeholder dátumokat ad (minden meccs egy napra), a `match_schedule_overrides` tábla tartalmazza a valós dátumokat.
+- `tournaments.useScheduleOverrides` flag szabályozza az override alkalmazását
+- Detektálás automatikus (cron sync-ben), override-ok kézi feltöltéssel (SQL/Neon MCP)
+- Az override a `matches.scheduledAt`-ot írja felül közvetlenül
 
 ## Ismert korlátok
 
