@@ -58,8 +58,10 @@ export async function getTokenBalance(userId: string, groupId: string): Promise<
  * projected = actual_balance + (pending_distributions × tokenPerMatch)
  *
  * pending_distributions = scheduled matches where:
- *   - scheduledAt <= target match scheduledAt
+ *   - DATE(scheduledAt) <= DATE(target match scheduledAt) (day-level comparison)
  *   - no distribution ledger entry exists for this (userId, groupId, matchId)
+ *
+ * All matches on the same day share the same projected balance.
  */
 export async function getProjectedBalance(
   userId: string,
@@ -86,7 +88,7 @@ export async function getProjectedBalance(
       and(
         eq(matches.tournamentId, group.tournamentId),
         eq(matches.status, "scheduled"),
-        sql`${matches.scheduledAt} <= ${targetMatch.scheduledAt}`,
+        sql`DATE(${matches.scheduledAt}) <= DATE(${targetMatch.scheduledAt})`,
         sql`NOT EXISTS (
           SELECT 1 FROM token_ledger tl
           WHERE tl.user_id = ${userId}

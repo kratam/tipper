@@ -417,25 +417,22 @@ async function refundMatch(matchId: string): Promise<void> {
 
 /**
  * Distribute tokens for all groups in a tournament.
- * Per-match distribution: each member gets tokenPerMatch for each match
- * where scheduledAt - now <= distributionDaysBefore days.
+ * Daily distribution: each member gets tokenPerMatch for each match
+ * where DATE(scheduledAt) <= today (match day or earlier).
  * Idempotent: checks (userId, groupId, type='distribution', referenceId=matchId).
  */
 async function distributeTokensForTournament(tournamentId: string): Promise<void> {
-  const now = new Date();
-
   const tournamentGroups = await db.query.groups.findMany({
     where: eq(groups.tournamentId, tournamentId),
     with: { members: true },
   });
 
   for (const group of tournamentGroups) {
-    const cutoff = new Date(now.getTime() + group.distributionDaysBefore * 24 * 60 * 60 * 1000);
     const eligibleMatches = await db.query.matches.findMany({
       where: and(
         eq(matches.tournamentId, tournamentId),
         eq(matches.status, "scheduled"),
-        sql`${matches.scheduledAt} <= ${cutoff}`,
+        sql`DATE(${matches.scheduledAt}) <= CURRENT_DATE`,
       ),
     });
 

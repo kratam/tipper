@@ -10,8 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -19,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "@/i18n/navigation";
 
 interface CreateGroupFormProps {
@@ -37,7 +37,6 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
   const [settings, setSettings] = useState({
     tokenPerMatch: 100,
     initialTokens: 200,
-    distributionDaysBefore: 3,
     bonusGoalDiff: 5,
     bonusExactScore: 10,
     bonusPodiumMention: 20,
@@ -108,15 +107,9 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div className="flex flex-col gap-0.5">
               <Label htmlFor="isPublic">{t("public")}</Label>
-              <span className="text-xs text-muted-foreground">
-                {t("publicDescription")}
-              </span>
+              <span className="text-xs text-muted-foreground">{t("publicDescription")}</span>
             </div>
-            <Switch
-              id="isPublic"
-              checked={isPublic}
-              onCheckedChange={setIsPublic}
-            />
+            <Switch id="isPublic" checked={isPublic} onCheckedChange={setIsPublic} />
           </div>
 
           {/* Description */}
@@ -162,19 +155,6 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
                     value={settings.initialTokens}
                     onChange={(e) =>
                       setSettings({ ...settings, initialTokens: Number(e.target.value) })
-                    }
-                    className="font-mono"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs">{t("distributionDaysBefore")}</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={30}
-                    value={settings.distributionDaysBefore}
-                    onChange={(e) =>
-                      setSettings({ ...settings, distributionDaysBefore: Number(e.target.value) })
                     }
                     className="font-mono"
                   />

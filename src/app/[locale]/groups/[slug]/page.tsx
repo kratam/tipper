@@ -80,7 +80,6 @@ export default async function GroupDetailPage({
         settings={{
           tokenPerMatch: group.tokenPerMatch,
           initialTokens: group.initialTokens,
-          distributionDaysBefore: group.distributionDaysBefore,
           bonusGoalDiff: group.bonusGoalDiff,
           bonusExactScore: group.bonusExactScore,
           bonusPodiumMention: group.bonusPodiumMention,

@@ -12,8 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useLeaderboardPolling } from "@/hooks/use-leaderboard-polling";
 import { useRouter } from "@/i18n/navigation";
@@ -36,7 +36,6 @@ interface MemberInfo {
 interface GroupSettings {
   tokenPerMatch: number;
   initialTokens: number;
-  distributionDaysBefore: number;
   bonusGoalDiff: number;
   bonusExactScore: number;
   bonusPodiumMention: number;
@@ -257,15 +256,9 @@ export function GroupDetailTabs({
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex flex-col gap-0.5">
                   <Label htmlFor="isPublic">{t("public")}</Label>
-                  <span className="text-xs text-muted-foreground">
-                    {t("publicDescription")}
-                  </span>
+                  <span className="text-xs text-muted-foreground">{t("publicDescription")}</span>
                 </div>
-                <Switch
-                  id="isPublic"
-                  checked={isPublicState}
-                  onCheckedChange={setIsPublicState}
-                />
+                <Switch id="isPublic" checked={isPublicState} onCheckedChange={setIsPublicState} />
               </div>
               <Textarea
                 value={descriptionState}
@@ -311,22 +304,6 @@ export function GroupDetailTabs({
                           setSettings({
                             ...settings,
                             initialTokens: Number(e.target.value),
-                          })
-                        }
-                        className="font-mono"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">{t("distributionDaysBefore")}</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={30}
-                        value={settings.distributionDaysBefore}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            distributionDaysBefore: Number(e.target.value),
                           })
                         }
                         className="font-mono"

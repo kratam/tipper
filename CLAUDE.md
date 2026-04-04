@@ -78,13 +78,14 @@ A `neon_auth` schema külön (Better Auth által kezelt): user, session, account
 
 ## Token rendszer
 
-Per-meccs token modell:
+Napi tokenkiosztás modell:
 - `groups.token_per_match` — meccsenként ennyi tokent kap mindenki
 - `groups.initial_tokens` — egyszeri indulótőke csatlakozáskor
-- `groups.distribution_days_before` — hány nappal meccs előtt jön a kiosztás
+- Kiosztás a meccs napján: `DATE(scheduledAt) <= CURRENT_DATE` → per-meccs ledger bejegyzés
 - Carryover nincs — ami megmarad, megmarad
 - `groups.odds_boost` — odds szorzó (real, default 1.0), payout = stake × odds × oddsBoost
-- Vetített egyenleg (projected balance): a tippelhető összeg meccs-specifikus, aktuális egyenleg + pending kiosztások × tokenPerMatch
+- Vetített egyenleg (projected balance): nap-szintű, egy nap összes meccsére ugyanaz. `actual + pending_meccsek × tokenPerMatch` ahol pending = `DATE(scheduledAt) <= DATE(targetMatch.scheduledAt)` és még nincs kiosztva
+- Előre tippelés: bármikor lehet, a keret a meccs napjáig esedékes összes kiosztást tartalmazza
 - Csatlakozáskor catch-up: megkapja a múltbeli meccsek tokenjeit is
 
 ## Cron sync logika
@@ -95,7 +96,7 @@ Per-meccs token modell:
 2. Odds sync → match_odds tábla + NULL odds_at_bet kitöltés
 3. Finished meccsek pontozása → bets.payout + token_ledger
 4. Cancelled meccsek → refund
-5. Per-meccs token kiosztás (distributionDaysBefore napon belüli meccsekre)
+5. Napi token kiosztás (meccs napján, DATE(scheduledAt) <= CURRENT_DATE)
 6. Schedule override: hibás menetrend detektálás (>80% egy napon → override bekapcsolás), API javulás (≥90% egyezés ±2h → kikapcsolás)
 
 ## Schedule Override

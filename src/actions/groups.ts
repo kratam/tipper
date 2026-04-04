@@ -15,7 +15,6 @@ interface CreateGroupInput {
   description?: string;
   tokenPerMatch?: number;
   initialTokens?: number;
-  distributionDaysBefore?: number;
   bonusGoalDiff?: number;
   bonusExactScore?: number;
   bonusPodiumMention?: number;
@@ -49,9 +48,6 @@ export async function createGroup(input: CreateGroupInput) {
       tournamentId: input.tournamentId,
       ...(input.tokenPerMatch != null && { tokenPerMatch: input.tokenPerMatch }),
       ...(input.initialTokens != null && { initialTokens: input.initialTokens }),
-      ...(input.distributionDaysBefore != null && {
-        distributionDaysBefore: input.distributionDaysBefore,
-      }),
       ...(input.bonusGoalDiff != null && { bonusGoalDiff: input.bonusGoalDiff }),
       ...(input.bonusExactScore != null && { bonusExactScore: input.bonusExactScore }),
       ...(input.bonusPodiumMention != null && { bonusPodiumMention: input.bonusPodiumMention }),
@@ -146,7 +142,6 @@ interface GroupSettings {
   description?: string | null;
   tokenPerMatch?: number;
   initialTokens?: number;
-  distributionDaysBefore?: number;
   bonusGoalDiff?: number;
   bonusExactScore?: number;
   bonusPodiumMention?: number;
