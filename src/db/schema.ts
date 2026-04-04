@@ -35,6 +35,7 @@ export const users = pgTable("users", {
   googleId: text("google_id").unique().notNull(),
   email: text("email").unique().notNull(),
   name: text("name").notNull(),
+  displayName: text("display_name"),
   avatarUrl: text("avatar_url"),
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
