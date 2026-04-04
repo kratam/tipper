@@ -29,7 +29,7 @@ export interface LiveLeaderboardRow {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
-  balance: number;
+  profit: number;
   rank: number;
 }
 

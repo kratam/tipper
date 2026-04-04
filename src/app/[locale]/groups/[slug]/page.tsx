@@ -51,7 +51,7 @@ export default async function GroupDetailPage({
           userId: row.userId,
           userName: row.userName,
           userAvatarUrl: row.userAvatarUrl,
-          balance: row.balance,
+          profit: row.profit,
         }))}
         members={group.members.map((m) => ({
           id: m.id,

@@ -20,7 +20,7 @@ interface LeaderboardRow {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
-  balance: number;
+  profit: number;
 }
 
 interface MemberInfo {
@@ -166,7 +166,7 @@ export function GroupDetailTabs({
               <div className="flex items-center gap-4 border-b border-border px-4 py-3 text-xs font-medium text-muted-foreground">
                 <span className="w-10">{tLeaderboard("rank")}</span>
                 <span className="flex-1">{tLeaderboard("player")}</span>
-                <span className="w-20 text-right font-mono">{tLeaderboard("balance")}</span>
+                <span className="w-20 text-right font-mono">{tLeaderboard("profit")}</span>
               </div>
               {/* Rows */}
               {liveLeaderboard.map((row) => {
@@ -194,7 +194,7 @@ export function GroupDetailTabs({
                       <span className="text-sm">{row.userName}</span>
                     </div>
                     <span className="w-20 text-right font-mono text-sm font-bold text-amber-500">
-                      {row.balance}
+                      {row.profit}
                     </span>
                   </div>
                 );

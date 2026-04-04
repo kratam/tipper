@@ -10,7 +10,7 @@ interface LeaderboardRow {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
-  balance: number;
+  profit: number;
 }
 
 export function useLeaderboardPolling(
@@ -33,7 +33,7 @@ export function useLeaderboardPolling(
       userId: row.userId,
       userName: row.userName,
       userAvatarUrl: row.userAvatarUrl,
-      balance: row.balance,
+      profit: row.profit,
     }));
   }, [initialData, liveData]);
 }
