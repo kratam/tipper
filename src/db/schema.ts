@@ -105,12 +105,13 @@ export const groups = pgTable("groups", {
   tournamentId: uuid("tournament_id")
     .references(() => tournaments.id)
     .notNull(),
-  tokenPerRound: integer("token_per_round").default(100).notNull(),
+  tokenPerMatch: integer("token_per_match").default(100).notNull(),
+  initialTokens: integer("initial_tokens").default(200).notNull(),
+  distributionDaysBefore: integer("distribution_days_before").default(3).notNull(),
   bonusGoalDiff: integer("bonus_goal_diff").default(5).notNull(),
   bonusExactScore: integer("bonus_exact_score").default(10).notNull(),
   bonusPodiumMention: integer("bonus_podium_mention").default(20).notNull(),
   bonusPodiumExact: integer("bonus_podium_exact").default(20).notNull(),
-  carryoverPercent: integer("carryover_percent").default(50).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
