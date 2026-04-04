@@ -46,6 +46,7 @@ interface AdminPanelProps {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations("admin");
   const colorMap: Record<string, string> = {
     active: "bg-emerald-500/10 text-emerald-500",
     upcoming: "bg-amber-500/10 text-amber-500",
@@ -54,7 +55,7 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <Badge variant="outline" className={colorMap[status] ?? ""}>
-      {status}
+      {t(status)}
     </Badge>
   );
 }
