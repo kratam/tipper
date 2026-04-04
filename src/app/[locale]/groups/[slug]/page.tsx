@@ -52,6 +52,8 @@ export default async function GroupDetailPage({
         groupId={group.id}
         isOwner={isOwner}
         currentUserId={user.id}
+        isPublic={group.isPublic}
+        description={group.description}
         tournamentStatus={group.tournament.status}
         leaderboard={leaderboard.map((row) => ({
           rank: row.rank,

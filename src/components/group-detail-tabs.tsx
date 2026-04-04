@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useLeaderboardPolling } from "@/hooks/use-leaderboard-polling";
 import { useRouter } from "@/i18n/navigation";
 
@@ -71,6 +73,8 @@ interface GroupDetailTabsProps {
   isOwner: boolean;
   currentUserId: string;
   tournamentStatus: string;
+  isPublic: boolean;
+  description: string | null;
   leaderboard: LeaderboardRow[];
   members: MemberInfo[];
   settings: GroupSettings;
@@ -83,6 +87,8 @@ export function GroupDetailTabs({
   isOwner,
   currentUserId,
   tournamentStatus,
+  isPublic,
+  description,
   leaderboard,
   members,
   settings: initialSettings,
@@ -95,6 +101,8 @@ export function GroupDetailTabs({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [settings, setSettings] = useState(initialSettings);
+  const [isPublicState, setIsPublicState] = useState(isPublic);
+  const [descriptionState, setDescriptionState] = useState(description ?? "");
 
   // Live polling: merge fresh balance/rank data from SWR
   const liveLeaderboard = useLeaderboardPolling(groupId, tournamentStatus, leaderboard);
@@ -102,7 +110,11 @@ export function GroupDetailTabs({
   function handleSaveSettings() {
     startTransition(async () => {
       try {
-        await updateGroupSettings(groupId, settings);
+        await updateGroupSettings(groupId, {
+          ...settings,
+          isPublic: isPublicState,
+          description: descriptionState.trim() || null,
+        });
         toast.success(tc("save"));
         router.refresh();
       } catch (error: unknown) {
@@ -236,6 +248,37 @@ export function GroupDetailTabs({
       {/* Settings (owner only) */}
       {isOwner && (
         <TabsContent value="settings" className="mt-4 flex flex-col gap-4">
+          {/* Public & Description — always editable */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{t("descriptionLabel")}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="flex flex-col gap-0.5">
+                  <Label htmlFor="isPublic">{t("public")}</Label>
+                  <span className="text-xs text-muted-foreground">
+                    {t("publicDescription")}
+                  </span>
+                </div>
+                <Switch
+                  id="isPublic"
+                  checked={isPublicState}
+                  onCheckedChange={setIsPublicState}
+                />
+              </div>
+              <Textarea
+                value={descriptionState}
+                onChange={(e) => setDescriptionState(e.target.value)}
+                placeholder={t("descriptionPlaceholder")}
+                rows={3}
+              />
+              <Button onClick={handleSaveSettings} disabled={isPending}>
+                {tc("save")}
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Rules */}
           <Card>
             <CardHeader>
