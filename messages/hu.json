@@ -68,7 +68,10 @@
     "awayScore": "Vendég",
     "success": "Tipp sikeresen leadva!",
     "updateSuccess": "Tipp sikeresen módosítva!",
-    "cancelSuccess": "Tipp sikeresen visszavonva!"
+    "cancelSuccess": "Tipp sikeresen visszavonva!",
+    "projectedBalance": "Tippelhető",
+    "actualBalance": "Egyenleged",
+    "pendingTokens": "Még kapsz"
   },
   "groups": {
     "title": "Csoportjaim",
@@ -82,12 +85,13 @@
     "leaderboard": "Ranglista",
     "join": "Csatlakozás",
     "leave": "Kilépés",
-    "tokenPerRound": "Token/kör",
+    "tokenPerMatch": "Token/meccs",
     "bonusGoalDiff": "Gólkülönbség bónusz",
     "bonusExactScore": "Pontos eredmény bónusz",
     "bonusPodiumMention": "Dobogós említés bónusz",
     "bonusPodiumExact": "Pontos helyezés bónusz",
-    "carryoverPercent": "Átvitel %",
+    "initialTokens": "Indulótőke",
+    "distributionDaysBefore": "Kiosztás nappal előtte",
     "noGroups": "Még nincs csoportod",
     "tournament": "Versenysorozat",
     "tokens": "Tokenek",

@@ -68,7 +68,10 @@
     "awayScore": "Away",
     "success": "Bet placed successfully!",
     "updateSuccess": "Bet updated successfully!",
-    "cancelSuccess": "Bet cancelled successfully!"
+    "cancelSuccess": "Bet cancelled successfully!",
+    "projectedBalance": "Available to bet",
+    "actualBalance": "Your balance",
+    "pendingTokens": "Upcoming"
   },
   "groups": {
     "title": "My Groups",
@@ -82,12 +85,13 @@
     "leaderboard": "Leaderboard",
     "join": "Join",
     "leave": "Leave",
-    "tokenPerRound": "Tokens/round",
+    "tokenPerMatch": "Tokens/match",
     "bonusGoalDiff": "Goal difference bonus",
     "bonusExactScore": "Exact score bonus",
     "bonusPodiumMention": "Podium mention bonus",
     "bonusPodiumExact": "Exact placement bonus",
-    "carryoverPercent": "Carryover %",
+    "initialTokens": "Starting tokens",
+    "distributionDaysBefore": "Distribution days before",
     "noGroups": "You have no groups yet",
     "tournament": "Tournament",
     "tokens": "Tokens",
