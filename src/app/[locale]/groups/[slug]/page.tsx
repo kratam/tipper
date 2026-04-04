@@ -67,6 +67,7 @@ export default async function GroupDetailPage({
           bonusExactScore: group.bonusExactScore,
           bonusPodiumMention: group.bonusPodiumMention,
           bonusPodiumExact: group.bonusPodiumExact,
+          oddsBoost: group.oddsBoost,
         }}
       />
     </div>
