@@ -1,6 +1,7 @@
 "use client";
 
 import { Target, Trophy, Users } from "lucide-react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,10 +20,13 @@ export function LandingContent() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-12 py-16">
       {/* Hero */}
-      <div className="flex flex-col items-center gap-4 text-center">
-        <h1 className="font-mono text-6xl font-bold tracking-tighter sm:text-7xl">{t("title")}</h1>
+      <div className="flex flex-col items-center gap-6 text-center">
+        <Image src="/tippcasino-logo.png" alt="TippCasino" width={120} height={120} className="size-28 sm:size-32" priority />
+        <h1 className="font-brand text-6xl tracking-tight bg-linear-to-r from-(--brand-blue-dark) via-(--brand-blue) to-(--brand-gold) bg-clip-text text-transparent sm:text-7xl">
+          {t("title")}
+        </h1>
         <p className="max-w-md text-lg text-muted-foreground">{t("subtitle")}</p>
-        <Button size="lg" className="mt-4 text-base" onClick={handleSignIn}>
+        <Button size="lg" className="mt-2 text-base" onClick={handleSignIn}>
           {t("cta")}
         </Button>
       </div>
@@ -31,8 +35,8 @@ export function LandingContent() {
       <div className="grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-amber-500/10">
-              <Target className="size-5 text-amber-500" />
+            <div className="flex size-10 items-center justify-center rounded-lg bg-(--brand-gold)/10">
+              <Target className="size-5 text-(--brand-gold)" />
             </div>
             <CardTitle className="text-base">{t("featureBet")}</CardTitle>
           </CardHeader>
@@ -43,8 +47,8 @@ export function LandingContent() {
 
         <Card>
           <CardHeader className="flex flex-row items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-500/10">
-              <Users className="size-5 text-emerald-500" />
+            <div className="flex size-10 items-center justify-center rounded-lg bg-(--brand-blue)/10">
+              <Users className="size-5 text-(--brand-blue)" />
             </div>
             <CardTitle className="text-base">{t("featureCompete")}</CardTitle>
           </CardHeader>
@@ -55,8 +59,8 @@ export function LandingContent() {
 
         <Card>
           <CardHeader className="flex flex-row items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-500/10">
-              <Trophy className="size-5 text-emerald-500" />
+            <div className="flex size-10 items-center justify-center rounded-lg bg-(--brand-blue)/10">
+              <Trophy className="size-5 text-(--brand-blue)" />
             </div>
             <CardTitle className="text-base">{t("featureWin")}</CardTitle>
           </CardHeader>

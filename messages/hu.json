@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Tipper",
+    "appName": "TippCasino",
     "login": "Bejelentkezés",
     "logout": "Kijelentkezés",
     "save": "Mentés",
@@ -19,7 +19,7 @@
     "locale": "Nyelv"
   },
   "landing": {
-    "title": "Tipper",
+    "title": "TippCasino",
     "subtitle": "Tippelj sportmeccsekre, gyűjts pontokat, versenyezz barátaiddal!",
     "cta": "Bejelentkezés Google-lel",
     "featureBet": "Tippelj",

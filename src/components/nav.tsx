@@ -1,6 +1,7 @@
 "use client";
 
 import { Globe, LogOut, Menu, Pencil, X } from "lucide-react";
+import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { DisplayNameDialog } from "@/components/display-name-dialog";
@@ -66,8 +67,11 @@ export function Nav({ user }: NavProps) {
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           {/* Logo */}
-          <Link href="/" className="font-mono text-xl font-bold tracking-tight text-foreground">
-            Tipper
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/tippcasino-logo.png" alt="TippCasino" width={32} height={32} className="size-8" />
+            <span className="font-brand text-xl tracking-tight bg-linear-to-r from-(--brand-blue-dark) via-(--brand-blue) to-(--brand-gold) bg-clip-text text-transparent">
+              TippCasino
+            </span>
           </Link>
 
           {/* Desktop nav links */}

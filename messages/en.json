@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Tipper",
+    "appName": "TippCasino",
     "login": "Sign in",
     "logout": "Sign out",
     "save": "Save",
@@ -19,7 +19,7 @@
     "locale": "Language"
   },
   "landing": {
-    "title": "Tipper",
+    "title": "TippCasino",
     "subtitle": "Predict sports matches, earn points, compete with friends!",
     "cta": "Sign in with Google",
     "featureBet": "Predict",

@@ -1,4 +1,4 @@
-# Tipper — Sportmeccs tippjáték
+# TippCasino — Sportmeccs tippjáték
 
 ## Áttekintés
 
