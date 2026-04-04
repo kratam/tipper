@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -29,6 +31,8 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState("");
   const [tournamentId, setTournamentId] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
+  const [description, setDescription] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [settings, setSettings] = useState({
     tokenPerMatch: 100,
@@ -47,7 +51,13 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
 
     startTransition(async () => {
       try {
-        const group = await createGroup({ name: name.trim(), tournamentId, ...settings });
+        const group = await createGroup({
+          name: name.trim(),
+          tournamentId,
+          isPublic,
+          description: description.trim() || undefined,
+          ...settings,
+        });
         toast.success(t("createSuccess"));
         router.push(`/groups/${group.slug}`);
       } catch (error: unknown) {
@@ -92,6 +102,33 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Public toggle */}
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="flex flex-col gap-0.5">
+              <Label htmlFor="isPublic">{t("public")}</Label>
+              <span className="text-xs text-muted-foreground">
+                {t("publicDescription")}
+              </span>
+            </div>
+            <Switch
+              id="isPublic"
+              checked={isPublic}
+              onCheckedChange={setIsPublic}
+            />
+          </div>
+
+          {/* Description */}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="description">{t("descriptionLabel")}</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t("descriptionPlaceholder")}
+              rows={3}
+            />
           </div>
 
           {/* Collapsible advanced settings */}
