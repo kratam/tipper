@@ -1,9 +1,14 @@
 import "server-only";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { groupMembers, tokenLedger, users } from "@/db/schema";
+import { bets, groupMembers, matches, tokenLedger, users } from "@/db/schema";
 
 export async function getGroupLeaderboard(groupId: string) {
+  // Only count profit from resolved matches (finished/cancelled).
+  // Join: tokenLedger → bets (via referenceId) → matches (via matchId)
+  // Pending bets (match not yet resolved) are excluded.
+  // User-cancelled bets (deleted bet row) also drop out, but those are
+  // always a bet+refund pair netting to 0, so the result stays correct.
   const rows = await db
     .select({
       userId: groupMembers.userId,
@@ -21,7 +26,14 @@ export async function getGroupLeaderboard(groupId: string) {
         inArray(tokenLedger.type, ["bet", "win", "refund"]),
       ),
     )
-    .where(eq(groupMembers.groupId, groupId))
+    .leftJoin(bets, eq(tokenLedger.referenceId, bets.id))
+    .leftJoin(matches, eq(bets.matchId, matches.id))
+    .where(
+      and(
+        eq(groupMembers.groupId, groupId),
+        sql`(${tokenLedger.id} IS NULL OR ${matches.status} IN ('finished', 'cancelled'))`,
+      ),
+    )
     .groupBy(groupMembers.userId, users.id, users.name, users.displayName, users.avatarUrl)
     .orderBy(desc(sql`COALESCE(SUM(${tokenLedger.amount}), 0)`));
 
