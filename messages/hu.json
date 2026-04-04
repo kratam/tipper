@@ -45,7 +45,16 @@
     "noTournaments": "Nincsenek versenysorozatok",
     "profit": "Profit",
     "unbettedMatches": "{count} meccsre nem tippeltél",
-    "allBetsPlaced": "Minden tipp leadva"
+    "allBetsPlaced": "Minden tipp leadva",
+    "howToPlay": "Hogyan működik?",
+    "howToPlayTokens": "Tokenek",
+    "howToPlayTokensDesc": "Minden meccs napján automatikusan kapsz tokeneket. Ezzel a kerettel tippelhetsz az adott és a korábbi meccsekre.",
+    "howToPlayBetting": "Tippelés",
+    "howToPlayBettingDesc": "Jósold meg a pontos végeredményt (pl. 3:1), és döntsd el, mennyi tokent teszel fel. A meccs kezdetéig bármikor módosíthatod.",
+    "howToPlayScoring": "Pontszámítás",
+    "howToPlayScoringDesc": "Helyes győztes/döntetlen: tét × odds. Bónusz jár, ha a gólkülönbség is stimmel, és külön bónusz a pontos eredményért. Rossz tippért 0 tokent kapsz.",
+    "howToPlayPodium": "Dobogós tipp",
+    "howToPlayPodiumDesc": "A versenysorozat lezárása előtt megjósolhatod az első három csapat sorrendjét. Minden helyes pozícióért bónusz jár."
   },
   "matches": {
     "scheduled": "Tervezett",

@@ -35,6 +35,7 @@ interface BetFormProps {
   homeTeam: { name: string; logoUrl: string | null };
   awayTeam: { name: string; logoUrl: string | null };
   scheduledAt: string;
+  onSuccess?: () => void;
 }
 
 function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -100,7 +101,15 @@ function computeDefaultStake(balance: number, matchCount: number): number {
   return Math.max(1, Math.floor(balance / matchCount));
 }
 
-export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt }: BetFormProps) {
+export function BetForm({
+  matchId,
+  groups,
+  odds,
+  homeTeam,
+  awayTeam,
+  scheduledAt,
+  onSuccess,
+}: BetFormProps) {
   const t = useTranslations("betting");
   const tMatches = useTranslations("matches");
   const router = useRouter();
@@ -136,6 +145,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt
         groups.find((g) => g.groupId === groupId)?.existingBet ? t("updateSuccess") : t("success"),
       );
       router.refresh();
+      onSuccess?.();
     });
   }
 
@@ -148,6 +158,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt
       }
       toast.success(t("cancelSuccess"));
       router.refresh();
+      onSuccess?.();
     });
   }
 

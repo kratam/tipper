@@ -50,6 +50,28 @@ export default async function TournamentsPage() {
           ))}
         </div>
       )}
+
+      <div className="rounded-lg border bg-muted/30 p-4">
+        <h2 className="mb-3 font-semibold">{t("howToPlay")}</h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <p className="text-sm font-medium">{t("howToPlayTokens")}</p>
+            <p className="text-muted-foreground text-sm">{t("howToPlayTokensDesc")}</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium">{t("howToPlayBetting")}</p>
+            <p className="text-muted-foreground text-sm">{t("howToPlayBettingDesc")}</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium">{t("howToPlayScoring")}</p>
+            <p className="text-muted-foreground text-sm">{t("howToPlayScoringDesc")}</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium">{t("howToPlayPodium")}</p>
+            <p className="text-muted-foreground text-sm">{t("howToPlayPodiumDesc")}</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

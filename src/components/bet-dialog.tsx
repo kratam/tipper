@@ -133,6 +133,7 @@ export function BetDialog({ match, groups, open, onOpenChange }: BetDialogProps)
             homeTeam={match.homeTeam}
             awayTeam={match.awayTeam}
             scheduledAt={match.scheduledAt}
+            onSuccess={() => onOpenChange(false)}
           />
         ) : (
           <p className="text-center text-sm text-muted-foreground">{t("noBet")}</p>

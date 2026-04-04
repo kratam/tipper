@@ -45,7 +45,16 @@
     "noTournaments": "No tournaments yet",
     "profit": "Profit",
     "unbettedMatches": "{count} matches without bets",
-    "allBetsPlaced": "All bets placed"
+    "allBetsPlaced": "All bets placed",
+    "howToPlay": "How does it work?",
+    "howToPlayTokens": "Tokens",
+    "howToPlayTokensDesc": "You automatically receive tokens each match day. Use them to bet on that day's matches and earlier ones.",
+    "howToPlayBetting": "Betting",
+    "howToPlayBettingDesc": "Predict the exact final score (e.g. 3:1) and choose your stake. You can update your bet any time before the match starts.",
+    "howToPlayScoring": "Scoring",
+    "howToPlayScoringDesc": "Correct winner/draw: stake × odds. Bonus for correct goal difference, and a bigger bonus for the exact score. Wrong prediction earns 0.",
+    "howToPlayPodium": "Podium prediction",
+    "howToPlayPodiumDesc": "Before the tournament closes, predict the top 3 teams in order. You earn bonus tokens for each correct position."
   },
   "matches": {
     "scheduled": "Scheduled",
