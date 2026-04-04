@@ -1,21 +1,45 @@
 import { describe, expect, it } from "vitest";
-import { calculateCarryover, getRelevantOdds } from "@/lib/tokens";
+import { calculateProjectedBalance, getRelevantOdds } from "@/lib/tokens";
 
-describe("calculateCarryover", () => {
-  it("returns 50% rounded down", () => {
-    expect(calculateCarryover(75, 50)).toBe(37);
+describe("calculateProjectedBalance", () => {
+  it("returns actual balance when no pending distributions", () => {
+    expect(
+      calculateProjectedBalance({
+        actualBalance: 100,
+        pendingDistributions: 0,
+        tokenPerMatch: 100,
+      }),
+    ).toBe(100);
   });
-  it("returns 0 when all used", () => {
-    expect(calculateCarryover(0, 50)).toBe(0);
+
+  it("adds pending distributions to balance", () => {
+    expect(
+      calculateProjectedBalance({
+        actualBalance: 100,
+        pendingDistributions: 3,
+        tokenPerMatch: 100,
+      }),
+    ).toBe(400);
   });
-  it("rounds down odd numbers", () => {
-    expect(calculateCarryover(3, 50)).toBe(1);
+
+  it("works with negative balance (user pre-committed tokens)", () => {
+    expect(
+      calculateProjectedBalance({
+        actualBalance: -50,
+        pendingDistributions: 3,
+        tokenPerMatch: 100,
+      }),
+    ).toBe(250);
   });
-  it("handles 0% carryover", () => {
-    expect(calculateCarryover(100, 0)).toBe(0);
-  });
-  it("handles 100% carryover", () => {
-    expect(calculateCarryover(100, 100)).toBe(100);
+
+  it("returns 0 when balance is zero and no pending", () => {
+    expect(
+      calculateProjectedBalance({
+        actualBalance: 0,
+        pendingDistributions: 0,
+        tokenPerMatch: 100,
+      }),
+    ).toBe(0);
   });
 });
 

@@ -1,7 +1,13 @@
 import { get1X2 } from "./scoring";
 
-export function calculateCarryover(unusedTokens: number, carryoverPercent: number): number {
-  return Math.floor(unusedTokens * (carryoverPercent / 100));
+interface ProjectedBalanceInput {
+  actualBalance: number;
+  pendingDistributions: number;
+  tokenPerMatch: number;
+}
+
+export function calculateProjectedBalance(input: ProjectedBalanceInput): number {
+  return input.actualBalance + input.pendingDistributions * input.tokenPerMatch;
 }
 
 export function getRelevantOdds(
