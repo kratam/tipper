@@ -136,7 +136,10 @@
     "createSuccess": "Versenysorozat sikeresen létrehozva!",
     "syncSuccess": "Szinkronizálás sikeres!",
     "statusUpdateSuccess": "Státusz sikeresen frissítve!",
-    "selectTeam": "Válassz csapatot"
+    "selectTeam": "Válassz csapatot",
+    "upcoming": "Közelgő",
+    "active": "Aktív",
+    "finished": "Befejezett"
   },
   "join": {
     "title": "Csatlakozás csoporthoz",

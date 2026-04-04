@@ -136,7 +136,10 @@
     "createSuccess": "Tournament created successfully!",
     "syncSuccess": "Sync completed!",
     "statusUpdateSuccess": "Status updated!",
-    "selectTeam": "Select team"
+    "selectTeam": "Select team",
+    "upcoming": "Upcoming",
+    "active": "Active",
+    "finished": "Finished"
   },
   "join": {
     "title": "Join Group",
