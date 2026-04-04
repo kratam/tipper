@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe, LogOut, Menu, X } from "lucide-react";
+import { Globe, LogOut, Menu, Pencil, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,10 +13,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth/client";
+import { DisplayNameDialog } from "@/components/display-name-dialog";
 
 interface NavProps {
   user: {
     name: string;
+    displayName: string | null;
     email: string;
     avatarUrl: string | null;
     isAdmin: boolean;
@@ -31,6 +33,7 @@ export function Nav({ user }: NavProps) {
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [displayNameOpen, setDisplayNameOpen] = useState(false);
 
   function switchLocale(newLocale: "hu" | "en") {
     startTransition(() => {
@@ -48,8 +51,9 @@ export function Nav({ user }: NavProps) {
     });
   }
 
-  const initials = user?.name
-    ? user.name
+  const displayedName = user?.displayName ?? user?.name;
+  const initials = displayedName
+    ? displayedName
         .split(" ")
         .map((n) => n[0])
         .join("")
@@ -58,6 +62,7 @@ export function Nav({ user }: NavProps) {
     : "?";
 
   return (
+    <>
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
         {/* Logo */}
@@ -109,10 +114,14 @@ export function Nav({ user }: NavProps) {
                     <AvatarImage src={user.avatarUrl ?? undefined} />
                     <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                   </Avatar>
-                  <span className="max-w-[120px] truncate text-sm">{user.name}</span>
+                  <span className="max-w-30 truncate text-sm">{displayedName}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setDisplayNameOpen(true)}>
+                  <Pencil className="mr-2 size-4" />
+                  {t("displayName")}
+                </DropdownMenuItem>
                 <DropdownMenuItem className="text-destructive" onClick={handleSignOut}>
                   <LogOut className="mr-2 size-4" />
                   {tc("logout")}
@@ -147,7 +156,7 @@ export function Nav({ user }: NavProps) {
                   <AvatarImage src={user.avatarUrl ?? undefined} />
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium">{user.name}</span>
+                <span className="text-sm font-medium">{displayedName}</span>
               </div>
               <Button
                 variant="ghost"
@@ -181,6 +190,18 @@ export function Nav({ user }: NavProps) {
               <Button
                 variant="ghost"
                 size="sm"
+                className="justify-start"
+                onClick={() => {
+                  setDisplayNameOpen(true);
+                  setMobileOpen(false);
+                }}
+              >
+                <Pencil className="mr-2 size-4" />
+                {t("displayName")}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 className="justify-start text-destructive"
                 onClick={handleSignOut}
               >
@@ -196,5 +217,14 @@ export function Nav({ user }: NavProps) {
         </div>
       )}
     </nav>
+    {user && (
+      <DisplayNameDialog
+        open={displayNameOpen}
+        onOpenChange={setDisplayNameOpen}
+        currentDisplayName={user.displayName}
+        googleName={user.name}
+      />
+    )}
+  </>
   );
 }
