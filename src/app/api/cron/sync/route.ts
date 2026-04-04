@@ -268,12 +268,13 @@ async function handleScheduleOverrides(
     }
   } else {
     // Detect API improvement: ≥90% match within ±2h
-    const pairs = overrides
-      .filter((o) => apiGameDates.has(o.apiGameId))
-      .map((o) => ({
-        apiDate: new Date(apiGameDates.get(o.apiGameId)!),
-        overrideDate: o.overrideScheduledAt,
-      }));
+    const pairs: { apiDate: Date; overrideDate: Date }[] = [];
+    for (const o of overrides) {
+      const apiDateStr = apiGameDates.get(o.apiGameId);
+      if (apiDateStr) {
+        pairs.push({ apiDate: new Date(apiDateStr), overrideDate: o.overrideScheduledAt });
+      }
+    }
 
     if (pairs.length > 0 && hasApiScheduleImproved(pairs)) {
       useOverrides = false;
