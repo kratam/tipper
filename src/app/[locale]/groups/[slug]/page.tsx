@@ -56,7 +56,7 @@ export default async function GroupDetailPage({
         members={group.members.map((m) => ({
           id: m.id,
           userId: m.userId,
-          name: m.user.name,
+          name: m.user.displayName ?? m.user.name,
           avatarUrl: m.user.avatarUrl,
         }))}
         settings={{
