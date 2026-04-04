@@ -23,7 +23,8 @@ export function InviteCodeBadge({ inviteCode }: { inviteCode: string }) {
 
   return (
     <div className="flex items-center gap-1.5">
-      <span className="font-mono text-xs text-muted-foreground">{inviteCode}</span>
+      <span className="text-xs text-muted-foreground">{t("inviteCode")}:</span>
+      <span className="font-mono text-xs font-medium">{inviteCode}</span>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>

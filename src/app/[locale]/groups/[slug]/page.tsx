@@ -41,7 +41,7 @@ export default async function GroupDetailPage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-3">
           <h1 className="font-mono text-2xl font-bold tracking-tight">{group.name}</h1>
           <InviteCodeBadge inviteCode={group.inviteCode} />
         </div>
