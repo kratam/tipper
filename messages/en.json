@@ -28,11 +28,13 @@
     "featureWin": "Win",
     "featureWinDesc": "Earn points for accurate predictions and climb the leaderboard."
   },
-  "tournaments": {
-    "title": "Tournaments",
+  "status": {
     "upcoming": "Upcoming",
     "active": "Active",
-    "finished": "Finished",
+    "finished": "Finished"
+  },
+  "tournaments": {
+    "title": "Tournaments",
     "matches": "Matches",
     "podium": "Podium Prediction",
     "matchCount": "{count} matches",
@@ -141,10 +143,7 @@
     "createSuccess": "Tournament created successfully!",
     "syncSuccess": "Sync completed!",
     "statusUpdateSuccess": "Status updated!",
-    "selectTeam": "Select team",
-    "upcoming": "Upcoming",
-    "active": "Active",
-    "finished": "Finished"
+    "selectTeam": "Select team"
   },
   "join": {
     "title": "Join Group",

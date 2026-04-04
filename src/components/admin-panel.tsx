@@ -10,7 +10,7 @@ import {
   triggerSync,
   updateTournamentStatus,
 } from "@/actions/admin";
-import { Badge } from "@/components/ui/badge";
+import { TournamentStatusBadge } from "@/components/tournament-status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,20 +49,6 @@ interface AdminPanelProps {
   tournaments: TournamentInfo[];
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const t = useTranslations("admin");
-  const colorMap: Record<string, string> = {
-    active: "bg-emerald-500/10 text-emerald-500",
-    upcoming: "bg-amber-500/10 text-amber-500",
-    finished: "bg-muted text-muted-foreground",
-  };
-
-  return (
-    <Badge variant="outline" className={colorMap[status] ?? ""}>
-      {t(status)}
-    </Badge>
-  );
-}
 
 export function AdminPanel({ tournaments }: AdminPanelProps) {
   const t = useTranslations("admin");
@@ -233,7 +219,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={tournament.status} />
+                  <TournamentStatusBadge status={tournament.status} />
                   {tournament.status === "upcoming" && (
                     <Button
                       variant="outline"

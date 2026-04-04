@@ -28,11 +28,13 @@
     "featureWin": "Nyerj",
     "featureWinDesc": "Gyűjts pontokat a pontos tippekért és kerülj a ranglista élére."
   },
-  "tournaments": {
-    "title": "Versenysorozatok",
+  "status": {
     "upcoming": "Közelgő",
     "active": "Aktív",
-    "finished": "Befejezett",
+    "finished": "Befejezett"
+  },
+  "tournaments": {
+    "title": "Versenysorozatok",
     "matches": "Meccsek",
     "podium": "Dobogós tipp",
     "matchCount": "{count} meccs",
@@ -141,10 +143,7 @@
     "createSuccess": "Versenysorozat sikeresen létrehozva!",
     "syncSuccess": "Szinkronizálás sikeres!",
     "statusUpdateSuccess": "Státusz sikeresen frissítve!",
-    "selectTeam": "Válassz csapatot",
-    "upcoming": "Közelgő",
-    "active": "Aktív",
-    "finished": "Befejezett"
+    "selectTeam": "Válassz csapatot"
   },
   "join": {
     "title": "Csatlakozás csoporthoz",

@@ -1,6 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TournamentStatusBadge } from "@/components/tournament-status-badge";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { getTournaments } from "@/queries/tournaments";
@@ -9,20 +9,6 @@ function statusOrder(status: string): number {
   if (status === "active") return 0;
   if (status === "upcoming") return 1;
   return 2;
-}
-
-function StatusBadge({ status, label }: { status: string; label: string }) {
-  const colorMap: Record<string, string> = {
-    active: "bg-emerald-500/10 text-emerald-500",
-    upcoming: "bg-amber-500/10 text-amber-500",
-    finished: "bg-muted text-muted-foreground",
-  };
-
-  return (
-    <Badge variant="outline" className={colorMap[status] ?? ""}>
-      {label}
-    </Badge>
-  );
 }
 
 export default async function TournamentsPage() {
@@ -51,17 +37,8 @@ export default async function TournamentsPage() {
               <Card className="transition-colors group-hover:ring-foreground/20">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-base">{tournament.name}</CardTitle>
-                  <StatusBadge status={tournament.status} label={t(tournament.status)} />
+                  <TournamentStatusBadge status={tournament.status} />
                 </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
-                    {tournament.status === "active"
-                      ? t("active")
-                      : tournament.status === "upcoming"
-                        ? t("upcoming")
-                        : t("finished")}
-                  </p>
-                </CardContent>
               </Card>
             </Link>
           ))}
