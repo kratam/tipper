@@ -5,6 +5,7 @@ import {
   integer,
   pgEnum,
   pgTable,
+  real,
   text,
   timestamp,
   uniqueIndex,
@@ -114,6 +115,7 @@ export const groups = pgTable("groups", {
   bonusExactScore: integer("bonus_exact_score").default(10).notNull(),
   bonusPodiumMention: integer("bonus_podium_mention").default(20).notNull(),
   bonusPodiumExact: integer("bonus_podium_exact").default(20).notNull(),
+  oddsBoost: real("odds_boost").default(1.0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
