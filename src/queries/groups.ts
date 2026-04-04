@@ -49,7 +49,7 @@ export async function getTokenBalance(userId: string, groupId: string): Promise<
     .from(tokenLedger)
     .where(and(eq(tokenLedger.userId, userId), eq(tokenLedger.groupId, groupId)));
 
-  return result[0]?.balance ?? 0;
+  return Number(result[0]?.balance ?? 0);
 }
 
 /**
