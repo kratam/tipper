@@ -4,7 +4,7 @@ import { ClipboardCopy, LogOut, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { leaveGroup, removeMember, updateGroupSettings } from "@/actions/groups";
+import { deleteGroup, leaveGroup, removeMember, updateGroupSettings } from "@/actions/groups";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,6 +94,21 @@ export function GroupDetailTabs({
     startTransition(async () => {
       try {
         await removeMember(groupId, userId);
+        router.refresh();
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        toast.error(message);
+      }
+    });
+  }
+
+  function handleDeleteGroup() {
+    if (!confirm(t("deleteConfirm"))) return;
+    startTransition(async () => {
+      try {
+        await deleteGroup(groupId);
+        toast.success(t("deleteSuccess"));
+        router.push("/groups");
         router.refresh();
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
@@ -376,6 +391,20 @@ export function GroupDetailTabs({
               </Button>
             </CardContent>
           </Card>
+
+          <Separator />
+
+          {/* Delete group */}
+          <Button
+            variant="destructive"
+            size="sm"
+            className="w-fit gap-2"
+            onClick={() => handleDeleteGroup()}
+            disabled={isPending}
+          >
+            <Trash2 className="size-4" />
+            {t("deleteGroup")}
+          </Button>
         </TabsContent>
       )}
     </Tabs>

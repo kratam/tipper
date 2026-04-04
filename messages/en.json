@@ -100,7 +100,10 @@
     "settingsLocked": "Settings can only be changed while the tournament is upcoming.",
     "leaveConfirm": "Are you sure you want to leave this group?",
     "leaveSuccess": "You have left the group!",
-    "createSuccess": "Group created successfully!"
+    "createSuccess": "Group created successfully!",
+    "deleteGroup": "Delete group",
+    "deleteConfirm": "Are you sure you want to delete this group? This will permanently remove all bets, tokens, and memberships.",
+    "deleteSuccess": "Group deleted successfully!"
   },
   "podium": {
     "title": "Podium Prediction",

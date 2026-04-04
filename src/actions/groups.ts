@@ -3,7 +3,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { groupMembers, groups, tokenLedger, tournaments } from "@/db/schema";
+import { bets, groupMembers, groups, podiumBets, tokenLedger, tournaments } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { generateInviteCode, slugify } from "@/lib/utils";
 import { getGroupByInviteCode } from "@/queries/groups";
@@ -128,6 +128,24 @@ export async function removeMember(groupId: string, targetUserId: string) {
   await db
     .delete(groupMembers)
     .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUserId)));
+}
+
+export async function deleteGroup(groupId: string) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const group = await db.query.groups.findFirst({
+    where: eq(groups.id, groupId),
+  });
+  if (!group) throw new Error("Group not found");
+  if (group.ownerId !== user.id) throw new Error("Unauthorized");
+
+  // Delete in FK order
+  await db.delete(tokenLedger).where(eq(tokenLedger.groupId, groupId));
+  await db.delete(bets).where(eq(bets.groupId, groupId));
+  await db.delete(podiumBets).where(eq(podiumBets.groupId, groupId));
+  await db.delete(groupMembers).where(eq(groupMembers.groupId, groupId));
+  await db.delete(groups).where(eq(groups.id, groupId));
 }
 
 export async function leaveGroup(groupId: string) {

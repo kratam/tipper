@@ -100,7 +100,10 @@
     "settingsLocked": "A beállítások csak akkor módosíthatók, amíg a versenysorozat nem kezdődött el.",
     "leaveConfirm": "Biztosan ki szeretnél lépni a csoportból?",
     "leaveSuccess": "Sikeresen kiléptél a csoportból!",
-    "createSuccess": "Csoport sikeresen létrehozva!"
+    "createSuccess": "Csoport sikeresen létrehozva!",
+    "deleteGroup": "Csoport törlése",
+    "deleteConfirm": "Biztosan törölni szeretnéd a csoportot? Ez minden tétet, tokent és tagságot véglegesen töröl.",
+    "deleteSuccess": "Csoport sikeresen törölve!"
   },
   "podium": {
     "title": "Dobogós tipp",
