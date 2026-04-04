@@ -9,6 +9,9 @@ const russoOne = Russo_One({ variable: "--font-russo", weight: "400", subsets: [
 export const metadata: Metadata = {
   title: "TippCasino",
   description: "Tippelj sportmeccsekre, gyűjts pontokat, versenyezz barátaiddal!",
+  verification: {
+    google: "Mn_9WXGKwrwZDZiKXfzbCFmTQ-qRzUfvWEbJ0JuVXsY",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
