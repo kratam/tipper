@@ -1,7 +1,16 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { bets, groups, matches, matchOdds, teams, tokenLedger, tournaments } from "@/db/schema";
+import {
+  bets,
+  groups,
+  matches,
+  matchOdds,
+  matchScheduleOverrides,
+  teams,
+  tokenLedger,
+  tournaments,
+} from "@/db/schema";
 import {
   extract3WayOdds,
   fetchGames,
@@ -9,6 +18,7 @@ import {
   mapApiStatus,
   parseRegulationScore,
 } from "@/lib/api-sports";
+import { hasApiScheduleImproved, isScheduleBroken } from "@/lib/schedule-override";
 import { calculateBetPayout } from "@/lib/scoring";
 import { getRelevantOdds } from "@/lib/tokens";
 
@@ -99,10 +109,13 @@ type Tournament = {
   id: string;
   apiLeagueId: number;
   apiSeason: number;
+  useScheduleOverrides: boolean;
 };
 
 async function syncTournament(tournament: Tournament): Promise<void> {
   const games = await fetchGames(tournament.apiLeagueId, tournament.apiSeason);
+
+  const apiGameDates = new Map<number, string>();
 
   for (const game of games) {
     // Upsert home team
@@ -119,6 +132,7 @@ async function syncTournament(tournament: Tournament): Promise<void> {
     );
 
     const newStatus = mapApiStatus(game.status.short);
+    apiGameDates.set(game.id, game.date);
     const regulationScore = parseRegulationScore(game.periods);
 
     // Check existing match
@@ -196,6 +210,91 @@ async function syncTournament(tournament: Tournament): Promise<void> {
         .update(bets)
         .set({ oddsAtBet: String(relevantOdds), updatedAt: new Date() })
         .where(eq(bets.id, bet.id));
+    }
+  }
+
+  // Schedule override detection and application
+  await handleScheduleOverrides(
+    { id: tournament.id, useScheduleOverrides: tournament.useScheduleOverrides },
+    apiGameDates,
+  );
+}
+
+/**
+ * Detect broken schedules and apply overrides.
+ *
+ * Flow:
+ * 1. Check if overrides exist for this tournament
+ * 2. If flag is off: detect broken schedule (>80% on same day) → turn on
+ * 3. If flag is on: detect API improvement (≥90% match ±2h) → turn off
+ * 4. If flag is on: overwrite matches.scheduledAt + round from overrides
+ */
+async function handleScheduleOverrides(
+  tournament: { id: string; useScheduleOverrides: boolean },
+  apiGameDates: Map<number, string>,
+): Promise<void> {
+  // 1. Load overrides for this tournament's matches
+  const overrides = await db
+    .select({
+      matchId: matchScheduleOverrides.matchId,
+      overrideScheduledAt: matchScheduleOverrides.scheduledAt,
+      apiGameId: matches.apiGameId,
+    })
+    .from(matchScheduleOverrides)
+    .innerJoin(matches, eq(matchScheduleOverrides.matchId, matches.id))
+    .where(eq(matches.tournamentId, tournament.id));
+
+  if (overrides.length === 0) return;
+
+  // 2. Load current match dates for detection
+  const tournamentMatches = await db.query.matches.findMany({
+    where: eq(matches.tournamentId, tournament.id),
+  });
+
+  let useOverrides = tournament.useScheduleOverrides;
+
+  if (!useOverrides) {
+    // Detect broken schedule: >80% on the same day
+    const scheduledDates = tournamentMatches
+      .filter((m) => m.status === "scheduled")
+      .map((m) => m.scheduledAt);
+
+    if (isScheduleBroken(scheduledDates)) {
+      useOverrides = true;
+      await db
+        .update(tournaments)
+        .set({ useScheduleOverrides: true })
+        .where(eq(tournaments.id, tournament.id));
+    }
+  } else {
+    // Detect API improvement: ≥90% match within ±2h
+    const pairs = overrides
+      .filter((o) => apiGameDates.has(o.apiGameId))
+      .map((o) => ({
+        apiDate: new Date(apiGameDates.get(o.apiGameId)!),
+        overrideDate: o.overrideScheduledAt,
+      }));
+
+    if (pairs.length > 0 && hasApiScheduleImproved(pairs)) {
+      useOverrides = false;
+      await db
+        .update(tournaments)
+        .set({ useScheduleOverrides: false })
+        .where(eq(tournaments.id, tournament.id));
+    }
+  }
+
+  // 4. Apply overrides if flag is on
+  if (useOverrides) {
+    for (const override of overrides) {
+      await db
+        .update(matches)
+        .set({
+          scheduledAt: override.overrideScheduledAt,
+          round: override.overrideScheduledAt.toISOString().split("T")[0],
+          updatedAt: new Date(),
+        })
+        .where(eq(matches.id, override.matchId));
     }
   }
 }
