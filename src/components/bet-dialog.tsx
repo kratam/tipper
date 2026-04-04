@@ -31,11 +31,12 @@ interface GroupBetInfo {
 interface BetDialogProps {
   match: MatchCardData | null;
   groups: GroupBetInfo[];
+  bettableMatchCountToday: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function BetDialog({ match, groups, open, onOpenChange }: BetDialogProps) {
+export function BetDialog({ match, groups, bettableMatchCountToday, open, onOpenChange }: BetDialogProps) {
   const t = useTranslations("matches");
 
   if (!match) return null;
@@ -128,6 +129,7 @@ export function BetDialog({ match, groups, open, onOpenChange }: BetDialogProps)
           <BetForm
             matchId={match.id}
             groups={groups}
+            bettableMatchCountToday={bettableMatchCountToday}
             odds={odds}
             homeTeam={match.homeTeam}
             awayTeam={match.awayTeam}

@@ -30,6 +30,7 @@ interface GroupBetInfo {
 interface BetFormProps {
   matchId: string;
   groups: GroupBetInfo[];
+  bettableMatchCountToday: number;
   odds: { homeOdds: string; drawOdds: string; awayOdds: string } | null;
   homeTeam: { name: string; logoUrl: string | null };
   awayTeam: { name: string; logoUrl: string | null };
@@ -71,9 +72,30 @@ function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
   );
 }
 
-const STAKE_PRESETS = [5, 10, 25, 50];
+function computeStakePresets(balance: number): { value: number; label: string }[] {
+  const quarter = Math.floor(balance * 0.25);
+  const half = Math.floor(balance * 0.5);
+  const presets: { value: number; label: string }[] = [];
+  const seen = new Set<number>();
 
-export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt }: BetFormProps) {
+  for (const { value, label } of [
+    { value: quarter, label: "25%" },
+    { value: half, label: "50%" },
+    { value: balance, label: "MAX" },
+  ]) {
+    if (value >= 1 && !seen.has(value)) {
+      seen.add(value);
+      presets.push({ value, label });
+    }
+  }
+  return presets;
+}
+
+function computeDefaultStake(balance: number, matchCount: number): number {
+  return Math.max(1, Math.floor(balance / matchCount));
+}
+
+export function BetForm({ matchId, groups, bettableMatchCountToday, odds, homeTeam, awayTeam, scheduledAt }: BetFormProps) {
   const t = useTranslations("betting");
   const tMatches = useTranslations("matches");
   const router = useRouter();
@@ -84,7 +106,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt
   const [stakes, setStakes] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     for (const g of groups) {
-      initial[g.groupId] = g.existingBet?.stake ?? 10;
+      initial[g.groupId] = g.existingBet?.stake ?? computeDefaultStake(g.projectedBalance, bettableMatchCountToday);
     }
     return initial;
   });
@@ -232,38 +254,26 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, scheduledAt
             {/* Stake chips + custom input */}
             <div className="mb-3 flex items-center gap-1.5">
               <span className="mr-1 shrink-0 text-xs text-muted-foreground">{t("stake")}</span>
-              {STAKE_PRESETS.filter((p) => p <= group.projectedBalance).map((preset) => (
+              {computeStakePresets(group.projectedBalance).map((preset) => (
                 <button
-                  key={preset}
+                  key={preset.label}
                   type="button"
-                  onClick={() => setStakes({ ...stakes, [group.groupId]: preset })}
-                  className={`rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors ${
-                    stakes[group.groupId] === preset
+                  onClick={() => setStakes({ ...stakes, [group.groupId]: preset.value })}
+                  className={`flex flex-col items-center rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors ${
+                    stakes[group.groupId] === preset.value
                       ? "bg-foreground text-background"
                       : "bg-muted text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {preset}
+                  <span className="text-[10px] leading-none opacity-60">{preset.label}</span>
+                  <span>{preset.value}</span>
                 </button>
               ))}
-              {group.projectedBalance > 0 && !STAKE_PRESETS.includes(group.projectedBalance) && (
-                <button
-                  type="button"
-                  onClick={() => setStakes({ ...stakes, [group.groupId]: group.projectedBalance })}
-                  className={`rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors ${
-                    stakes[group.groupId] === group.projectedBalance
-                      ? "bg-foreground text-background"
-                      : "bg-muted text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {t("max")}
-                </button>
-              )}
               <input
                 type="number"
                 min={1}
                 max={group.projectedBalance}
-                value={stakes[group.groupId] ?? 10}
+                value={stakes[group.groupId] ?? 1}
                 onChange={(e) => setStakes({ ...stakes, [group.groupId]: Number(e.target.value) })}
                 className="ml-auto w-14 rounded-md border border-input bg-transparent px-2 py-1 text-center font-mono text-xs"
               />

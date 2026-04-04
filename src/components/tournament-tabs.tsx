@@ -187,6 +187,15 @@ export function TournamentTabs({
 
   const isLocked = new Date() > new Date(podiumLockDate);
 
+  // Count bettable (scheduled) matches on the selected match's day
+  const bettableMatchCountToday = useMemo(() => {
+    if (!selectedMatch) return 1;
+    const dateKey = getDateKey(selectedMatch.scheduledAt);
+    const day = dayGroups.find((d) => d.dateKey === dateKey);
+    if (!day) return 1;
+    return Math.max(1, day.matches.filter((m) => m.status === "scheduled").length);
+  }, [selectedMatch, dayGroups]);
+
   function handleMatchClick(match: MatchCardData) {
     setSelectedMatch(match);
     setDialogOpen(true);
@@ -300,6 +309,7 @@ export function TournamentTabs({
       <BetDialog
         match={selectedMatch}
         groups={selectedMatch ? (groupBetInfosByMatch[selectedMatch.id] ?? []) : []}
+        bettableMatchCountToday={bettableMatchCountToday}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />
