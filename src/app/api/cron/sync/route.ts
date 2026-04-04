@@ -10,7 +10,7 @@ import {
   parseRegulationScore,
 } from "@/lib/api-sports";
 import { calculateBetPayout } from "@/lib/scoring";
-import { calculateCarryover, getRelevantOdds } from "@/lib/tokens";
+import { getRelevantOdds } from "@/lib/tokens";
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -282,85 +282,52 @@ async function refundMatch(matchId: string): Promise<void> {
 }
 
 /**
- * Distribute tokens for all groups in a tournament for today's round.
- * A "round" is a match day (YYYY-MM-DD string from matches.round).
- * Idempotent: checks if distribution already happened for each (user, group, round).
+ * Distribute tokens for all groups in a tournament.
+ * Per-match distribution: each member gets tokenPerMatch for each match
+ * where scheduledAt - now <= distributionDaysBefore days.
+ * Idempotent: checks (userId, groupId, type='distribution', referenceId=matchId).
  */
 async function distributeTokensForTournament(tournamentId: string): Promise<void> {
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
 
-  // Find today's rounds for this tournament
-  const todayMatches = await db.query.matches.findMany({
-    where: and(eq(matches.tournamentId, tournamentId), eq(matches.round, today)),
-  });
-
-  if (todayMatches.length === 0) return;
-
-  // Get all groups for this tournament
   const tournamentGroups = await db.query.groups.findMany({
     where: eq(groups.tournamentId, tournamentId),
     with: { members: true },
   });
 
   for (const group of tournamentGroups) {
-    for (const member of group.members) {
-      // Check if distribution already exists for this round
-      // We use a convention: type=distribution entries for a round have
-      // no referenceId, so we check by (userId, groupId, type=distribution, createdAt on today)
-      const existing = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(tokenLedger)
-        .where(
-          and(
-            eq(tokenLedger.userId, member.userId),
-            eq(tokenLedger.groupId, group.id),
-            eq(tokenLedger.type, "distribution"),
-            sql`${tokenLedger.createdAt}::date = ${today}::date`,
-          ),
-        );
+    const cutoff = new Date(now.getTime() + group.distributionDaysBefore * 24 * 60 * 60 * 1000);
+    const eligibleMatches = await db.query.matches.findMany({
+      where: and(
+        eq(matches.tournamentId, tournamentId),
+        eq(matches.status, "scheduled"),
+        sql`${matches.scheduledAt} <= ${cutoff}`,
+      ),
+    });
 
-      if (Number(existing[0].count) > 0) continue;
-
-      // Calculate carryover from previous round
-      const previousRounds = await db
-        .selectDistinct({ round: matches.round })
-        .from(matches)
-        .where(and(eq(matches.tournamentId, tournamentId), sql`${matches.round} < ${today}`))
-        .orderBy(sql`${matches.round} desc`)
-        .limit(1);
-
-      let carryoverAmount = 0;
-      if (previousRounds.length > 0) {
-        // Get user's balance in this group (total ledger sum)
-        const balanceResult = await db
-          .select({ balance: sql<number>`COALESCE(SUM(${tokenLedger.amount}), 0)` })
+    for (const match of eligibleMatches) {
+      for (const member of group.members) {
+        const existing = await db
+          .select({ count: sql<number>`count(*)` })
           .from(tokenLedger)
-          .where(and(eq(tokenLedger.userId, member.userId), eq(tokenLedger.groupId, group.id)));
-        const currentBalance = Number(balanceResult[0].balance);
+          .where(
+            and(
+              eq(tokenLedger.userId, member.userId),
+              eq(tokenLedger.groupId, group.id),
+              eq(tokenLedger.type, "distribution"),
+              eq(tokenLedger.referenceId, match.id),
+            ),
+          );
 
-        // Carryover is based on unused tokens (current balance = unused from prev rounds)
-        if (currentBalance > 0) {
-          carryoverAmount = calculateCarryover(currentBalance, group.carryoverPercent);
-        }
-      }
+        if (Number(existing[0].count) > 0) continue;
 
-      // Distribute base tokens
-      await db.insert(tokenLedger).values({
-        userId: member.userId,
-        groupId: group.id,
-        tournamentId,
-        amount: group.tokenPerRound,
-        type: "distribution",
-      });
-
-      // Add carryover if applicable
-      if (carryoverAmount > 0) {
         await db.insert(tokenLedger).values({
           userId: member.userId,
           groupId: group.id,
           tournamentId,
-          amount: carryoverAmount,
-          type: "carryover",
+          amount: group.tokenPerMatch,
+          type: "distribution",
+          referenceId: match.id,
         });
       }
     }
