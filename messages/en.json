@@ -115,7 +115,12 @@
     "deleteSuccess": "Group deleted successfully!",
     "tokenPerRound": "Tokens/round",
     "carryoverPercent": "Carryover",
-    "defaultsApplied": "Defaults applied. Edit after creation in group settings."
+    "defaultsApplied": "Defaults applied. Edit after creation in group settings.",
+    "results": "Results",
+    "betCount": "{count}/{total} bet",
+    "noBetsYet": "No finished matches yet",
+    "prediction": "Prediction",
+    "payout": "Pay"
   },
   "podium": {
     "title": "Podium Prediction",

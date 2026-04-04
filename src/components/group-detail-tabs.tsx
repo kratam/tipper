@@ -1,10 +1,11 @@
 "use client";
 
-import { ClipboardCopy, LogOut, Trash2 } from "lucide-react";
+import { LogOut, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { deleteGroup, leaveGroup, removeMember, updateGroupSettings } from "@/actions/groups";
+import { GroupResultsContent } from "@/components/group-results-content";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,26 +42,52 @@ interface GroupSettings {
   oddsBoost: number;
 }
 
+interface FinishedMatch {
+  id: string;
+  homeTeam: { name: string; logoUrl: string | null };
+  awayTeam: { name: string; logoUrl: string | null };
+  homeScore: number | null;
+  awayScore: number | null;
+  scheduledAt: string;
+  round: string;
+}
+
+interface GroupBet {
+  matchId: string;
+  userId: string;
+  userName: string;
+  userAvatarUrl: string | null;
+  predictedHome: number;
+  predictedAway: number;
+  stake: number;
+  payout: number | null;
+  result1x2Correct: boolean | null;
+  goalDiffCorrect: boolean | null;
+  exactScoreCorrect: boolean | null;
+}
+
 interface GroupDetailTabsProps {
   groupId: string;
-  inviteCode: string;
   isOwner: boolean;
   currentUserId: string;
   tournamentStatus: string;
   leaderboard: LeaderboardRow[];
   members: MemberInfo[];
   settings: GroupSettings;
+  finishedMatches: FinishedMatch[];
+  groupBets: GroupBet[];
 }
 
 export function GroupDetailTabs({
   groupId,
-  inviteCode,
   isOwner,
   currentUserId,
   tournamentStatus,
   leaderboard,
   members,
   settings: initialSettings,
+  finishedMatches,
+  groupBets,
 }: GroupDetailTabsProps) {
   const t = useTranslations("groups");
   const tLeaderboard = useTranslations("leaderboard");
@@ -71,16 +98,6 @@ export function GroupDetailTabs({
 
   // Live polling: merge fresh balance/rank data from SWR
   const liveLeaderboard = useLeaderboardPolling(groupId, tournamentStatus, leaderboard);
-
-  const inviteLink =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/join/${inviteCode}`
-      : `/join/${inviteCode}`;
-
-  function handleCopyLink() {
-    navigator.clipboard.writeText(inviteLink);
-    toast.success(t("copied"));
-  }
 
   function handleSaveSettings() {
     startTransition(async () => {
@@ -140,25 +157,12 @@ export function GroupDetailTabs({
     <Tabs defaultValue="leaderboard">
       <TabsList>
         <TabsTrigger value="leaderboard">{t("leaderboard")}</TabsTrigger>
+        <TabsTrigger value="results">{t("results")}</TabsTrigger>
         {isOwner && <TabsTrigger value="settings">{t("settings")}</TabsTrigger>}
       </TabsList>
 
       {/* Leaderboard */}
       <TabsContent value="leaderboard" className="mt-4 flex flex-col gap-4">
-        {/* Invite section */}
-        <Card>
-          <CardContent className="flex items-center justify-between gap-4 p-4">
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">{t("inviteCode")}</span>
-              <span className="font-mono text-sm font-bold">{inviteCode}</span>
-            </div>
-            <Button variant="outline" size="sm" className="gap-2" onClick={handleCopyLink}>
-              <ClipboardCopy className="size-4" />
-              {t("copyLink")}
-            </Button>
-          </CardContent>
-        </Card>
-
         {/* Leaderboard table */}
         <Card>
           <CardContent className="p-0">
@@ -217,6 +221,16 @@ export function GroupDetailTabs({
             {t("leave")}
           </Button>
         )}
+      </TabsContent>
+
+      {/* Results */}
+      <TabsContent value="results" className="mt-4">
+        <GroupResultsContent
+          matches={finishedMatches}
+          bets={groupBets}
+          currentUserId={currentUserId}
+          memberCount={members.length}
+        />
       </TabsContent>
 
       {/* Settings (owner only) */}
@@ -395,22 +409,6 @@ export function GroupDetailTabs({
                   )}
                 </div>
               ))}
-            </CardContent>
-          </Card>
-
-          <Separator />
-
-          {/* Invite code */}
-          <Card>
-            <CardContent className="flex items-center justify-between gap-4 p-4">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-muted-foreground">{t("inviteCode")}</span>
-                <span className="font-mono text-sm font-bold">{inviteCode}</span>
-              </div>
-              <Button variant="outline" size="sm" className="gap-2" onClick={handleCopyLink}>
-                <ClipboardCopy className="size-4" />
-                {t("copyLink")}
-              </Button>
             </CardContent>
           </Card>
 

@@ -115,7 +115,12 @@
     "deleteSuccess": "Csoport sikeresen törölve!",
     "tokenPerRound": "Token/forduló",
     "carryoverPercent": "Átvitel",
-    "defaultsApplied": "Alapértékek. Létrehozás után a csoport beállításaiban módosítható."
+    "defaultsApplied": "Alapértékek. Létrehozás után a csoport beállításaiban módosítható.",
+    "results": "Eredmények",
+    "betCount": "{count}/{total} tippelt",
+    "noBetsYet": "Még nincs befejezett meccs",
+    "prediction": "Tipp",
+    "payout": "Nye."
   },
   "podium": {
     "title": "Dobogós tipp",

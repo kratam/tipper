@@ -1,5 +1,5 @@
 import "server-only";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { matches, matchOdds } from "@/db/schema";
 
@@ -30,6 +30,21 @@ export async function getMatchById(matchId: string) {
         limit: 1,
       },
     },
+  });
+}
+
+export async function getFinishedMatchesForTournament(tournamentId: string) {
+  return db.query.matches.findMany({
+    where: and(eq(matches.tournamentId, tournamentId), eq(matches.status, "finished")),
+    with: {
+      homeTeam: true,
+      awayTeam: true,
+      odds: {
+        orderBy: [desc(matchOdds.fetchedAt)],
+        limit: 1,
+      },
+    },
+    orderBy: [desc(matches.scheduledAt)],
   });
 }
 
