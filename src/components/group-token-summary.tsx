@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, CircleAlert, CircleCheck, Coins } from "lucide-react";
+import { ChevronRight, CircleAlert, CircleCheck, TrendingDown, TrendingUp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 
@@ -18,7 +18,6 @@ interface GroupCardItem {
   myProfit: number;
   myRank: number | null;
   miniLeaderboard: MiniLeaderboardEntry[];
-  balance: number;
   unbettedCount: number;
 }
 
@@ -47,7 +46,7 @@ export function GroupTokenSummary({ groups, currentUserId }: GroupTokenSummaryPr
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {groups.map((g) => {
-        const hasWarning = g.balance > 0 && g.unbettedCount > 0;
+        const hasWarning = g.unbettedCount > 0;
 
         return (
           <Link
@@ -86,11 +85,17 @@ export function GroupTokenSummary({ groups, currentUserId }: GroupTokenSummaryPr
               </div>
             )}
 
-            {/* Footer: balance + unbetted info */}
+            {/* Footer: profit + unbetted info */}
             <div className="flex items-center gap-3 border-t border-border pt-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Coins className="size-3.5" />
-                {t("tokenBalance", { balance: g.balance })}
+              <span className={`flex items-center gap-1 font-mono font-medium ${
+                g.myProfit > 0
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : g.myProfit < 0
+                    ? "text-red-600 dark:text-red-400"
+                    : ""
+              }`}>
+                {g.myProfit > 0 ? <TrendingUp className="size-3.5" /> : g.myProfit < 0 ? <TrendingDown className="size-3.5" /> : null}
+                {t("profit")}: {g.myProfit > 0 ? `+${g.myProfit}` : g.myProfit}
               </span>
 
               {hasWarning ? (

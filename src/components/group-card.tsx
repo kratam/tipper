@@ -19,35 +19,24 @@ interface GroupCardProps {
     };
   };
   memberCount: number;
-  balance?: number;
+  profit?: number;
   variant?: "own" | "public";
   onClick?: () => void;
 }
 
-function TokenBadge({ balance }: { balance: number }) {
+function ProfitBadge({ profit }: { profit: number }) {
+  const formatted = profit > 0 ? `+${profit}` : `${profit}`;
+  const colorClass =
+    profit > 0
+      ? "text-emerald-400"
+      : profit < 0
+        ? "text-red-400"
+        : "text-white/70";
+
   return (
     <div className="flex items-center gap-1 rounded-md bg-black/25 px-2 py-1">
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="#f59e0b"
-        stroke="none"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <text
-          x="12"
-          y="16"
-          textAnchor="middle"
-          fontSize="12"
-          fontWeight="bold"
-          fill="#fff"
-        >
-          T
-        </text>
-      </svg>
-      <span className="font-mono text-sm font-bold text-amber-500">
-        {balance.toLocaleString()}
+      <span className={`font-mono text-sm font-bold ${colorClass}`}>
+        {formatted}
       </span>
     </div>
   );
@@ -70,7 +59,7 @@ function StatusBadge({ status }: { status: string }) {
 function CardInner({
   group,
   memberCount,
-  balance,
+  profit,
   variant = "own",
 }: GroupCardProps) {
   const t = useTranslations("groups");
@@ -94,8 +83,8 @@ function CardInner({
               {group.tournament.name}
             </div>
           </div>
-          {variant === "own" && balance != null ? (
-            <TokenBadge balance={balance} />
+          {variant === "own" && profit != null ? (
+            <ProfitBadge profit={profit} />
           ) : (
             <Globe className="size-4 shrink-0 text-white/35" />
           )}

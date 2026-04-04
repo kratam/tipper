@@ -43,7 +43,7 @@
     "matchCount": "{count} meccs",
     "betProgress": "{betCount}/{total} tipp",
     "noTournaments": "Nincsenek versenysorozatok",
-    "tokenBalance": "{balance} token",
+    "profit": "Profit",
     "unbettedMatches": "{count} meccsre nem tippeltél",
     "allBetsPlaced": "Minden tipp leadva"
   },

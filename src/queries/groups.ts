@@ -1,7 +1,7 @@
 import "server-only";
-import { and, eq, notInArray, sql } from "drizzle-orm";
+import { and, eq, inArray, notInArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { groupMembers, groups, matches, tokenLedger } from "@/db/schema";
+import { bets, groupMembers, groups, matches, tokenLedger } from "@/db/schema";
 
 export async function getUserGroups(userId: string) {
   return db.query.groupMembers.findMany({
@@ -101,6 +101,30 @@ export async function getProjectedBalance(
   const projected = actual + pending * group.tokenPerMatch;
 
   return { projected, actual, pending, tokenPerMatch: group.tokenPerMatch };
+}
+
+/**
+ * Profit from resolved matches: sum of bet/win/refund ledger entries
+ * where the linked match is finished or cancelled.
+ * Win: -stake + payout = net gain. Loss: -stake. Cancelled: -stake + stake = 0.
+ */
+export async function getUserProfit(userId: string, groupId: string): Promise<number> {
+  const result = await db
+    .select({
+      profit: sql<number>`COALESCE(SUM(CASE WHEN ${matches.status} IN ('finished', 'cancelled') THEN ${tokenLedger.amount} ELSE 0 END), 0)`,
+    })
+    .from(tokenLedger)
+    .leftJoin(bets, eq(tokenLedger.referenceId, bets.id))
+    .leftJoin(matches, eq(bets.matchId, matches.id))
+    .where(
+      and(
+        eq(tokenLedger.userId, userId),
+        eq(tokenLedger.groupId, groupId),
+        inArray(tokenLedger.type, ["bet", "win", "refund"]),
+      ),
+    );
+
+  return Number(result[0]?.profit ?? 0);
 }
 
 export async function getPublicGroups(userId: string) {

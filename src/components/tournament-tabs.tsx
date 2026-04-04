@@ -131,18 +131,10 @@ export function TournamentTabs({
       }
     }
 
-    return groupLeaderboards.map((gl) => {
-      const anyMatchInfos = Object.values(groupBetInfosByMatch).find((infos) =>
-        infos.some((i) => i.groupId === gl.groupId),
-      );
-      const balance = anyMatchInfos?.find((i) => i.groupId === gl.groupId)?.balance ?? 0;
-
-      return {
-        ...gl,
-        balance,
-        unbettedCount: unbettedMap.get(gl.groupId) ?? 0,
-      };
-    });
+    return groupLeaderboards.map((gl) => ({
+      ...gl,
+      unbettedCount: unbettedMap.get(gl.groupId) ?? 0,
+    }));
   }, [liveMatches, groupBetInfosByMatch, groupLeaderboards]);
 
   // Group matches by day

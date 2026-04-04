@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
-import { getPublicGroups, getTokenBalance, getUserGroups } from "@/queries/groups";
+import { getPublicGroups, getUserGroups, getUserProfit } from "@/queries/groups";
 
 export default async function GroupsPage() {
   const user = await getCurrentUser();
@@ -19,10 +19,10 @@ export default async function GroupsPage() {
   const t = await getTranslations("groups");
   const memberships = await getUserGroups(user.id);
 
-  const groupsWithBalances = await Promise.all(
+  const groupsWithProfits = await Promise.all(
     memberships.map(async (gm) => {
-      const balance = await getTokenBalance(user.id, gm.group.id);
-      return { ...gm, balance };
+      const profit = await getUserProfit(user.id, gm.group.id);
+      return { ...gm, profit };
     }),
   );
 
@@ -42,16 +42,16 @@ export default async function GroupsPage() {
         </Button>
       </div>
 
-      {groupsWithBalances.length === 0 ? (
+      {groupsWithProfits.length === 0 ? (
         <p className="text-muted-foreground">{t("noGroups")}</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {groupsWithBalances.map((gm) => (
+          {groupsWithProfits.map((gm) => (
             <GroupCard
               key={gm.group.id}
               group={gm.group}
               memberCount={gm.group.members?.length ?? 0}
-              balance={gm.balance}
+              profit={gm.profit}
               variant="own"
             />
           ))}

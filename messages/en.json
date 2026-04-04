@@ -43,7 +43,7 @@
     "matchCount": "{count} matches",
     "betProgress": "{betCount}/{total} bets",
     "noTournaments": "No tournaments yet",
-    "tokenBalance": "{balance} tokens",
+    "profit": "Profit",
     "unbettedMatches": "{count} matches without bets",
     "allBetsPlaced": "All bets placed"
   },

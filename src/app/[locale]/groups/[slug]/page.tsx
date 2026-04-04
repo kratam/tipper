@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { GroupDetailTabs } from "@/components/group-detail-tabs";
 import { InviteCodeBadge } from "@/components/invite-code-badge";
-import { redirect } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { getGroupBetsForFinishedMatches } from "@/queries/bets";
 import { getGroupBySlug } from "@/queries/groups";
@@ -45,7 +45,9 @@ export default async function GroupDetailPage({
           <h1 className="font-mono text-2xl font-bold tracking-tight">{group.name}</h1>
           <InviteCodeBadge inviteCode={group.inviteCode} />
         </div>
-        <p className="text-sm text-muted-foreground">{group.tournament.name}</p>
+        <Link href={`/tournaments/${group.tournament.slug}`} className="text-sm text-muted-foreground hover:underline">
+          {group.tournament.name}
+        </Link>
       </div>
 
       <GroupDetailTabs
