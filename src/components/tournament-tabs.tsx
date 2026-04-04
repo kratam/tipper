@@ -28,6 +28,7 @@ interface GroupBetInfo {
     predictedAway: number;
     stake: number;
   } | null;
+  unbettedMatchCountOnDay?: number;
 }
 
 interface TeamOption {
@@ -179,14 +180,24 @@ export function TournamentTabs({
 
   const isLocked = new Date() > new Date(podiumLockDate);
 
-  // Count bettable (scheduled) matches on the selected match's day
-  const bettableMatchCountToday = useMemo(() => {
-    if (!selectedMatch) return 1;
+  // Per-group unbetted match count on the selected match's day
+  const groupUnbettedCountOnSelectedDay = useMemo(() => {
+    if (!selectedMatch) return {} as Record<string, number>;
     const dateKey = getDateKey(selectedMatch.scheduledAt);
     const day = dayGroups.find((d) => d.dateKey === dateKey);
-    if (!day) return 1;
-    return Math.max(1, day.matches.filter((m) => m.status === "scheduled").length);
-  }, [selectedMatch, dayGroups]);
+    if (!day) return {} as Record<string, number>;
+    const result: Record<string, number> = {};
+    for (const match of day.matches) {
+      if (match.status !== "scheduled") continue;
+      const groupInfos = groupBetInfosByMatch[match.id] ?? [];
+      for (const gi of groupInfos) {
+        if (!gi.existingBet) {
+          result[gi.groupId] = (result[gi.groupId] ?? 0) + 1;
+        }
+      }
+    }
+    return result;
+  }, [selectedMatch, dayGroups, groupBetInfosByMatch]);
 
   function handleMatchClick(match: MatchCardData) {
     setSelectedMatch(match);
@@ -300,8 +311,17 @@ export function TournamentTabs({
       {/* Bet dialog */}
       <BetDialog
         match={selectedMatch}
-        groups={selectedMatch ? (groupBetInfosByMatch[selectedMatch.id] ?? []) : []}
-        bettableMatchCountToday={bettableMatchCountToday}
+        groups={
+          selectedMatch
+            ? (groupBetInfosByMatch[selectedMatch.id] ?? []).map((g) => ({
+                ...g,
+                unbettedMatchCountOnDay: Math.max(
+                  1,
+                  groupUnbettedCountOnSelectedDay[g.groupId] ?? 1,
+                ),
+              }))
+            : []
+        }
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />

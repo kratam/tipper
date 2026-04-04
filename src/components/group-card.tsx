@@ -27,17 +27,11 @@ interface GroupCardProps {
 function ProfitBadge({ profit }: { profit: number }) {
   const formatted = profit > 0 ? `+${profit}` : `${profit}`;
   const colorClass =
-    profit > 0
-      ? "text-emerald-400"
-      : profit < 0
-        ? "text-red-400"
-        : "text-white/70";
+    profit > 0 ? "text-emerald-400" : profit < 0 ? "text-red-400" : "text-white/70";
 
   return (
     <div className="flex items-center gap-1 rounded-md bg-black/25 px-2 py-1">
-      <span className={`font-mono text-sm font-bold ${colorClass}`}>
-        {formatted}
-      </span>
+      <span className={`font-mono text-sm font-bold ${colorClass}`}>{formatted}</span>
     </div>
   );
 }
@@ -56,12 +50,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function CardInner({
-  group,
-  memberCount,
-  profit,
-  variant = "own",
-}: GroupCardProps) {
+function CardInner({ group, memberCount, profit, variant = "own" }: GroupCardProps) {
   const t = useTranslations("groups");
   return (
     <div
@@ -76,12 +65,8 @@ function CardInner({
       <div className="bg-gradient-to-br from-[#1e3a5f] to-[#2d1b69] p-4">
         <div className="flex items-start justify-between">
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-bold text-white">
-              {group.name}
-            </div>
-            <div className="mt-0.5 truncate text-[11px] text-white/55">
-              {group.tournament.name}
-            </div>
+            <div className="truncate text-sm font-bold text-white">{group.name}</div>
+            <div className="mt-0.5 truncate text-[11px] text-white/55">{group.tournament.name}</div>
           </div>
           {variant === "own" && profit != null ? (
             <ProfitBadge profit={profit} />
@@ -95,9 +80,7 @@ function CardInner({
       <div className="bg-card p-3">
         {group.description && (
           <div className="mb-2.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground [&_p]:m-0">
-            <ReactMarkdown
-              allowedElements={["p", "strong", "em"]}
-            >
+            <ReactMarkdown allowedElements={["p", "strong", "em"]}>
               {group.description}
             </ReactMarkdown>
           </div>

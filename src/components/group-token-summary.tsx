@@ -87,14 +87,20 @@ export function GroupTokenSummary({ groups, currentUserId }: GroupTokenSummaryPr
 
             {/* Footer: profit + unbetted info */}
             <div className="flex items-center gap-3 border-t border-border pt-2 text-xs text-muted-foreground">
-              <span className={`flex items-center gap-1 font-mono font-medium ${
-                g.myProfit > 0
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : g.myProfit < 0
-                    ? "text-red-600 dark:text-red-400"
-                    : ""
-              }`}>
-                {g.myProfit > 0 ? <TrendingUp className="size-3.5" /> : g.myProfit < 0 ? <TrendingDown className="size-3.5" /> : null}
+              <span
+                className={`flex items-center gap-1 font-mono font-medium ${
+                  g.myProfit > 0
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : g.myProfit < 0
+                      ? "text-red-600 dark:text-red-400"
+                      : ""
+                }`}
+              >
+                {g.myProfit > 0 ? (
+                  <TrendingUp className="size-3.5" />
+                ) : g.myProfit < 0 ? (
+                  <TrendingDown className="size-3.5" />
+                ) : null}
                 {t("profit")}: {g.myProfit > 0 ? `+${g.myProfit}` : g.myProfit}
               </span>
 

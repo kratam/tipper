@@ -8,12 +8,7 @@ import { toast } from "sonner";
 import { joinPublicGroup } from "@/actions/groups";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -86,15 +81,10 @@ export function PublicGroupDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-md overflow-hidden p-0 sm:max-w-md"
-      >
+      <DialogContent showCloseButton={false} className="max-w-md overflow-hidden p-0 sm:max-w-md">
         {/* Gradient header */}
         <div className="bg-gradient-to-br from-[#1e3a5f] to-[#2d1b69] p-6">
-          <DialogTitle className="text-lg font-bold text-white">
-            {group.name}
-          </DialogTitle>
+          <DialogTitle className="text-lg font-bold text-white">{group.name}</DialogTitle>
           <DialogDescription className="mt-1 text-sm text-white/60">
             {group.tournament.name}
           </DialogDescription>
@@ -117,16 +107,7 @@ export function PublicGroupDialog({
                 </div>
                 <div className="prose prose-sm max-w-none text-sm text-foreground/80 prose-strong:text-foreground prose-ul:my-1 prose-li:my-0">
                   <ReactMarkdown
-                    allowedElements={[
-                      "p",
-                      "strong",
-                      "em",
-                      "ul",
-                      "ol",
-                      "li",
-                      "a",
-                      "br",
-                    ]}
+                    allowedElements={["p", "strong", "em", "ul", "ol", "li", "a", "br"]}
                   >
                     {group.description}
                   </ReactMarkdown>
@@ -150,11 +131,7 @@ export function PublicGroupDialog({
             </div>
 
             {/* Join button */}
-            <Button
-              onClick={handleJoin}
-              disabled={isPending}
-              className="w-full gap-2"
-            >
+            <Button onClick={handleJoin} disabled={isPending} className="w-full gap-2">
               <UserPlus className="size-4" />
               {t("joinGroup")}
             </Button>

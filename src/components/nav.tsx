@@ -68,7 +68,13 @@ export function Nav({ user }: NavProps) {
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/tippcasino-logo.png" alt="TippCasino" width={32} height={32} className="size-8" />
+            <Image
+              src="/tippcasino-logo.png"
+              alt="TippCasino"
+              width={32}
+              height={32}
+              className="size-8"
+            />
             <span className="font-brand text-xl tracking-tight bg-linear-to-r from-(--brand-blue-dark) via-(--brand-blue) to-(--brand-gold) bg-clip-text text-transparent">
               TippCasino
             </span>

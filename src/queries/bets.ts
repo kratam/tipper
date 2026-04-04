@@ -13,15 +13,15 @@ export async function getUserBetsForMatch(userId: string, matchId: string) {
 }
 
 export async function getGroupBetsForFinishedMatches(groupId: string) {
-  return db.query.bets.findMany({
-    where: eq(bets.groupId, groupId),
-    with: {
-      user: true,
-      match: true,
-    },
-  }).then((allBets) =>
-    allBets.filter((bet) => bet.match.status === "finished")
-  );
+  return db.query.bets
+    .findMany({
+      where: eq(bets.groupId, groupId),
+      with: {
+        user: true,
+        match: true,
+      },
+    })
+    .then((allBets) => allBets.filter((bet) => bet.match.status === "finished"));
 }
 
 export async function getUserBetsForTournament(userId: string, tournamentId: string) {

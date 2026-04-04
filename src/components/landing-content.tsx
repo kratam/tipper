@@ -22,7 +22,14 @@ export function LandingContent() {
     <div className="flex flex-1 flex-col items-center justify-center gap-12 py-16">
       {/* Hero */}
       <div className="flex flex-col items-center gap-6 text-center">
-        <Image src="/tippcasino-logo.png" alt="TippCasino" width={120} height={120} className="size-28 sm:size-32" priority />
+        <Image
+          src="/tippcasino-logo.png"
+          alt="TippCasino"
+          width={120}
+          height={120}
+          className="size-28 sm:size-32"
+          priority
+        />
         <h1 className="font-brand text-6xl tracking-tight bg-linear-to-r from-(--brand-blue-dark) via-(--brand-blue) to-(--brand-gold) bg-clip-text text-transparent sm:text-7xl">
           {t("title")}
         </h1>
@@ -73,9 +80,13 @@ export function LandingContent() {
 
       {/* Footer */}
       <footer className="text-xs text-muted-foreground flex gap-3">
-        <Link href="/privacy" className="hover:underline">{t("privacy")}</Link>
+        <Link href="/privacy" className="hover:underline">
+          {t("privacy")}
+        </Link>
         <span>·</span>
-        <Link href="/terms" className="hover:underline">{t("terms")}</Link>
+        <Link href="/terms" className="hover:underline">
+          {t("terms")}
+        </Link>
       </footer>
     </div>
   );

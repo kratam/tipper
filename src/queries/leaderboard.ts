@@ -11,8 +11,7 @@ export async function getGroupLeaderboard(groupId: string) {
       userId: groupMembers.userId,
       userName: sql<string>`COALESCE(${users.displayName}, ${users.name})`.as("user_name"),
       userAvatarUrl: users.avatarUrl,
-      profit:
-        sql<number>`COALESCE(SUM(CASE WHEN ${matches.status} IN ('finished', 'cancelled') THEN ${tokenLedger.amount} ELSE 0 END), 0)`,
+      profit: sql<number>`COALESCE(SUM(CASE WHEN ${matches.status} IN ('finished', 'cancelled') THEN ${tokenLedger.amount} ELSE 0 END), 0)`,
     })
     .from(groupMembers)
     .innerJoin(users, eq(groupMembers.userId, users.id))

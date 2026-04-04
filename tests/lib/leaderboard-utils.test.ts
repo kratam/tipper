@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickMiniLeaderboard, type LeaderboardEntry } from "@/lib/leaderboard-utils";
+import { type LeaderboardEntry, pickMiniLeaderboard } from "@/lib/leaderboard-utils";
 
 function makeEntry(rank: number, userId: string, profit: number): LeaderboardEntry {
   return { rank, userId, userName: `User ${userId}`, userAvatarUrl: null, profit };
@@ -55,5 +55,4 @@ describe("pickMiniLeaderboard", () => {
     const result = pickMiniLeaderboard([], "a");
     expect(result).toEqual([]);
   });
-
 });
