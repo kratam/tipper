@@ -1,11 +1,11 @@
 "use client";
 
 import { ChevronDown, ChevronUp } from "lucide-react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { createGroup } from "@/actions/groups";
+import { TournamentLogo } from "@/components/tournament-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -84,13 +84,7 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
                   <SelectItem key={tournament.id} value={tournament.id}>
                     <span className="flex items-center gap-2">
                       {tournament.logoUrl && (
-                        <Image
-                          src={tournament.logoUrl}
-                          alt={tournament.name}
-                          width={20}
-                          height={20}
-                          className="size-5 object-contain"
-                        />
+                        <TournamentLogo src={tournament.logoUrl} alt={tournament.name} size={20} />
                       )}
                       {tournament.name}
                     </span>

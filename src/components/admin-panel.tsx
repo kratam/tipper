@@ -1,7 +1,6 @@
 "use client";
 
 import { Pencil, RefreshCw } from "lucide-react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -12,6 +11,7 @@ import {
   updateTournamentLogo,
   updateTournamentStatus,
 } from "@/actions/admin";
+import { TournamentLogo } from "@/components/tournament-logo";
 import { TournamentStatusBadge } from "@/components/tournament-status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -233,13 +233,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   {tournament.logoUrl && (
-                    <Image
-                      src={tournament.logoUrl}
-                      alt={tournament.name}
-                      width={32}
-                      height={32}
-                      className="size-8 object-contain"
-                    />
+                    <TournamentLogo src={tournament.logoUrl} alt={tournament.name} size={32} />
                   )}
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">

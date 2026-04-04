@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
+import { TournamentLogo } from "@/components/tournament-logo";
 import { TournamentStatusBadge } from "@/components/tournament-status-badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, redirect } from "@/i18n/navigation";
@@ -39,13 +39,7 @@ export default async function TournamentsPage() {
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div className="flex items-center gap-3">
                     {tournament.logoUrl && (
-                      <Image
-                        src={tournament.logoUrl}
-                        alt={tournament.name}
-                        width={32}
-                        height={32}
-                        className="size-8 object-contain"
-                      />
+                      <TournamentLogo src={tournament.logoUrl} alt={tournament.name} size={32} />
                     )}
                     <CardTitle className="text-base">{tournament.name}</CardTitle>
                   </div>

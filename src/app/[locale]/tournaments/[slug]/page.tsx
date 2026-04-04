@@ -1,11 +1,13 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
+import { TournamentLogo } from "@/components/tournament-logo";
 import { TournamentTabs } from "@/components/tournament-tabs";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { pickMiniLeaderboard } from "@/lib/leaderboard-utils";
 import { getUserBetsForTournament } from "@/queries/bets";
 import { getProjectedBalance, getUserGroups } from "@/queries/groups";
+import { getGroupLeaderboard } from "@/queries/leaderboard";
 import { getMatchesForTournament } from "@/queries/matches";
 import { getPodiumBet, getTournamentTeams } from "@/queries/podium";
 import { getTournamentBySlug } from "@/queries/tournaments";
@@ -110,6 +112,28 @@ export default async function TournamentDetailPage({
     }),
   );
 
+  // Mini leaderboard per group
+  const groupLeaderboards = await Promise.all(
+    relevantGroups.map(async (gm) => {
+      const leaderboard = await getGroupLeaderboard(gm.group.id);
+      const mini = pickMiniLeaderboard(leaderboard, user.id);
+      const myEntry = leaderboard.find((e) => e.userId === user.id);
+      return {
+        groupId: gm.group.id,
+        groupName: gm.group.name,
+        groupSlug: gm.group.slug,
+        myProfit: myEntry?.profit ?? 0,
+        myRank: myEntry?.rank ?? null,
+        miniLeaderboard: mini.map((e) => ({
+          rank: e.rank,
+          userId: e.userId,
+          userName: e.userName,
+          profit: e.profit,
+        })),
+      };
+    }),
+  );
+
   // Serialize matches for client component
   const matchesData = matches.map((m) => ({
     id: m.id,
@@ -150,13 +174,7 @@ export default async function TournamentDetailPage({
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
         {tournament.logoUrl && (
-          <Image
-            src={tournament.logoUrl}
-            alt={tournament.name}
-            width={40}
-            height={40}
-            className="size-10 object-contain"
-          />
+          <TournamentLogo src={tournament.logoUrl} alt={tournament.name} size={40} />
         )}
         <h1 className="font-mono text-2xl font-bold tracking-tight">{tournament.name}</h1>
       </div>
@@ -167,6 +185,8 @@ export default async function TournamentDetailPage({
         teams={tournamentTeams}
         podiumGroups={podiumData}
         groupBetInfosByMatch={groupBetInfosByMatch}
+        groupLeaderboards={groupLeaderboards}
+        currentUserId={user.id}
       />
     </div>
   );
