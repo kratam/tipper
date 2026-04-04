@@ -351,7 +351,7 @@ async function scoreMatch(matchId: string, homeScore: number, awayScore: number)
       groupSettings: {
         bonusGoalDiff: bet.group.bonusGoalDiff,
         bonusExactScore: bet.group.bonusExactScore,
-        oddsBoost: 1.0,
+        oddsBoost: bet.group.oddsBoost,
       },
     });
 
