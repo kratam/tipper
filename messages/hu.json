@@ -38,6 +38,7 @@
     "matches": "Meccsek",
     "podium": "Dobogós tipp",
     "matchCount": "{count} meccs",
+    "betProgress": "{betCount}/{total} tipp",
     "noTournaments": "Nincsenek versenysorozatok"
   },
   "matches": {

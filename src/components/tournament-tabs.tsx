@@ -220,7 +220,12 @@ export function TournamentTabs({
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{day.label}</span>
                       <span className="text-xs text-muted-foreground">
-                        {t("matchCount", { count: day.matches.length })}
+                        {t("betProgress", {
+                          betCount: day.matches.filter((m) =>
+                            groupBetInfosByMatch[m.id]?.some((g) => g.existingBet),
+                          ).length,
+                          total: day.matches.length,
+                        })}
                       </span>
                     </div>
                   </AccordionTrigger>
