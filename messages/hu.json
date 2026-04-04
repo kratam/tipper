@@ -27,7 +27,9 @@
     "featureCompete": "Versenyezz",
     "featureCompeteDesc": "Hozz létre csoportokat és hívd meg barátaidat a versenyre.",
     "featureWin": "Nyerj",
-    "featureWinDesc": "Gyűjts pontokat a pontos tippekért és kerülj a ranglista élére."
+    "featureWinDesc": "Gyűjts pontokat a pontos tippekért és kerülj a ranglista élére.",
+    "privacy": "Adatvédelem",
+    "terms": "Felhasználási feltételek"
   },
   "status": {
     "upcoming": "Közelgő",

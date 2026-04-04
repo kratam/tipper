@@ -27,7 +27,9 @@
     "featureCompete": "Compete",
     "featureCompeteDesc": "Create groups and invite your friends to compete.",
     "featureWin": "Win",
-    "featureWinDesc": "Earn points for accurate predictions and climb the leaderboard."
+    "featureWinDesc": "Earn points for accurate predictions and climb the leaderboard.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
   },
   "status": {
     "upcoming": "Upcoming",

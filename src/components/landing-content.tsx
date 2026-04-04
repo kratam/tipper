@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth/client";
 
 export function LandingContent() {
@@ -69,6 +70,13 @@ export function LandingContent() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Footer */}
+      <footer className="text-xs text-muted-foreground flex gap-3">
+        <Link href="/privacy" className="hover:underline">{t("privacy")}</Link>
+        <span>·</span>
+        <Link href="/terms" className="hover:underline">{t("terms")}</Link>
+      </footer>
     </div>
   );
 }
