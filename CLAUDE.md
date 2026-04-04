@@ -83,6 +83,7 @@ Per-meccs token modell:
 - `groups.initial_tokens` — egyszeri indulótőke csatlakozáskor
 - `groups.distribution_days_before` — hány nappal meccs előtt jön a kiosztás
 - Carryover nincs — ami megmarad, megmarad
+- `groups.odds_boost` — odds szorzó (real, default 1.0), payout = stake × odds × oddsBoost
 - Vetített egyenleg (projected balance): a tippelhető összeg meccs-specifikus, aktuális egyenleg + pending kiosztások × tokenPerMatch
 - Csatlakozáskor catch-up: megkapja a múltbeli meccsek tokenjeit is
 
