@@ -25,6 +25,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "@/i18n/navigation";
 
+const SUPPORTED_LEAGUES = [
+  { id: 111, name: "IIHF World Championship" },
+] as const;
+
 interface TeamInfo {
   id: string;
   name: string;
@@ -172,13 +176,18 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
               </div>
               <div className="flex flex-col gap-1">
                 <Label className="text-xs">{t("leagueId")}</Label>
-                <Input
-                  type="number"
-                  value={leagueId}
-                  onChange={(e) => setLeagueId(e.target.value)}
-                  required
-                  className="font-mono"
-                />
+                <Select value={leagueId} onValueChange={setLeagueId} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("selectLeague")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUPPORTED_LEAGUES.map((league) => (
+                      <SelectItem key={league.id} value={String(league.id)}>
+                        {league.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex flex-col gap-1">
                 <Label className="text-xs">{t("season")}</Label>
