@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { bets, groupMembers, groups, matches, tokenLedger } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { getRelevantOdds } from "@/lib/tokens";
-import { getTokenBalance } from "@/queries/groups";
+import { getProjectedBalance } from "@/queries/groups";
 import { getLatestOdds } from "@/queries/matches";
 
 interface PlaceBetInput {
@@ -68,9 +68,9 @@ export async function placeBet(input: PlaceBetInput): Promise<ActionResult> {
       referenceId: existingBet.id,
     });
 
-    // Check balance after refund
-    const balanceAfterRefund = await getTokenBalance(user.id, groupId);
-    if (balanceAfterRefund < stake)
+    // Check projected balance after refund
+    const { projected: projectedAfterRefund } = await getProjectedBalance(user.id, groupId, matchId);
+    if (projectedAfterRefund < stake)
       return { success: false, error: "Insufficient token balance" };
 
     // Deduct new stake
@@ -102,9 +102,9 @@ export async function placeBet(input: PlaceBetInput): Promise<ActionResult> {
     return { success: true };
   }
 
-  // New bet — check balance
-  const balance = await getTokenBalance(user.id, groupId);
-  if (balance < stake) return { success: false, error: "Insufficient token balance" };
+  // New bet — check projected balance
+  const { projected } = await getProjectedBalance(user.id, groupId, matchId);
+  if (projected < stake) return { success: false, error: "Insufficient token balance" };
 
   const [newBet] = await db
     .insert(bets)

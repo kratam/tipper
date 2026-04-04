@@ -4,7 +4,7 @@ import { TournamentTabs } from "@/components/tournament-tabs";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { getUserBetsForTournament } from "@/queries/bets";
-import { getTokenBalance, getUserGroups } from "@/queries/groups";
+import { getProjectedBalance, getUserGroups } from "@/queries/groups";
 import { getMatchesForTournament } from "@/queries/matches";
 import { getPodiumBet, getTournamentTeams } from "@/queries/podium";
 import { getTournamentBySlug } from "@/queries/tournaments";
@@ -41,22 +41,16 @@ export default async function TournamentDetailPage({
     (gm) => gm.group.tournamentId === tournament.id,
   );
 
-  // Fetch token balances for each group
-  const groupBalances = await Promise.all(
-    relevantGroups.map(async (gm) => ({
-      groupId: gm.group.id,
-      groupName: gm.group.name,
-      balance: await getTokenBalance(user.id, gm.group.id),
-    })),
-  );
-
-  // Build group bet info per match (for the BetDialog)
+  // Build group bet info per match with projected balances
   const groupBetInfosByMatch: Record<
     string,
     {
       groupId: string;
       groupName: string;
       balance: number;
+      projectedBalance: number;
+      pendingDistributions: number;
+      tokenPerMatch: number;
       existingBet: {
         id: string;
         predictedHome: number;
@@ -68,22 +62,32 @@ export default async function TournamentDetailPage({
 
   for (const match of matches) {
     const matchBets = betsByMatch.get(match.id) ?? [];
-    groupBetInfosByMatch[match.id] = groupBalances.map((gb) => {
-      const existingBet = matchBets.find((b) => b.groupId === gb.groupId);
-      return {
-        groupId: gb.groupId,
-        groupName: gb.groupName,
-        balance: gb.balance,
-        existingBet: existingBet
-          ? {
-              id: existingBet.id,
-              predictedHome: existingBet.predictedHome,
-              predictedAway: existingBet.predictedAway,
-              stake: existingBet.stake,
-            }
-          : null,
-      };
-    });
+    groupBetInfosByMatch[match.id] = await Promise.all(
+      relevantGroups.map(async (gm) => {
+        const existingBet = matchBets.find((b) => b.groupId === gm.group.id);
+        const { projected, actual, pending, tokenPerMatch } = await getProjectedBalance(
+          user.id,
+          gm.group.id,
+          match.id,
+        );
+        return {
+          groupId: gm.group.id,
+          groupName: gm.group.name,
+          balance: actual,
+          projectedBalance: projected,
+          pendingDistributions: pending,
+          tokenPerMatch,
+          existingBet: existingBet
+            ? {
+                id: existingBet.id,
+                predictedHome: existingBet.predictedHome,
+                predictedAway: existingBet.predictedAway,
+                stake: existingBet.stake,
+              }
+            : null,
+        };
+      }),
+    );
   }
 
   // Podium data
