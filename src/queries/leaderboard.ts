@@ -7,7 +7,7 @@ export async function getGroupLeaderboard(groupId: string) {
   const rows = await db
     .select({
       userId: groupMembers.userId,
-      userName: users.name,
+      userName: sql<string>`COALESCE(${users.displayName}, ${users.name})`.as("user_name"),
       userAvatarUrl: users.avatarUrl,
       balance: sql<number>`COALESCE(SUM(${tokenLedger.amount}), 0)`,
     })
@@ -18,7 +18,7 @@ export async function getGroupLeaderboard(groupId: string) {
       and(eq(tokenLedger.userId, groupMembers.userId), eq(tokenLedger.groupId, groupId)),
     )
     .where(eq(groupMembers.groupId, groupId))
-    .groupBy(groupMembers.userId, users.id, users.name, users.avatarUrl)
+    .groupBy(groupMembers.userId, users.id, users.name, users.displayName, users.avatarUrl)
     .orderBy(desc(sql`COALESCE(SUM(${tokenLedger.amount}), 0)`));
 
   return rows.map((row, index) => ({
