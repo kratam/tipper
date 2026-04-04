@@ -46,6 +46,22 @@ interface PodiumGroupData {
   } | null;
 }
 
+interface MiniLeaderboardEntry {
+  rank: number;
+  userId: string;
+  userName: string;
+  profit: number;
+}
+
+interface GroupLeaderboardData {
+  groupId: string;
+  groupName: string;
+  groupSlug: string;
+  myProfit: number;
+  myRank: number | null;
+  miniLeaderboard: MiniLeaderboardEntry[];
+}
+
 interface TournamentTabsProps {
   matches: MatchCardData[];
   tournamentId: string;
@@ -53,6 +69,8 @@ interface TournamentTabsProps {
   teams: TeamOption[];
   podiumGroups: PodiumGroupData[];
   groupBetInfosByMatch: Record<string, GroupBetInfo[]>;
+  groupLeaderboards: GroupLeaderboardData[];
+  currentUserId: string;
 }
 
 type MatchFilter = "upcoming" | "played" | "all";
@@ -85,6 +103,8 @@ export function TournamentTabs({
   teams,
   podiumGroups,
   groupBetInfosByMatch,
+  groupLeaderboards,
+  currentUserId,
 }: TournamentTabsProps) {
   const t = useTranslations("tournaments");
   const tMatches = useTranslations("matches");
@@ -98,35 +118,32 @@ export function TournamentTabs({
   // Live polling: merge fresh score/status/bet data from SWR
   const liveMatches = useMatchPolling(tournamentId, matches);
 
-  // Per-group token summary: balance + unbetted upcoming match count
-  const groupTokenSummaries = useMemo(() => {
-    const summaryMap = new Map<
-      string,
-      { groupId: string; groupName: string; balance: number; unbettedCount: number }
-    >();
-
+  // Per-group card data: merge leaderboard info with unbetted counts and balance
+  const groupCardData = useMemo(() => {
+    const unbettedMap = new Map<string, number>();
     for (const match of liveMatches) {
       if (match.status !== "scheduled") continue;
       const groupInfos = groupBetInfosByMatch[match.id] ?? [];
       for (const gi of groupInfos) {
-        const existing = summaryMap.get(gi.groupId);
-        if (!existing) {
-          summaryMap.set(gi.groupId, {
-            groupId: gi.groupId,
-            groupName: gi.groupName,
-            balance: gi.balance,
-            unbettedCount: gi.existingBet ? 0 : 1,
-          });
-        } else {
-          if (!gi.existingBet) {
-            existing.unbettedCount++;
-          }
+        if (!gi.existingBet) {
+          unbettedMap.set(gi.groupId, (unbettedMap.get(gi.groupId) ?? 0) + 1);
         }
       }
     }
 
-    return Array.from(summaryMap.values());
-  }, [liveMatches, groupBetInfosByMatch]);
+    return groupLeaderboards.map((gl) => {
+      const anyMatchInfos = Object.values(groupBetInfosByMatch).find((infos) =>
+        infos.some((i) => i.groupId === gl.groupId),
+      );
+      const balance = anyMatchInfos?.find((i) => i.groupId === gl.groupId)?.balance ?? 0;
+
+      return {
+        ...gl,
+        balance,
+        unbettedCount: unbettedMap.get(gl.groupId) ?? 0,
+      };
+    });
+  }, [liveMatches, groupBetInfosByMatch, groupLeaderboards]);
 
   // Group matches by day
   const dayGroups = useMemo(() => {
@@ -185,7 +202,7 @@ export function TournamentTabs({
 
         <TabsContent value="matches" className="mt-4 flex flex-col gap-4">
           {/* Group token summaries */}
-          <GroupTokenSummary groups={groupTokenSummaries} />
+          <GroupTokenSummary groups={groupCardData} currentUserId={currentUserId} />
 
           {/* Match filter */}
           <div className="flex gap-1 rounded-lg bg-muted p-1">
