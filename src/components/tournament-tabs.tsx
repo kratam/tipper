@@ -72,18 +72,13 @@ function getDateKey(dateStr: string): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function isToday(dateKey: string): boolean {
+function isWithinNextDays(dateKey: string, days: number): boolean {
   const now = new Date();
   const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  return dateKey === todayKey;
-}
-
-function isTomorrow(dateKey: string): boolean {
-  const now = new Date();
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowKey = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`;
-  return dateKey === tomorrowKey;
+  const end = new Date(now);
+  end.setDate(end.getDate() + days - 1);
+  const endKey = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")}`;
+  return dateKey >= todayKey && dateKey <= endKey;
 }
 
 function isFutureOrToday(dateKey: string): boolean {
@@ -177,10 +172,10 @@ export function TournamentTabs({
     return dayGroups.sort((a, b) => a.dateKey.localeCompare(b.dateKey));
   }, [dayGroups, filter]);
 
-  // Default open accordion items: today and tomorrow
+  // Default open accordion items: next 3 days
   const defaultOpenDays = useMemo(() => {
     return filteredDays
-      .filter((day) => isToday(day.dateKey) || isTomorrow(day.dateKey))
+      .filter((day) => isWithinNextDays(day.dateKey, 3))
       .map((day) => day.dateKey);
   }, [filteredDays]);
 
