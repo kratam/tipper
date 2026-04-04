@@ -136,6 +136,8 @@ async function syncTournament(tournament: Tournament): Promise<void> {
           status: newStatus,
           homeScore: newStatus === "finished" ? regulationScore.home : game.scores.home,
           awayScore: newStatus === "finished" ? regulationScore.away : game.scores.away,
+          scheduledAt: new Date(game.date),
+          round: new Date(game.date).toISOString().split("T")[0],
           updatedAt: new Date(),
         })
         .where(eq(matches.id, existingMatch.id));
