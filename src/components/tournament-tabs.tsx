@@ -72,15 +72,6 @@ function getDateKey(dateStr: string): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function isWithinNextDays(dateKey: string, days: number): boolean {
-  const now = new Date();
-  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  const end = new Date(now);
-  end.setDate(end.getDate() + days - 1);
-  const endKey = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")}`;
-  return dateKey >= todayKey && dateKey <= endKey;
-}
-
 function isFutureOrToday(dateKey: string): boolean {
   const now = new Date();
   const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -172,20 +163,10 @@ export function TournamentTabs({
     return dayGroups.sort((a, b) => a.dateKey.localeCompare(b.dateKey));
   }, [dayGroups, filter]);
 
-  // Default open accordion items: next 3 days
-  const defaultOpenDays = useMemo(() => {
-    return filteredDays
-      .filter((day) => isWithinNextDays(day.dateKey, 3))
-      .map((day) => day.dateKey);
+  // Default open accordion items: first 3 day groups
+  const initialOpen = useMemo(() => {
+    return filteredDays.slice(0, 3).map((day) => day.dateKey);
   }, [filteredDays]);
-
-  // If no today/tomorrow, open the first day
-  const initialOpen =
-    defaultOpenDays.length > 0
-      ? defaultOpenDays
-      : filteredDays.length > 0
-        ? [filteredDays[0].dateKey]
-        : [];
 
   const isLocked = new Date() > new Date(podiumLockDate);
 
