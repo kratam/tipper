@@ -11,6 +11,8 @@ import { getGroupByInviteCode } from "@/queries/groups";
 interface CreateGroupInput {
   name: string;
   tournamentId: string;
+  isPublic?: boolean;
+  description?: string;
   tokenPerMatch?: number;
   initialTokens?: number;
   distributionDaysBefore?: number;
@@ -55,6 +57,8 @@ export async function createGroup(input: CreateGroupInput) {
       ...(input.bonusPodiumMention != null && { bonusPodiumMention: input.bonusPodiumMention }),
       ...(input.bonusPodiumExact != null && { bonusPodiumExact: input.bonusPodiumExact }),
       ...(input.oddsBoost != null && { oddsBoost: input.oddsBoost }),
+      ...(input.isPublic != null && { isPublic: input.isPublic }),
+      ...(input.description != null && { description: input.description }),
     })
     .returning();
 
@@ -105,7 +109,41 @@ export async function joinGroup(inviteCode: string) {
   redirect(`/groups/${group.slug}`);
 }
 
+export async function joinPublicGroup(groupId: string) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const group = await db.query.groups.findFirst({
+    where: and(eq(groups.id, groupId), eq(groups.isPublic, true)),
+    with: { tournament: true },
+  });
+  if (!group) throw new Error("Group not found");
+  if (group.tournament.status === "finished") {
+    throw new Error("Tournament has finished");
+  }
+
+  const existing = await db.query.groupMembers.findFirst({
+    where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, user.id)),
+  });
+  if (existing) throw new Error("Already a member of this group");
+
+  await db.insert(groupMembers).values({
+    groupId: group.id,
+    userId: user.id,
+  });
+
+  await distributeInitialTokens(
+    user.id,
+    group.id,
+    group.tournamentId,
+    group.initialTokens,
+    group.tokenPerMatch,
+  );
+}
+
 interface GroupSettings {
+  isPublic?: boolean;
+  description?: string | null;
   tokenPerMatch?: number;
   initialTokens?: number;
   distributionDaysBefore?: number;
@@ -126,11 +164,23 @@ export async function updateGroupSettings(groupId: string, settings: GroupSettin
   });
   if (!group) throw new Error("Group not found");
   if (group.ownerId !== user.id) throw new Error("Unauthorized");
-  if (group.tournament.status !== "upcoming") {
+
+  // isPublic and description can always be changed
+  // Game rules can only be changed when tournament is upcoming
+  const { isPublic, description, ...gameSettings } = settings;
+  const alwaysUpdatable: Record<string, unknown> = {};
+  if (isPublic != null) alwaysUpdatable.isPublic = isPublic;
+  if (description !== undefined) alwaysUpdatable.description = description;
+
+  const hasGameSettings = Object.values(gameSettings).some((v) => v != null);
+  if (hasGameSettings && group.tournament.status !== "upcoming") {
     throw new Error("Settings can only be changed while tournament is upcoming");
   }
 
-  await db.update(groups).set(settings).where(eq(groups.id, groupId));
+  const updates = { ...alwaysUpdatable, ...(hasGameSettings ? gameSettings : {}) };
+  if (Object.keys(updates).length > 0) {
+    await db.update(groups).set(updates).where(eq(groups.id, groupId));
+  }
 }
 
 export async function removeMember(groupId: string, targetUserId: string) {
