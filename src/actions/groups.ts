@@ -18,6 +18,7 @@ interface CreateGroupInput {
   bonusExactScore?: number;
   bonusPodiumMention?: number;
   bonusPodiumExact?: number;
+  oddsBoost?: number;
 }
 
 export async function createGroup(input: CreateGroupInput) {
@@ -53,6 +54,7 @@ export async function createGroup(input: CreateGroupInput) {
       ...(input.bonusExactScore != null && { bonusExactScore: input.bonusExactScore }),
       ...(input.bonusPodiumMention != null && { bonusPodiumMention: input.bonusPodiumMention }),
       ...(input.bonusPodiumExact != null && { bonusPodiumExact: input.bonusPodiumExact }),
+      ...(input.oddsBoost != null && { oddsBoost: input.oddsBoost }),
     })
     .returning();
 
@@ -111,6 +113,7 @@ interface GroupSettings {
   bonusExactScore?: number;
   bonusPodiumMention?: number;
   bonusPodiumExact?: number;
+  oddsBoost?: number;
 }
 
 export async function updateGroupSettings(groupId: string, settings: GroupSettings) {
