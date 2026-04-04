@@ -32,6 +32,10 @@ export async function GET(request: Request) {
     where: eq(tournaments.status, "active"),
   });
 
+  const upcomingTournaments = await db.query.tournaments.findMany({
+    where: eq(tournaments.status, "upcoming"),
+  });
+
   // Smart cron: only call API when there's a reason to
   const shouldCallApi = await checkShouldCallApi();
 
@@ -43,7 +47,16 @@ export async function GET(request: Request) {
     apiSynced = activeTournaments.length;
   }
 
-  // Token distribution always runs (cheap, DB-only)
+  // Upcoming tournaments: sync fixtures + overrides on stale schedule (6h)
+  let upcomingSynced = 0;
+  if (await isStaleSync()) {
+    for (const tournament of upcomingTournaments) {
+      await syncTournament(tournament);
+    }
+    upcomingSynced = upcomingTournaments.length;
+  }
+
+  // Token distribution always runs (cheap, DB-only) — active only
   for (const tournament of activeTournaments) {
     await distributeTokensForTournament(tournament.id);
   }
@@ -51,6 +64,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     ok: true,
     apiSynced,
+    upcomingSynced,
     skippedApi: !shouldCallApi,
     tokenDistribution: activeTournaments.length,
   });
@@ -59,6 +73,14 @@ export async function GET(request: Request) {
 const NEAR_START_WINDOW_MS = 15 * 60 * 1000; // ±15 min
 const NEAR_END_WINDOW_MS = 30 * 60 * 1000; // ±30 min
 const STALE_SYNC_MS = 6 * 60 * 60 * 1000; // 6 hours
+
+async function isStaleSync(): Promise<boolean> {
+  const lastSync = await db.query.matchOdds.findFirst({
+    orderBy: (odds, { desc }) => [desc(odds.fetchedAt)],
+  });
+  if (!lastSync) return true;
+  return Date.now() - lastSync.fetchedAt.getTime() > STALE_SYNC_MS;
+}
 
 async function checkShouldCallApi(): Promise<boolean> {
   const now = new Date();
@@ -97,10 +119,7 @@ async function checkShouldCallApi(): Promise<boolean> {
   if (Number(nearEndCount[0].count) > 0) return true;
 
   // Last odds sync was more than 6 hours ago?
-  const lastSync = await db.query.matchOdds.findFirst({
-    orderBy: (odds, { desc }) => [desc(odds.fetchedAt)],
-  });
-  if (!lastSync || now.getTime() - lastSync.fetchedAt.getTime() > STALE_SYNC_MS) return true;
+  if (await isStaleSync()) return true;
 
   return false;
 }
