@@ -181,6 +181,41 @@
     "notFound": "Csoport nem található",
     "error": "Hiba történt a csatlakozás során"
   },
+  "privacy": {
+    "title": "Adatvédelmi tájékoztató",
+    "lastUpdated": "Utolsó frissítés: 2026. április 4.",
+    "intro": {
+      "title": "Bevezetés",
+      "text": "A TippCasino (tippcasino.vercel.app) egy sportmeccsekre szóló tippjáték alkalmazás. Az adataid védelme fontos számunkra. Ez a tájékoztató leírja, milyen adatokat gyűjtünk és hogyan használjuk azokat."
+    },
+    "dataCollected": {
+      "title": "Milyen adatokat gyűjtünk?",
+      "text": "A Google-fiókkal történő bejelentkezés során az alábbi adatokhoz férünk hozzá:",
+      "name": "Neved és profilképed",
+      "email": "E-mail címed",
+      "avatar": "Google profilképed URL-je"
+    },
+    "usage": {
+      "title": "Mire használjuk az adataidat?",
+      "text": "Az adataidat kizárólag az alkalmazáson belüli azonosításra, a ranglistákon való megjelenítésre és a csoporttagság kezelésére használjuk. Nem küldünk marketing e-maileket és nem adjuk el az adataidat harmadik félnek."
+    },
+    "thirdParty": {
+      "title": "Harmadik fél szolgáltatások",
+      "text": "Az alkalmazás a Google OAuth-ot használja a bejelentkezéshez, a Neon-t az adatbázis tároláshoz és a Vercel-t a kiszolgáláshoz. Ezek a szolgáltatók a saját adatvédelmi irányelveik szerint kezelik az adatokat."
+    },
+    "retention": {
+      "title": "Adatmegőrzés",
+      "text": "Az adataidat addig tároljuk, amíg aktív fiókod van. Ha szeretnéd az adataid törlését, vedd fel velünk a kapcsolatot."
+    },
+    "rights": {
+      "title": "Jogaid",
+      "text": "Jogod van hozzáférni a tárolt adataidhoz, kérni azok módosítását vagy törlését. A Google-fiókod beállításaiban bármikor visszavonhatod az alkalmazás hozzáférését."
+    },
+    "contact": {
+      "title": "Kapcsolat",
+      "text": "Adatvédelmi kérdésekkel az alkalmazás üzemeltetőjéhez fordulhatsz a krasser.tamas@gmail.com e-mail címen."
+    }
+  },
   "profile": {
     "displayNameLabel": "Becenév",
     "displayNameDescription": "Így fognak látni mások. Ha üresen hagyod, a Google neved jelenik meg.",

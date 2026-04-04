@@ -9,7 +9,7 @@ Token-alapú tippjáték ahol játékosok versenysorozatok meccseire fogadnak cs
 - **Framework:** Next.js 16.2.2 (App Router, Server Actions)
 - **Nyelv:** TypeScript (strict)
 - **DB:** Neon Postgres (`patient-leaf-69938778`, eu-central-1), Drizzle ORM
-- **Auth:** Neon Auth (`@neondatabase/auth`), Google login (shared OAuth keys)
+- **Auth:** Neon Auth (`@neondatabase/auth`), Google login (saját OAuth credentials)
 - **UI:** Shadcn UI (nova preset), Tailwind v4
 - **i18n:** next-intl (hu default, en)
 - **Linter:** Biome 2.4.10
@@ -19,7 +19,7 @@ Token-alapú tippjáték ahol játékosok versenysorozatok meccseire fogadnak cs
 
 ## Kulcs URL-ek
 
-- **Prod:** https://tipper-guestguru.vercel.app
+- **Prod:** https://tippcasino.vercel.app
 - **Repo:** github.com/kratam/tipper
 - **Neon console:** console.neon.tech → patient-leaf-69938778
 - **Vercel:** vercel.com/guestguru/tipper
@@ -57,7 +57,7 @@ DATABASE_URL=...          # Neon connection string
 API_SPORTS_KEY=...        # api-sports.io kulcs
 NEON_AUTH_BASE_URL=...    # https://ep-....neonauth.c-2.eu-central-1.aws.neon.tech/neondb/auth
 NEON_AUTH_COOKIE_SECRET=... # 32+ karakter
-NEXT_PUBLIC_APP_URL=...   # http://localhost:3000 (lokál) / https://tipper-guestguru.vercel.app (prod)
+NEXT_PUBLIC_APP_URL=...   # http://localhost:3000 (lokál) / https://tippcasino.vercel.app (prod)
 CRON_SECRET=...           # Cron endpoint védelem
 ```
 
@@ -109,4 +109,4 @@ Ha az API placeholder dátumokat ad (minden meccs egy napra), a `match_schedule_
 
 - Vercel cron: 5 percenként (GuestGuru Pro)
 - api-sports.io: 7500 req/hó
-- Neon Auth: shared Google OAuth keys (dev only, Neon branding a consent screen-en)
+- Neon Auth: saját Google OAuth credentials (Neon Console-ban konfigurálva)

@@ -6,9 +6,9 @@
 ## Jelenlegi állapot
 
 - **Repo:** github.com/kratam/tipper
-- **Deploy:** https://tipper-guestguru.vercel.app (Vercel Pro, GuestGuru team, auto deploy on push)
+- **Deploy:** https://tippcasino.vercel.app (Vercel Pro, GuestGuru team, auto deploy on push)
 - **DB:** Neon `patient-leaf-69938778` (eu-central-1), Drizzle ORM
-- **Auth:** Neon Auth (`@neondatabase/auth@0.2.0-beta.1`), Google login, shared OAuth keys
+- **Auth:** Neon Auth (`@neondatabase/auth@0.2.0-beta.1`), Google login, saját OAuth credentials
 - **Stack:** Next.js 16.2.2, TypeScript, Shadcn UI (nova), Tailwind v4, Biome 2.4.10, next-intl, Vitest
 - **Tesztek:** 34/34 zöld (pure logic: scoring, tokens, api-sports parsing)
 - **DB tartalom:** 2 versenysorozat (VB 2025 — 64 meccs finished, VB 2026 — 56 meccs scheduled), 16+ csapat

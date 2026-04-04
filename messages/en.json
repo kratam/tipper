@@ -181,6 +181,41 @@
     "notFound": "Group not found",
     "error": "Failed to join group"
   },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: April 4, 2026",
+    "intro": {
+      "title": "Introduction",
+      "text": "TippCasino (tippcasino.vercel.app) is a sports prediction game application. We care about your data privacy. This policy describes what data we collect and how we use it."
+    },
+    "dataCollected": {
+      "title": "What data do we collect?",
+      "text": "When you sign in with Google, we access the following information:",
+      "name": "Your name and profile picture",
+      "email": "Your email address",
+      "avatar": "Your Google profile picture URL"
+    },
+    "usage": {
+      "title": "How do we use your data?",
+      "text": "We use your data solely for in-app identification, displaying you on leaderboards, and managing group memberships. We do not send marketing emails or sell your data to third parties."
+    },
+    "thirdParty": {
+      "title": "Third-party services",
+      "text": "The application uses Google OAuth for authentication, Neon for database storage, and Vercel for hosting. These providers handle data according to their own privacy policies."
+    },
+    "retention": {
+      "title": "Data retention",
+      "text": "We retain your data as long as you have an active account. If you would like your data deleted, please contact us."
+    },
+    "rights": {
+      "title": "Your rights",
+      "text": "You have the right to access, modify, or delete your stored data. You can revoke the application's access at any time in your Google account settings."
+    },
+    "contact": {
+      "title": "Contact",
+      "text": "For privacy-related questions, contact the application operator at krasser.tamas@gmail.com."
+    }
+  },
   "profile": {
     "displayNameLabel": "Display name",
     "displayNameDescription": "This is how others will see you. Leave empty to use your Google name.",
