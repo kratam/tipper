@@ -1,15 +1,14 @@
-import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale } from "next-intl/server";
 import { GroupDetailTabs } from "@/components/group-detail-tabs";
 import { InviteCodeBadge } from "@/components/invite-code-badge";
-import { Button } from "@/components/ui/button";
-import { Link, redirect } from "@/i18n/navigation";
+import { TournamentBetCard } from "@/components/tournament-bet-card";
+import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { getGroupBetsForFinishedMatches } from "@/queries/bets";
 import { getGroupBySlug } from "@/queries/groups";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
-import { getFinishedMatchesForTournament } from "@/queries/matches";
+import { getFinishedMatchesForTournament, getUpcomingBetSummary } from "@/queries/matches";
 
 export default async function GroupDetailPage({
   params,
@@ -27,10 +26,11 @@ export default async function GroupDetailPage({
   const group = await getGroupBySlug(slug);
   if (!group) notFound();
 
-  const [leaderboard, finishedMatches, groupBetsRaw] = await Promise.all([
+  const [leaderboard, finishedMatches, groupBetsRaw, upcomingDays] = await Promise.all([
     getGroupLeaderboard(group.id),
     getFinishedMatchesForTournament(group.tournamentId),
     getGroupBetsForFinishedMatches(group.id),
+    getUpcomingBetSummary(group.tournamentId, group.id, user.id, group.tournament.timezone, locale),
   ]);
 
   const isOwner = group.ownerId === user.id;
@@ -40,8 +40,6 @@ export default async function GroupDetailPage({
     notFound();
   }
 
-  const t = await getTranslations("groups");
-
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
@@ -49,12 +47,12 @@ export default async function GroupDetailPage({
           <h1 className="font-mono text-2xl font-bold tracking-tight">{group.name}</h1>
           <InviteCodeBadge inviteCode={group.inviteCode} />
         </div>
-        <Button variant="outline" asChild>
-          <Link href={`/tournaments/${group.tournament.slug}`}>
-            {t("goToTournament", { name: group.tournament.name })}
-            <ArrowRight className="size-4" />
-          </Link>
-        </Button>
+        <TournamentBetCard
+          tournamentName={group.tournament.name}
+          tournamentSlug={group.tournament.slug}
+          tournamentLogoUrl={group.tournament.logoUrl}
+          days={upcomingDays}
+        />
       </div>
 
       <GroupDetailTabs
