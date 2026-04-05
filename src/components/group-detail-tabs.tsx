@@ -142,7 +142,6 @@ export function GroupDetailTabs({
         await deleteGroup(groupId);
         toast.success(t("deleteSuccess"));
         router.push("/groups");
-        router.refresh();
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
         toast.error(message);
@@ -156,7 +155,6 @@ export function GroupDetailTabs({
         await leaveGroup(groupId);
         toast.success(t("leaveSuccess"));
         router.push("/groups");
-        router.refresh();
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
         toast.error(message);
