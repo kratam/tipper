@@ -19,6 +19,7 @@ interface PublicGroup {
   oddsBoost: number;
   tournament: {
     name: string;
+    slug: string;
     status: string;
   };
   members: { id: string }[];

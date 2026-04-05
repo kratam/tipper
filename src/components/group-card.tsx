@@ -15,6 +15,7 @@ interface GroupCardProps {
     description: string | null;
     tournament: {
       name: string;
+      slug: string;
       status: string;
     };
   };
@@ -107,7 +108,7 @@ export function GroupCard(props: GroupCardProps) {
   }
 
   return (
-    <Link href={`/groups/${props.group.slug}`}>
+    <Link href={`/tournaments/${props.group.tournament.slug}/groups/${props.group.slug}`}>
       <CardInner {...props} />
     </Link>
   );

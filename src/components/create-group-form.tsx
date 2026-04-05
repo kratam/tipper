@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "@/i18n/navigation";
 
 interface CreateGroupFormProps {
-  tournaments: { id: string; name: string; logoUrl: string | null }[];
+  tournaments: { id: string; name: string; slug: string; logoUrl: string | null }[];
 }
 
 export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
@@ -59,7 +59,8 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
           ...settings,
         });
         toast.success(t("createSuccess"));
-        router.push(`/groups/${group.slug}`);
+        const selectedTournament = tournaments.find((t) => t.id === tournamentId);
+        router.push(`/tournaments/${selectedTournament?.slug}/groups/${group.slug}`);
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
         toast.error(message);

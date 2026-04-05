@@ -40,7 +40,7 @@ export default async function JoinGroupPage({
     const message = error instanceof Error ? error.message : t("error");
     // If already a member, the error might be "Already a member" — redirect to group
     if (message.includes("Already a member")) {
-      redirect({ href: `/groups/${group.slug}`, locale });
+      redirect({ href: `/tournaments/${group.tournament.slug}/groups/${group.slug}`, locale });
     }
 
     return (
@@ -53,5 +53,5 @@ export default async function JoinGroupPage({
   }
 
   // If we get here somehow, redirect to the group
-  redirect({ href: `/groups/${group.slug}`, locale });
+  redirect({ href: `/tournaments/${group.tournament.slug}/groups/${group.slug}`, locale });
 }

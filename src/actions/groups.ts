@@ -102,7 +102,7 @@ export async function joinGroup(inviteCode: string) {
     group.tokenPerMatch,
   );
 
-  redirect(`/groups/${group.slug}`);
+  redirect(`/tournaments/${group.tournament.slug}/groups/${group.slug}`);
 }
 
 export async function joinPublicGroup(groupId: string) {

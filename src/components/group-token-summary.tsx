@@ -15,6 +15,7 @@ interface GroupCardItem {
   groupId: string;
   groupName: string;
   groupSlug: string;
+  tournamentSlug: string;
   myProfit: number;
   myRank: number | null;
   miniLeaderboard: MiniLeaderboardEntry[];
@@ -51,7 +52,7 @@ export function GroupTokenSummary({ groups, currentUserId }: GroupTokenSummaryPr
         return (
           <Link
             key={g.groupId}
-            href={`/groups/${g.groupSlug}`}
+            href={`/tournaments/${g.tournamentSlug}/groups/${g.groupSlug}`}
             className="group flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent/50"
           >
             {/* Header: group name + arrow */}

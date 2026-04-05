@@ -75,6 +75,7 @@ export default async function TournamentDetailPage({
           groupId: gm.group.id,
           groupName: gm.group.name,
           groupSlug: gm.group.slug,
+          tournamentSlug: tournament.slug,
           myProfit: myEntry?.profit ?? 0,
           myRank: myEntry?.rank ?? null,
           miniLeaderboard: mini.map((e) => ({

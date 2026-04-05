@@ -59,6 +59,7 @@ interface GroupLeaderboardData {
   groupId: string;
   groupName: string;
   groupSlug: string;
+  tournamentSlug: string;
   myProfit: number;
   myRank: number | null;
   miniLeaderboard: MiniLeaderboardEntry[];

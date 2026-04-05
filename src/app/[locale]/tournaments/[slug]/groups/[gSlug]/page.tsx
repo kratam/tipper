@@ -13,9 +13,9 @@ import { getFinishedMatchesForTournament, getUpcomingBetSummary } from "@/querie
 export default async function GroupDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string; locale: string }>;
+  params: Promise<{ slug: string; gSlug: string; locale: string }>;
 }) {
-  const { slug } = await params;
+  const { slug: tournamentSlug, gSlug: groupSlug } = await params;
   const user = await getCurrentUser();
   const locale = await getLocale();
 
@@ -23,7 +23,7 @@ export default async function GroupDetailPage({
     return redirect({ href: "/", locale });
   }
 
-  const group = await getGroupBySlug(slug);
+  const group = await getGroupBySlug(tournamentSlug, groupSlug);
   if (!group) notFound();
 
   const [leaderboard, finishedMatches, groupBetsRaw, upcomingDays] = await Promise.all([

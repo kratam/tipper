@@ -71,6 +71,13 @@
       "when": 1775242248007,
       "tag": "0009_tournament_timezone",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1775242248008,
+      "tag": "0010_group_slug_scoped_to_tournament",
+      "breakpoints": true
     }
   ]
 }

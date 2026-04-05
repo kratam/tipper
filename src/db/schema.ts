@@ -104,28 +104,32 @@ export const matchOdds = pgTable("match_odds", {
   fetchedAt: timestamp("fetched_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const groups = pgTable("groups", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  slug: text("slug").unique().notNull(),
-  inviteCode: text("invite_code").unique().notNull(),
-  ownerId: uuid("owner_id")
-    .references(() => users.id)
-    .notNull(),
-  tournamentId: uuid("tournament_id")
-    .references(() => tournaments.id)
-    .notNull(),
-  tokenPerMatch: integer("token_per_match").default(100).notNull(),
-  initialTokens: integer("initial_tokens").default(200).notNull(),
-  bonusGoalDiff: integer("bonus_goal_diff").default(5).notNull(),
-  bonusExactScore: integer("bonus_exact_score").default(10).notNull(),
-  bonusPodiumMention: integer("bonus_podium_mention").default(20).notNull(),
-  bonusPodiumExact: integer("bonus_podium_exact").default(20).notNull(),
-  oddsBoost: real("odds_boost").default(1.0).notNull(),
-  isPublic: boolean("is_public").default(false).notNull(),
-  description: text("description"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const groups = pgTable(
+  "groups",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    inviteCode: text("invite_code").unique().notNull(),
+    ownerId: uuid("owner_id")
+      .references(() => users.id)
+      .notNull(),
+    tournamentId: uuid("tournament_id")
+      .references(() => tournaments.id)
+      .notNull(),
+    tokenPerMatch: integer("token_per_match").default(100).notNull(),
+    initialTokens: integer("initial_tokens").default(200).notNull(),
+    bonusGoalDiff: integer("bonus_goal_diff").default(5).notNull(),
+    bonusExactScore: integer("bonus_exact_score").default(10).notNull(),
+    bonusPodiumMention: integer("bonus_podium_mention").default(20).notNull(),
+    bonusPodiumExact: integer("bonus_podium_exact").default(20).notNull(),
+    oddsBoost: real("odds_boost").default(1.0).notNull(),
+    isPublic: boolean("is_public").default(false).notNull(),
+    description: text("description"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("group_tournament_slug_idx").on(table.tournamentId, table.slug)],
+);
 
 export const groupMembers = pgTable(
   "group_members",

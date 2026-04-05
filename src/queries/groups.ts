@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq, inArray, notInArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { bets, groupMembers, groups, matches, tokenLedger } from "@/db/schema";
+import { bets, groupMembers, groups, matches, tokenLedger, tournaments } from "@/db/schema";
 
 export async function getUserGroups(userId: string) {
   return db.query.groupMembers.findMany({
@@ -18,9 +18,14 @@ export async function getUserGroups(userId: string) {
   });
 }
 
-export async function getGroupBySlug(slug: string) {
+export async function getGroupBySlug(tournamentSlug: string, groupSlug: string) {
+  const tournament = await db.query.tournaments.findFirst({
+    where: eq(tournaments.slug, tournamentSlug),
+  });
+  if (!tournament) return undefined;
+
   return db.query.groups.findFirst({
-    where: eq(groups.slug, slug),
+    where: and(eq(groups.tournamentId, tournament.id), eq(groups.slug, groupSlug)),
     with: {
       tournament: true,
       owner: true,
