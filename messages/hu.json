@@ -160,7 +160,11 @@
     "bronze": "Bronzérem",
     "locked": "A dobogós tippelés lezárult",
     "submit": "Dobogós tipp leadása",
-    "selectTeam": "Válassz csapatot"
+    "selectTeam": "Válassz csapatot",
+    "selectGold": "Válaszd ki a bajnokot",
+    "selectSilver": "Válaszd ki a 2. helyezettet",
+    "selectBronze": "Válaszd ki a 3. helyezettet",
+    "pickTeam": "Válassz"
   },
   "leaderboard": {
     "rank": "Helyezés",
@@ -186,6 +190,7 @@
     "syncSuccess": "Szinkronizálás sikeres!",
     "statusUpdateSuccess": "Státusz sikeresen frissítve!",
     "selectTeam": "Válassz csapatot",
+    "timezone": "Időzóna",
     "logoUrlPlaceholder": "Logó URL (üres = nincs logó)",
     "saveLogo": "Mentés",
     "logoUpdateSuccess": "Logó sikeresen frissítve!"

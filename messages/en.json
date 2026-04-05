@@ -160,7 +160,11 @@
     "bronze": "Bronze",
     "locked": "Podium predictions are locked",
     "submit": "Submit podium prediction",
-    "selectTeam": "Select team"
+    "selectTeam": "Select team",
+    "selectGold": "Pick the champion",
+    "selectSilver": "Pick 2nd place",
+    "selectBronze": "Pick 3rd place",
+    "pickTeam": "Pick"
   },
   "leaderboard": {
     "rank": "Rank",
@@ -186,6 +190,7 @@
     "syncSuccess": "Sync completed!",
     "statusUpdateSuccess": "Status updated!",
     "selectTeam": "Select team",
+    "timezone": "Timezone",
     "logoUrlPlaceholder": "Logo URL (empty = no logo)",
     "saveLogo": "Save",
     "logoUpdateSuccess": "Logo updated!"
