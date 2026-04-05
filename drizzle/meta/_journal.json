@@ -15,6 +15,62 @@
       "when": 1775242247998,
       "tag": "0001_mixed_amazoness",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775242248000,
+      "tag": "0002_per_match_tokens",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1775242248001,
+      "tag": "0003_schedule_overrides",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1775242248002,
+      "tag": "0004_display_name",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775242248003,
+      "tag": "0005_odds_boost",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775242248004,
+      "tag": "0006_tournament_logo",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1775242248005,
+      "tag": "0007_public_groups",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1775242248006,
+      "tag": "0008_daily_token_distribution",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1775242248007,
+      "tag": "0009_tournament_timezone",
+      "breakpoints": true
     }
   ]
 }
