@@ -30,6 +30,7 @@ interface CreateTournamentInput {
   apiLeagueId: number;
   apiSeason: number;
   podiumLockDate: Date;
+  timezone: string;
 }
 
 export async function createTournament(input: CreateTournamentInput) {
@@ -48,11 +49,23 @@ export async function createTournament(input: CreateTournamentInput) {
       apiLeagueId: input.apiLeagueId,
       apiSeason: input.apiSeason,
       podiumLockDate: input.podiumLockDate,
+      timezone: input.timezone,
       logoUrl,
     })
     .returning();
 
   return tournament;
+}
+
+export async function updateTournamentTimezone(tournamentId: string, timezone: string) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+  if (!user.isAdmin) throw new Error("Unauthorized");
+
+  await db
+    .update(tournaments)
+    .set({ timezone: timezone.trim() })
+    .where(eq(tournaments.id, tournamentId));
 }
 
 export async function updateTournamentLogo(tournamentId: string, logoUrl: string) {

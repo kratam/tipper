@@ -29,6 +29,7 @@ export default async function AdminPage() {
       apiLeagueId: tour.apiLeagueId,
       apiSeason: tour.apiSeason,
       logoUrl: tour.logoUrl,
+      timezone: tour.timezone,
       teams: await getTournamentTeams(tour.id),
     })),
   );
