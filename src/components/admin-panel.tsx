@@ -10,6 +10,7 @@ import {
   triggerSync,
   updateTournamentLogo,
   updateTournamentStatus,
+  updateTournamentTimezone,
 } from "@/actions/admin";
 import { TournamentLogo } from "@/components/tournament-logo";
 import { TournamentStatusBadge } from "@/components/tournament-status-badge";
@@ -29,6 +30,19 @@ import { useRouter } from "@/i18n/navigation";
 
 const SUPPORTED_LEAGUES = [{ id: 111, name: "IIHF World Championship" }] as const;
 
+const TIMEZONES = [
+  "Europe/Budapest",
+  "Europe/London",
+  "Europe/Berlin",
+  "Europe/Moscow",
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "Asia/Tokyo",
+  "UTC",
+] as const;
+
 interface TeamInfo {
   id: string;
   name: string;
@@ -43,6 +57,7 @@ interface TournamentInfo {
   apiLeagueId: number;
   apiSeason: number;
   logoUrl: string | null;
+  timezone: string;
   teams: TeamInfo[];
 }
 
@@ -59,6 +74,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
   const [leagueId, setLeagueId] = useState("");
   const [season, setSeason] = useState("");
   const [podiumLockDate, setPodiumLockDate] = useState("");
+  const [timezone, setTimezone] = useState("Europe/Budapest");
 
   // Finish tournament podium selection
   const [finishingId, setFinishingId] = useState<string | null>(null);
@@ -69,6 +85,10 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
   // Logo editing
   const [editingLogoId, setEditingLogoId] = useState<string | null>(null);
   const [logoInput, setLogoInput] = useState("");
+
+  // Timezone editing
+  const [editingTimezoneId, setEditingTimezoneId] = useState<string | null>(null);
+  const [timezoneInput, setTimezoneInput] = useState("");
 
   function handleCreateTournament(e: React.FormEvent) {
     e.preventDefault();
@@ -81,12 +101,14 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
           apiLeagueId: Number(leagueId),
           apiSeason: Number(season),
           podiumLockDate: new Date(podiumLockDate),
+          timezone,
         });
         toast.success(t("createSuccess"));
         setName("");
         setLeagueId("");
         setSeason("");
         setPodiumLockDate("");
+        setTimezone("Europe/Budapest");
         router.refresh();
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
@@ -123,6 +145,20 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
         setPodiumGold("");
         setPodiumSilver("");
         setPodiumBronze("");
+        router.refresh();
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        toast.error(message);
+      }
+    });
+  }
+
+  function handleSaveTimezone(tournamentId: string) {
+    startTransition(async () => {
+      try {
+        await updateTournamentTimezone(tournamentId, timezoneInput);
+        toast.success(t("timezoneUpdateSuccess"));
+        setEditingTimezoneId(null);
         router.refresh();
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
@@ -214,6 +250,21 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                   className="font-mono"
                 />
               </div>
+              <div className="flex flex-col gap-1">
+                <Label className="text-xs">{t("timezone")}</Label>
+                <Select value={timezone} onValueChange={setTimezone}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIMEZONES.map((tz) => (
+                      <SelectItem key={tz} value={tz}>
+                        {tz}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <Button type="submit" disabled={isPending} className="w-fit">
               {t("createTournament")}
@@ -255,7 +306,21 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                     </div>
                     <span className="font-mono text-xs text-muted-foreground">
                       {t("leagueId")}: {tournament.apiLeagueId} | {t("season")}:{" "}
-                      {tournament.apiSeason}
+                      {tournament.apiSeason} | {tournament.timezone}
+                      <button
+                        type="button"
+                        className="ml-1 text-muted-foreground hover:text-foreground"
+                        onClick={() => {
+                          if (editingTimezoneId === tournament.id) {
+                            setEditingTimezoneId(null);
+                          } else {
+                            setEditingTimezoneId(tournament.id);
+                            setTimezoneInput(tournament.timezone);
+                          }
+                        }}
+                      >
+                        <Pencil className="inline size-3" />
+                      </button>
                     </span>
                   </div>
                 </div>
@@ -301,6 +366,34 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                     disabled={isPending}
                   >
                     {t("saveLogo")}
+                  </Button>
+                </div>
+              )}
+
+              {/* Timezone editing */}
+              {editingTimezoneId === tournament.id && (
+                <div className="flex items-center gap-2 border-t border-border pt-3">
+                  <Select value={timezoneInput} onValueChange={setTimezoneInput}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIMEZONES.map((tz) => (
+                        <SelectItem key={tz} value={tz}>
+                          {tz}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    onClick={() => handleSaveTimezone(tournament.id)}
+                    disabled={isPending}
+                  >
+                    {t("saveLogo")}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingTimezoneId(null)}>
+                    ✕
                   </Button>
                 </div>
               )}
