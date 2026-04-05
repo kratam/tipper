@@ -20,6 +20,7 @@ interface GroupBetInfo {
   projectedBalance: number;
   pendingDistributions: number;
   tokenPerMatch: number;
+  oddsBoost: number;
   existingBet: {
     id: string;
     predictedHome: number;
@@ -133,7 +134,7 @@ export function BetDialog({ match, groups, open, onOpenChange }: BetDialogProps)
             homeTeam={match.homeTeam}
             awayTeam={match.awayTeam}
             scheduledAt={match.scheduledAt}
-            onSuccess={() => onOpenChange(false)}
+            onSuccess={groups.length <= 1 ? () => onOpenChange(false) : undefined}
           />
         ) : (
           <p className="text-center text-sm text-muted-foreground">{t("noBet")}</p>

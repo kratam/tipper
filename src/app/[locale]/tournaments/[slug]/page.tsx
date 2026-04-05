@@ -105,6 +105,7 @@ export default async function TournamentDetailPage({
       projectedBalance: number;
       pendingDistributions: number;
       tokenPerMatch: number;
+      oddsBoost: number;
       existingBet: {
         id: string;
         predictedHome: number;
@@ -126,6 +127,7 @@ export default async function TournamentDetailPage({
         projectedBalance: bal?.projected ?? 0,
         pendingDistributions: bal?.pending ?? 0,
         tokenPerMatch: bal?.tokenPerMatch ?? gm.group.tokenPerMatch,
+        oddsBoost: gm.group.oddsBoost,
         existingBet: existingBet
           ? {
               id: existingBet.id,

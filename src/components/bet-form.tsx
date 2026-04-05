@@ -19,6 +19,7 @@ interface GroupBetInfo {
   projectedBalance: number;
   pendingDistributions: number;
   tokenPerMatch: number;
+  oddsBoost: number;
   existingBet: {
     id: string;
     predictedHome: number;
@@ -82,15 +83,17 @@ function computeStakePresets(
   const evenPct = Math.round(100 / matchCount);
   const doublePct = Math.min(100, evenPct * 2);
   const presets: { value: number; label: string }[] = [];
-  const seen = new Set<number>();
+  const seenValues = new Set<number>();
+  const seenLabels = new Set<string>();
 
   for (const { value, label } of [
     { value: evenShare, label: `${evenPct}%` },
     { value: doubleShare, label: `${doublePct}%` },
     { value: balance, label: "MAX" },
   ]) {
-    if (value >= 1 && !seen.has(value)) {
-      seen.add(value);
+    if (value >= 1 && !seenValues.has(value) && !seenLabels.has(label)) {
+      seenValues.add(value);
+      seenLabels.add(label);
       presets.push({ value, label });
     }
   }
@@ -122,6 +125,15 @@ export function BetForm({
     for (const g of groups) {
       initial[g.groupId] =
         g.existingBet?.stake ?? computeDefaultStake(g.projectedBalance, g.unbettedMatchCountOnDay);
+    }
+    return initial;
+  });
+  const [stakeInputs, setStakeInputs] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    for (const g of groups) {
+      const value =
+        g.existingBet?.stake ?? computeDefaultStake(g.projectedBalance, g.unbettedMatchCountOnDay);
+      initial[g.groupId] = String(value);
     }
     return initial;
   });
@@ -189,7 +201,6 @@ export function BetForm({
           <span className="font-mono text-[11px] text-muted-foreground">
             <FormattedDate date={scheduledAt} />
           </span>
-
           {/* Teams + inline score steppers */}
           <div className="grid w-full max-w-xs grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-1.5">
             {/* Logos */}
@@ -214,138 +225,188 @@ export function BetForm({
             <div className="flex justify-center pt-1">
               <ScoreStepper value={awayScore} onChange={setAwayScore} />
             </div>
+            {/* Odds row */}
+            {odds
+              ? [
+                  { label: "1", value: odds.homeOdds, outcome: "1" },
+                  { label: "X", value: odds.drawOdds, outcome: "X" },
+                  { label: "2", value: odds.awayOdds, outcome: "2" },
+                ].map((o) => (
+                  <div key={o.label} className="flex justify-center pt-1">
+                    <div
+                      className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-mono text-sm transition-colors ${
+                        predictedOutcome === o.outcome
+                          ? "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      <span className="text-[10px] opacity-50">{o.label}</span>
+                      <span className="font-semibold">{o.value}</span>
+                    </div>
+                  </div>
+                ))
+              : null}
           </div>
-
-          {/* Odds */}
-          {odds ? (
-            <div className="flex gap-2">
-              {[
-                { label: "1", value: odds.homeOdds, outcome: "1" },
-                { label: "X", value: odds.drawOdds, outcome: "X" },
-                { label: "2", value: odds.awayOdds, outcome: "2" },
-              ].map((o) => (
-                <div
-                  key={o.label}
-                  className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-mono text-sm transition-colors ${
-                    predictedOutcome === o.outcome
-                      ? "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  <span className="text-[10px] opacity-50">{o.label}</span>
-                  <span className="font-semibold">{o.value}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
+          {!odds && (
             <p className="text-center text-xs text-amber-500">{tMatches("oddsNotAvailable")}</p>
           )}
         </div>
 
         {/* Per-group stake + submit */}
-        {groups.map((group) => (
-          <div key={group.groupId} className="border-t border-border px-5 py-4">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="text-sm font-medium">{group.groupName}</span>
-              <div className="flex items-center gap-1">
-                <span className="font-mono text-xs text-muted-foreground">
-                  {t("projectedBalance")}: {group.projectedBalance}
+        {groups.map((group) => {
+          const effectiveBalance = group.projectedBalance + (group.existingBet?.stake ?? 0);
+          return (
+            <div key={group.groupId} className="border-t border-border px-5 py-4">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-sm font-medium">
+                  {group.groupName}
+                  {odds && (
+                    <span className="ml-1 font-mono text-xs text-amber-500">
+                      (
+                      {(
+                        Number(
+                          predictedOutcome === "1"
+                            ? odds.homeOdds
+                            : predictedOutcome === "X"
+                              ? odds.drawOdds
+                              : odds.awayOdds,
+                        ) * group.oddsBoost
+                      ).toFixed(2)}
+                      )
+                    </span>
+                  )}
                 </span>
-                {group.pendingDistributions > 0 && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="size-3.5 text-muted-foreground/50" />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="font-mono text-xs">
-                        <div className="flex flex-col gap-0.5">
-                          <div className="flex justify-between gap-4">
-                            <span>{t("actualBalance")}:</span>
-                            <span>{group.balance}</span>
+                <div className="flex items-center gap-1">
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {t("projectedBalance")}: {effectiveBalance}
+                  </span>
+                  {(group.pendingDistributions > 0 || group.existingBet) && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="size-3.5 text-muted-foreground/50" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="font-mono text-xs">
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex justify-between gap-4">
+                              <span>{t("actualBalance")}:</span>
+                              <span>{group.balance}</span>
+                            </div>
+                            {group.pendingDistributions > 0 && (
+                              <div className="flex justify-between gap-4">
+                                <span>{t("pendingTokens")}:</span>
+                                <span>
+                                  +{group.pendingDistributions * group.tokenPerMatch} (
+                                  {group.pendingDistributions} × {group.tokenPerMatch})
+                                </span>
+                              </div>
+                            )}
+                            {group.existingBet && (
+                              <div className="flex justify-between gap-4">
+                                <span>{t("currentStake")}:</span>
+                                <span>+{group.existingBet.stake}</span>
+                              </div>
+                            )}
+                            <div className="my-0.5 border-t border-primary-foreground/20" />
+                            <div className="flex justify-between gap-4 font-bold">
+                              <span>{t("projectedBalance")}:</span>
+                              <span>{effectiveBalance}</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between gap-4">
-                            <span>{t("pendingTokens")}:</span>
-                            <span>
-                              +{group.pendingDistributions * group.tokenPerMatch} (
-                              {group.pendingDistributions} × {group.tokenPerMatch})
-                            </span>
-                          </div>
-                          <div className="my-0.5 border-t border-primary-foreground/20" />
-                          <div className="flex justify-between gap-4 font-bold">
-                            <span>{t("projectedBalance")}:</span>
-                            <span>{group.projectedBalance}</span>
-                          </div>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+              </div>
+
+              {/* Stake chips + custom input */}
+              <div className="mb-3 flex items-center gap-1.5">
+                <span className="mr-1 shrink-0 text-xs text-muted-foreground">{t("stake")}</span>
+                {computeStakePresets(effectiveBalance, group.unbettedMatchCountOnDay).map(
+                  (preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => {
+                        setStakes({ ...stakes, [group.groupId]: preset.value });
+                        setStakeInputs({ ...stakeInputs, [group.groupId]: String(preset.value) });
+                      }}
+                      className={`flex flex-col items-center rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors ${
+                        stakes[group.groupId] === preset.value
+                          ? "bg-foreground text-background"
+                          : "bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <span className="text-[10px] leading-none opacity-60">{preset.label}</span>
+                      <span>{preset.value}</span>
+                    </button>
+                  ),
+                )}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={stakeInputs[group.groupId] ?? ""}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/[^0-9]/g, "");
+                    setStakeInputs({ ...stakeInputs, [group.groupId]: raw });
+                    const num = Number(raw);
+                    if (raw !== "" && num >= 0) {
+                      setStakes({ ...stakes, [group.groupId]: num });
+                    }
+                  }}
+                  onBlur={() => {
+                    const num = Number(stakeInputs[group.groupId]);
+                    if (!stakeInputs[group.groupId] || num < 1) {
+                      setStakes({ ...stakes, [group.groupId]: 1 });
+                      setStakeInputs({ ...stakeInputs, [group.groupId]: "1" });
+                    } else if (num > effectiveBalance) {
+                      setStakes({ ...stakes, [group.groupId]: effectiveBalance });
+                      setStakeInputs({
+                        ...stakeInputs,
+                        [group.groupId]: String(effectiveBalance),
+                      });
+                    }
+                  }}
+                  className="ml-auto w-14 rounded-md border border-input bg-transparent px-2 py-1 text-center font-mono text-xs"
+                />
+              </div>
+
+              {/* Submit + cancel */}
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleSubmit(group.groupId)}
+                  disabled={
+                    isPending ||
+                    (stakes[group.groupId] ?? 0) > effectiveBalance ||
+                    (stakes[group.groupId] ?? 0) < 1
+                  }
+                  size="sm"
+                  className="flex-1"
+                >
+                  {isPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : group.existingBet ? (
+                    t("update")
+                  ) : (
+                    t("submit")
+                  )}
+                </Button>
+                {group.existingBet && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleCancel(group.existingBet?.id ?? "")}
+                    disabled={isPending}
+                  >
+                    {isPending ? <Loader2 className="size-4 animate-spin" /> : t("cancel")}
+                  </Button>
                 )}
               </div>
             </div>
-
-            {/* Stake chips + custom input */}
-            <div className="mb-3 flex items-center gap-1.5">
-              <span className="mr-1 shrink-0 text-xs text-muted-foreground">{t("stake")}</span>
-              {computeStakePresets(group.projectedBalance, group.unbettedMatchCountOnDay).map(
-                (preset) => (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    onClick={() => setStakes({ ...stakes, [group.groupId]: preset.value })}
-                    className={`flex flex-col items-center rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors ${
-                      stakes[group.groupId] === preset.value
-                        ? "bg-foreground text-background"
-                        : "bg-muted text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <span className="text-[10px] leading-none opacity-60">{preset.label}</span>
-                    <span>{preset.value}</span>
-                  </button>
-                ),
-              )}
-              <input
-                type="number"
-                min={1}
-                max={group.projectedBalance}
-                value={stakes[group.groupId] ?? 1}
-                onChange={(e) => setStakes({ ...stakes, [group.groupId]: Number(e.target.value) })}
-                className="ml-auto w-14 rounded-md border border-input bg-transparent px-2 py-1 text-center font-mono text-xs"
-              />
-            </div>
-
-            {/* Submit + cancel */}
-            <div className="flex gap-2">
-              <Button
-                onClick={() => handleSubmit(group.groupId)}
-                disabled={
-                  isPending ||
-                  (stakes[group.groupId] ?? 0) > group.projectedBalance ||
-                  (stakes[group.groupId] ?? 0) < 1
-                }
-                size="sm"
-                className="flex-1"
-              >
-                {isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : group.existingBet ? (
-                  t("update")
-                ) : (
-                  t("submit")
-                )}
-              </Button>
-              {group.existingBet && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleCancel(group.existingBet?.id ?? "")}
-                  disabled={isPending}
-                >
-                  {isPending ? <Loader2 className="size-4 animate-spin" /> : t("cancel")}
-                </Button>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
     </Card>
   );
