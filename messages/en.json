@@ -94,6 +94,7 @@
     "projectedBalance": "Available to bet",
     "actualBalance": "Your balance",
     "pendingTokens": "Upcoming",
+    "currentStake": "Current stake",
     "max": "MAX"
   },
   "groups": {
@@ -151,7 +152,14 @@
     "finished": "finished",
     "memberCount": "{count} members",
     "joinSuccess": "Successfully joined!",
-    "noPublicGroups": "No public groups available"
+    "noPublicGroups": "No public groups available",
+    "goToBetting": "Place bets",
+    "dayMatchCount": "{count} matches",
+    "missingBets": "{count} missing",
+    "allDone": "Done",
+    "noUpcomingMatches": "No matches in the next 3 days",
+    "totalMissing": "{count} bets missing in total",
+    "allBetsDone": "All bets placed for the next 3 days"
   },
   "podium": {
     "title": "Podium Prediction",
@@ -193,7 +201,8 @@
     "timezone": "Timezone",
     "logoUrlPlaceholder": "Logo URL (empty = no logo)",
     "saveLogo": "Save",
-    "logoUpdateSuccess": "Logo updated!"
+    "logoUpdateSuccess": "Logo updated!",
+    "timezoneUpdateSuccess": "Timezone updated!"
   },
   "join": {
     "title": "Join Group",

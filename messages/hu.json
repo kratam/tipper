@@ -94,6 +94,7 @@
     "projectedBalance": "Tippelhető",
     "actualBalance": "Egyenleged",
     "pendingTokens": "Még kapsz",
+    "currentStake": "Jelenlegi tét",
     "max": "MAX"
   },
   "groups": {
@@ -151,7 +152,14 @@
     "finished": "befejezett",
     "memberCount": "{count} tag",
     "joinSuccess": "Sikeresen csatlakoztál!",
-    "noPublicGroups": "Nincs elérhető nyilvános csoport"
+    "noPublicGroups": "Nincs elérhető nyilvános csoport",
+    "goToBetting": "Tippelés",
+    "dayMatchCount": "{count} meccs",
+    "missingBets": "{count} tipp hiányzik",
+    "allDone": "Kész",
+    "noUpcomingMatches": "Nincs meccs a következő 3 napban",
+    "totalMissing": "Összesen {count} tipp hiányzik",
+    "allBetsDone": "Minden tipp leadva a következő 3 napra"
   },
   "podium": {
     "title": "Dobogós tipp",
@@ -193,7 +201,8 @@
     "timezone": "Időzóna",
     "logoUrlPlaceholder": "Logó URL (üres = nincs logó)",
     "saveLogo": "Mentés",
-    "logoUpdateSuccess": "Logó sikeresen frissítve!"
+    "logoUpdateSuccess": "Logó sikeresen frissítve!",
+    "timezoneUpdateSuccess": "Időzóna sikeresen frissítve!"
   },
   "join": {
     "title": "Csatlakozás csoporthoz",
