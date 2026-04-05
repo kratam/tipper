@@ -8,9 +8,9 @@ Technikai referencia a projekt belső működéséről. A projekt áttekintésé
 src/
   app/[locale]/            — Oldalak (Next.js App Router, i18n routing)
     admin/                 — Tournament CRUD (admin only)
-    groups/                — Csoport lista, létrehozás, detail
+    groups/                — Csoport lista, létrehozás
     join/[code]/           — Csatlakozás meghívókóddal
-    tournaments/           — Versenysorozat lista + detail
+    tournaments/           — Versenysorozat lista + detail + csoport detail (groups/[gSlug])
     privacy/, terms/       — Statikus oldalak
   app/api/
     auth/[...path]/        — Neon Auth proxy
@@ -72,7 +72,7 @@ scripts/
 | `teams` | apiTeamId (UNIQUE), name, logoUrl | api-sports.io-ból upsert |
 | `matches` | tournamentId, apiGameId (UNIQUE), home/awayTeamId, home/awayScore, status, scheduledAt, round | Index: (tournamentId, status) |
 | `match_odds` | matchId, homeOdds, drawOdds, awayOdds, fetchedAt | decimal(6,2), többszöri lekérdezés |
-| `groups` | name, slug, inviteCode, ownerId, tournamentId, tokenPerMatch(100), initialTokens(200), bonusGoalDiff(5), bonusExactScore(10), bonusPodiumMention(20), bonusPodiumExact(20), oddsBoost(1.0), isPublic, description | Csoport szabályok |
+| `groups` | name, slug, inviteCode, ownerId, tournamentId, tokenPerMatch(100), initialTokens(200), bonusGoalDiff(5), bonusExactScore(10), bonusPodiumMention(20), bonusPodiumExact(20), oddsBoost(1.0), isPublic, description | Csoport szabályok. Unique: (tournamentId, slug) — slug tournament-szintű |
 | `group_members` | groupId, userId | Unique: (groupId, userId) |
 | `bets` | userId, matchId, groupId, predictedHome/Away, stake, oddsAtBet, result flags, payout | Unique: (userId, matchId, groupId) |
 | `podium_bets` | userId, tournamentId, groupId, gold/silver/bronzeTeamId | Unique: (userId, tournamentId, groupId) |
