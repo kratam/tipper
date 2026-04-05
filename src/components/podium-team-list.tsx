@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 interface TeamOption {
@@ -19,7 +18,7 @@ interface PodiumTeamListProps {
 
 export function PodiumTeamList({ teams, selectedId, disabledIds, onSelect }: PodiumTeamListProps) {
   return (
-    <ScrollArea className="max-h-[300px]">
+    <div className="max-h-75 overflow-y-auto">
       <div className="flex flex-col">
         {teams.map((team) => {
           const isSelected = team.id === selectedId;
@@ -59,6 +58,6 @@ export function PodiumTeamList({ teams, selectedId, disabledIds, onSelect }: Pod
           );
         })}
       </div>
-    </ScrollArea>
+    </div>
   );
 }
