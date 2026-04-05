@@ -50,6 +50,7 @@ export const tournaments = pgTable("tournaments", {
   apiLeagueId: integer("api_league_id").notNull(),
   apiSeason: integer("api_season").notNull(),
   logoUrl: text("logo_url"),
+  timezone: text("timezone").default("UTC").notNull(),
   status: tournamentStatusEnum("status").default("upcoming").notNull(),
   podiumLockDate: timestamp("podium_lock_date", { withTimezone: true }).notNull(),
   goldTeamId: uuid("gold_team_id").references(() => teams.id),

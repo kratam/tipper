@@ -66,6 +66,7 @@ interface GroupLeaderboardData {
 interface TournamentTabsProps {
   matches: MatchCardData[];
   tournamentId: string;
+  timezone: string;
   podiumLockDate: string;
   teams: TeamOption[];
   podiumGroups: PodiumGroupData[];
@@ -76,30 +77,40 @@ interface TournamentTabsProps {
 
 type MatchFilter = "upcoming" | "played" | "all";
 
-function formatDayHeader(dateStr: string, locale: string): string {
-  const d = new Date(dateStr);
+function formatDayHeader(dateStr: string, locale: string, timeZone: string): string {
   return new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
     weekday: "long",
-  }).format(d);
+    timeZone,
+  }).format(new Date(dateStr));
 }
 
-function getDateKey(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+function getDateKey(dateStr: string, timeZone: string): string {
+  // Use Intl to get date parts in the event timezone — consistent on server & client
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone,
+  }).format(new Date(dateStr));
+  // en-CA formats as YYYY-MM-DD
+  return parts;
 }
 
-function isFutureOrToday(dateKey: string): boolean {
-  const now = new Date();
-  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  return dateKey >= todayKey;
+function getTodayKey(timeZone: string): string {
+  return getDateKey(new Date().toISOString(), timeZone);
+}
+
+function isFutureOrToday(dateKey: string, timeZone: string): boolean {
+  return dateKey >= getTodayKey(timeZone);
 }
 
 export function TournamentTabs({
   matches,
   tournamentId,
+  timezone,
   podiumLockDate,
   teams,
   podiumGroups,
@@ -142,36 +153,36 @@ export function TournamentTabs({
   const dayGroups = useMemo(() => {
     const map = new Map<string, { dateKey: string; label: string; matches: MatchCardData[] }>();
     for (const match of liveMatches) {
-      const dateKey = getDateKey(match.scheduledAt);
+      const dateKey = getDateKey(match.scheduledAt, timezone);
       const existing = map.get(dateKey);
       if (existing) {
         existing.matches.push(match);
       } else {
         map.set(dateKey, {
           dateKey,
-          label: formatDayHeader(match.scheduledAt, locale),
+          label: formatDayHeader(match.scheduledAt, locale, timezone),
           matches: [match],
         });
       }
     }
     return Array.from(map.values());
-  }, [liveMatches, locale]);
+  }, [liveMatches, locale, timezone]);
 
   // Filter days based on selected filter
   const filteredDays = useMemo(() => {
     if (filter === "upcoming") {
       return dayGroups
-        .filter((day) => isFutureOrToday(day.dateKey))
+        .filter((day) => isFutureOrToday(day.dateKey, timezone))
         .sort((a, b) => a.dateKey.localeCompare(b.dateKey));
     }
     if (filter === "played") {
       return dayGroups
-        .filter((day) => !isFutureOrToday(day.dateKey))
+        .filter((day) => !isFutureOrToday(day.dateKey, timezone))
         .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
     }
     // "all"
     return dayGroups.sort((a, b) => a.dateKey.localeCompare(b.dateKey));
-  }, [dayGroups, filter]);
+  }, [dayGroups, filter, timezone]);
 
   // Default open accordion items: first 3 day groups
   const initialOpen = useMemo(() => {
@@ -183,7 +194,7 @@ export function TournamentTabs({
   // Per-group unbetted match count on the selected match's day
   const groupUnbettedCountOnSelectedDay = useMemo(() => {
     if (!selectedMatch) return {} as Record<string, number>;
-    const dateKey = getDateKey(selectedMatch.scheduledAt);
+    const dateKey = getDateKey(selectedMatch.scheduledAt, timezone);
     const day = dayGroups.find((d) => d.dateKey === dateKey);
     if (!day) return {} as Record<string, number>;
     const result: Record<string, number> = {};
@@ -197,7 +208,7 @@ export function TournamentTabs({
       }
     }
     return result;
-  }, [selectedMatch, dayGroups, groupBetInfosByMatch]);
+  }, [selectedMatch, dayGroups, groupBetInfosByMatch, timezone]);
 
   function handleMatchClick(match: MatchCardData) {
     setSelectedMatch(match);
@@ -273,11 +284,12 @@ export function TournamentTabs({
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pt-2 pb-2">
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       {day.matches.map((match) => (
                         <MatchCard
                           key={match.id}
                           match={match}
+                          timezone={timezone}
                           onClick={() => handleMatchClick(match)}
                         />
                       ))}

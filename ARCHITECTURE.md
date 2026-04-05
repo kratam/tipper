@@ -1,0 +1,201 @@
+# TippCasino — Architektúra
+
+Technikai referencia a projekt belső működéséről. A projekt áttekintéséhez lásd [README.md](README.md).
+
+## Projekt struktúra
+
+```
+src/
+  app/[locale]/            — Oldalak (Next.js App Router, i18n routing)
+    admin/                 — Tournament CRUD (admin only)
+    groups/                — Csoport lista, létrehozás, detail
+    join/[code]/           — Csatlakozás meghívókóddal
+    tournaments/           — Versenysorozat lista + detail
+    privacy/, terms/       — Statikus oldalak
+  app/api/
+    auth/[...path]/        — Neon Auth proxy
+    cron/sync/             — Vercel Cron endpoint (*/5 * * * *)
+  actions/                 — Server Actions
+    admin.ts               — Tournament CRUD, sync trigger, finish with podium
+    bets.ts                — Tipp leadás/módosítás, payout számítás
+    groups.ts              — Csoport CRUD, token kiosztás, tag kezelés
+    live.ts                — Real-time polling (SWR)
+    podium-bets.ts         — Dobogós tipp leadás
+    profile.ts             — Felhasználói profil (displayName)
+  queries/                 — Read-only DB lekérdezések
+    groups.ts              — getUserGroups, projected balance, profit
+    bets.ts                — getUserBets, getGroupBets
+    leaderboard.ts         — Ranglista számítás
+    matches.ts             — Tournament meccsek, odds lekérdezés
+    podium.ts              — Podium bet lookup, scoring
+    tournaments.ts         — getAllTournaments, getTournamentById
+  components/              — UI komponensek + Shadcn ui/
+  db/
+    schema.ts              — Drizzle ORM séma (11 tábla, 3 enum)
+    index.ts               — DB client (Neon HTTP)
+  lib/
+    auth/server.ts         — Neon Auth inicializálás
+    auth/client.ts         — Client-oldali auth utils
+    auth/user-sync.ts      — getCurrentUser(), auto-sync DB-be
+    api-sports.ts          — api-sports.io client (fixtures, odds, logo)
+    scoring.ts             — Pontozási logika (pure, tesztelt)
+    tokens.ts              — Token számítások (pure, tesztelt)
+    schedule-override.ts   — Menetrend override detektálás
+    leaderboard-utils.ts   — Rangsorolás segédfüggvények
+    utils.ts               — generateInviteCode, slugify, formatDate, cn
+  i18n/                    — next-intl routing + navigation
+messages/                  — hu.json, en.json fordítások
+tests/lib/                 — Vitest unit tesztek
+scripts/
+  seed-dev-odds.sql        — Idempotens odds seed (determinisztikus, hashtext alapú)
+  seed-dev-odds.sh         — Shell wrapper (.env.local-ból olvas, véd prod ellen)
+```
+
+## DB séma
+
+**11 tábla, 3 enum.** Forrás: `src/db/schema.ts`
+
+### Enumok
+
+| Enum | Értékek |
+|------|---------|
+| `tournament_status` | upcoming, active, finished |
+| `match_status` | scheduled, live, finished, cancelled |
+| `token_type` | distribution, bet, win, carryover, refund |
+
+### Táblák
+
+| Tábla | Kulcs mezők | Megjegyzés |
+|-------|-------------|------------|
+| `users` | googleId, email, name, displayName, avatarUrl, isAdmin | Neon Auth-ból szinkronizált |
+| `tournaments` | name, slug, apiLeagueId, apiSeason, status, podiumLockDate, gold/silver/bronzeTeamId, useScheduleOverrides | Versenysorozat + dobogó eredmények |
+| `teams` | apiTeamId (UNIQUE), name, logoUrl | api-sports.io-ból upsert |
+| `matches` | tournamentId, apiGameId (UNIQUE), home/awayTeamId, home/awayScore, status, scheduledAt, round | Index: (tournamentId, status) |
+| `match_odds` | matchId, homeOdds, drawOdds, awayOdds, fetchedAt | decimal(6,2), többszöri lekérdezés |
+| `groups` | name, slug, inviteCode, ownerId, tournamentId, tokenPerMatch(100), initialTokens(200), bonusGoalDiff(5), bonusExactScore(10), bonusPodiumMention(20), bonusPodiumExact(20), oddsBoost(1.0), isPublic, description | Csoport szabályok |
+| `group_members` | groupId, userId | Unique: (groupId, userId) |
+| `bets` | userId, matchId, groupId, predictedHome/Away, stake, oddsAtBet, result flags, payout | Unique: (userId, matchId, groupId) |
+| `podium_bets` | userId, tournamentId, groupId, gold/silver/bronzeTeamId | Unique: (userId, tournamentId, groupId) |
+| `token_ledger` | userId, groupId, tournamentId, amount (signed), type, referenceId | Index: (userId, groupId, type) |
+| `match_schedule_overrides` | matchId (UNIQUE), scheduledAt | Kézi menetrend felülírás |
+
+A `neon_auth` schema külön (Better Auth által kezelt): user, session, account, verification, jwks.
+
+## Token rendszer
+
+### Kiosztás
+
+- **`tokenPerMatch`** (default: 100) — meccsenként ennyi tokent kap mindenki
+- **`initialTokens`** (default: 200) — egyszeri indulótőke csatlakozáskor
+- Kiosztás időpontja: `DATE(scheduledAt) <= CURRENT_DATE` → per-meccs `distribution` ledger bejegyzés
+- Csatlakozáskor catch-up: megkapja a múltbeli meccsek tokenjeit is
+- Idempotens: (userId, groupId, type='distribution', referenceId=matchId) egyediség
+
+### Vetített egyenleg (projected balance)
+
+Nap-szintű, egy nap összes meccsére ugyanaz:
+```
+projected = actual + pending_meccsek × tokenPerMatch
+```
+Ahol `pending` = meccsek ahol `DATE(scheduledAt) <= DATE(targetMatch.scheduledAt)` és még nincs distribution ledger bejegyzés.
+
+Előre tippelés: bármikor lehet, a keret a meccs napjáig esedékes összes kiosztást tartalmazza.
+
+### Odds boost
+
+`groups.oddsBoost` (real, default 1.0) — szorzó a payout-ra: `payout = stake × odds × oddsBoost`
+
+## Pontozás (scoring)
+
+Pure függvények: `src/lib/scoring.ts` (tesztelve)
+
+### Meccs tipp (1X2)
+
+1. Ha az 1X2 kimenetel **hibás** → payout = 0
+2. Ha **helyes**: `payout = round(stake × oddsAtBet × oddsBoost)`
+3. **Gólkülönbség bónusz**: `+bonusGoalDiff` (default: 5) ha a gólkülönbség egyezik
+4. **Pontos eredmény bónusz**: `+bonusExactScore` (default: 10) ha pontos találat
+5. Bónuszok additívak (nem szorzódnak)
+
+### Dobogós tipp
+
+- Említett csapat (bármelyik dobogós helyen): `+bonusPodiumMention` (default: 20)
+- Pontos pozíció: `+bonusPodiumExact` (default: 20)
+- Maximum per csapat: 40 pont (említett + pontos)
+
+### Eredmény számítás
+
+- Csak rendes játékidő (3 period) — hosszabbítás nem számít
+- Ha `oddsAtBet` NULL (nem volt odds a tipp leadásakor) → payout = 0
+
+## Cron sync
+
+`/api/cron/sync` — Vercel cron, 5 percenként (`vercel.json`).
+
+### Smart cron
+
+API hívás csak ha van rá ok:
+1. Van live meccs
+2. Van meccs ±15 percen belül induló
+3. Van meccs ±30 percen belül befejeződő (scheduledAt + 3h)
+4. Utolsó odds sync > 6 órája
+
+### Sync lépések (aktív versenysorozatonként)
+
+0. **Logo backfill** — ha `logoUrl` NULL → `/leagues?id=` API hívás
+1. **Fixtures sync** — api-sports.io → matches tábla (upsert apiGameId alapján)
+2. **Odds sync** → match_odds tábla + NULL `oddsAtBet` kitöltés meglévő tippeken
+3. **Finished meccsek pontozása** → `calculateBetPayout` → bets.payout + token_ledger win
+4. **Cancelled meccsek** → stake refund a ledger-be
+5. **Token kiosztás** — `DATE(scheduledAt) <= CURRENT_DATE`, idempotens
+6. **Schedule override** — detektálás és alkalmazás (lásd alább)
+
+### Upcoming versenysorozatok
+
+6 óránként frissítés (stale sync check az utolsó odds lekérdezés alapján).
+
+## Schedule override
+
+Ha az API placeholder dátumokat ad (minden meccs egy napra):
+
+- **Detektálás**: `>80%` scheduled meccs azonos napon → `useScheduleOverrides = true`
+- **API javulás**: `≥90%` API dátum ±2 órán belül van az override-hoz képest → kikapcsolás
+- Override-ok a `match_schedule_overrides` táblában, kézi feltöltéssel (SQL/Neon MCP)
+- Ha a flag be van kapcsolva: `matches.scheduledAt` és `round` felülírása override-ból
+
+## Auth flow
+
+1. Google login → Neon Auth (`@neondatabase/auth`)
+2. `getCurrentUser()` (server-only): session olvasás cookie-ból, közvetlen fetch a Neon Auth API-ra
+3. Auto-sync: ha nincs user a `users` táblában → `INSERT ... ON CONFLICT DO UPDATE`
+4. Server Components-ben nincs `cookies().set()` — közvetlen fetch a session endpoint-ra
+
+## API integráció
+
+**api-sports.io Hockey v1** — 7500 req/hó
+
+| Függvény | Endpoint | Visszatérés |
+|----------|----------|-------------|
+| `fetchGames(leagueId, season)` | `/games?league=&season=` | Meccsek + eredmények |
+| `fetchOdds(leagueId, season)` | `/odds?league=&season=` | 3-way odds |
+| `fetchLeagueLogoUrl(leagueId)` | `/leagues?id=` | Logo URL |
+
+Segédfüggvények: `parseRegulationScore` (3 period), `mapApiStatus`, `extract3WayOdds`.
+
+## Env változók
+
+```
+DATABASE_URL              — Neon connection string
+API_SPORTS_KEY            — api-sports.io kulcs
+NEON_AUTH_BASE_URL        — https://ep-....neonauth.c-2.eu-central-1.aws.neon.tech/neondb/auth
+NEON_AUTH_COOKIE_SECRET   — 32+ karakter
+NEXT_PUBLIC_APP_URL       — http://localhost:3000 (lokál) / https://tippcasino.vercel.app (prod)
+CRON_SECRET               — Vercel cron endpoint védelem (Bearer token)
+```
+
+## Ismert korlátok
+
+- **Vercel cron**: 5 percenként (GuestGuru Pro plan)
+- **api-sports.io**: 7500 request/hó
+- **Neon Auth**: saját Google OAuth credentials (Neon Console-ban konfigurálva)
+- **Eredmény**: csak regulation time (3 period), overtime nem számít

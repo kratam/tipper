@@ -70,7 +70,8 @@
     "noMatches": "Nincsenek meccsek",
     "upcoming": "Közelgő",
     "played": "Lejátszott",
-    "all": "Mind"
+    "all": "Mind",
+    "localTime": "nálad {time}"
   },
   "betting": {
     "title": "Tippelés",
@@ -84,9 +85,12 @@
     "customPerGroup": "Csoportonként külön",
     "homeScore": "Hazai",
     "awayScore": "Vendég",
-    "success": "Tipp sikeresen leadva!",
-    "updateSuccess": "Tipp sikeresen módosítva!",
-    "cancelSuccess": "Tipp sikeresen visszavonva!",
+    "success": "{home} {homeScore}:{awayScore} {away}",
+    "successDesc": "{stake} token — {group}",
+    "updateSuccess": "{home} {homeScore}:{awayScore} {away}",
+    "updateSuccessDesc": "{stake} token — {group}",
+    "cancelSuccess": "{home} vs {away}",
+    "cancelSuccessDesc": "{group}",
     "projectedBalance": "Tippelhető",
     "actualBalance": "Egyenleged",
     "pendingTokens": "Még kapsz",

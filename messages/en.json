@@ -70,7 +70,8 @@
     "noMatches": "No matches yet",
     "upcoming": "Upcoming",
     "played": "Played",
-    "all": "All"
+    "all": "All",
+    "localTime": "your time {time}"
   },
   "betting": {
     "title": "Place Bet",
@@ -84,9 +85,12 @@
     "customPerGroup": "Custom per group",
     "homeScore": "Home",
     "awayScore": "Away",
-    "success": "Bet placed successfully!",
-    "updateSuccess": "Bet updated successfully!",
-    "cancelSuccess": "Bet cancelled successfully!",
+    "success": "{home} {homeScore}:{awayScore} {away}",
+    "successDesc": "{stake} token — {group}",
+    "updateSuccess": "{home} {homeScore}:{awayScore} {away}",
+    "updateSuccessDesc": "{stake} token — {group}",
+    "cancelSuccess": "{home} vs {away}",
+    "cancelSuccessDesc": "{group}",
     "projectedBalance": "Available to bet",
     "actualBalance": "Your balance",
     "pendingTokens": "Upcoming",

@@ -3,7 +3,7 @@
 import { Circle } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
 
 interface MatchOdds {
   homeOdds: string;
@@ -49,61 +49,144 @@ function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
   );
 }
 
-function BetBadge({ bet }: { bet: UserBet }) {
-  if (bet.result1x2Correct === null) {
-    return (
-      <Badge variant="outline" className="bg-muted/50 font-mono text-xs">
-        {bet.predictedHome}-{bet.predictedAway}
-      </Badge>
-    );
+/**
+ * Odds színkódolás: kék (alacsony/favorit) → lila → narancs (magas/esélytelen)
+ * Range: ~1.20 → ~7.50
+ */
+function oddsColor(odds: string): string {
+  const v = Number.parseFloat(odds);
+  // Normalize to 0–1 range (1.2 → 0, 7.5 → 1)
+  const t = Math.min(1, Math.max(0, (v - 1.2) / (7.5 - 1.2)));
+
+  if (t < 0.5) {
+    // Blue → Purple (0 → 0.5)
+    const s = t / 0.5;
+    const r = Math.round(96 + (167 - 96) * s);
+    const g = Math.round(165 + (139 - 165) * s);
+    const b = Math.round(250 + (250 - 250) * s);
+    return `rgb(${r},${g},${b})`;
   }
-  if (bet.result1x2Correct) {
-    return (
-      <Badge variant="outline" className="bg-emerald-500/10 font-mono text-xs text-emerald-500">
-        {bet.predictedHome}-{bet.predictedAway}
-        {bet.payout != null && ` +${bet.payout}`}
-      </Badge>
-    );
-  }
-  return (
-    <Badge variant="destructive" className="font-mono text-xs">
-      {bet.predictedHome}-{bet.predictedAway}
-    </Badge>
-  );
+  // Purple → Orange (0.5 → 1)
+  const s = (t - 0.5) / 0.5;
+  const r = Math.round(167 + (249 - 167) * s);
+  const g = Math.round(139 + (115 - 139) * s);
+  const b = Math.round(250 + (22 - 250) * s);
+  return `rgb(${r},${g},${b})`;
 }
 
-function formatTime(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+function formatTime(dateStr: string, timeZone: string): string {
+  return new Intl.DateTimeFormat("hu", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone,
+  }).format(new Date(dateStr));
 }
 
 interface MatchCardProps {
   match: MatchCardData;
+  timezone: string;
   onClick: () => void;
 }
 
-function isTodayOrTomorrow(dateStr: string): boolean {
-  const now = new Date();
-  const matchDate = new Date(dateStr);
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const dayAfterTomorrow = new Date(todayStart);
-  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
-  return matchDate >= todayStart && matchDate < dayAfterTomorrow;
+function isTodayOrTomorrow(dateStr: string, timeZone: string): boolean {
+  const fmt = (d: Date) =>
+    new Intl.DateTimeFormat("en-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone,
+    }).format(d);
+
+  const matchDay = fmt(new Date(dateStr));
+  const today = fmt(new Date());
+
+  // Add 1 day to today
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDay = fmt(tomorrow);
+
+  return matchDay === today || matchDay === tomorrowDay;
 }
 
-export function MatchCard({ match, onClick }: MatchCardProps) {
+function BetRow({ bet, isFinished }: { bet: UserBet; isFinished: boolean }) {
+  const isWin = bet.result1x2Correct === true;
+  const isLoss = bet.result1x2Correct === false;
+
+  const borderColor = isWin
+    ? "border-emerald-500/15"
+    : isLoss
+      ? "border-destructive/10"
+      : "border-border";
+
+  return (
+    <div
+      className={`col-span-full mt-1 flex items-center justify-between border-t pt-1.5 font-mono ${borderColor}`}
+    >
+      {/* Stake (bal) */}
+      <span
+        className={`text-[11px] ${isLoss ? "text-muted-foreground/40 line-through" : "text-muted-foreground/60"}`}
+      >
+        {bet.stake} 🪙
+      </span>
+
+      {/* Tipp (közép) */}
+      <span
+        className={`text-[13px] font-semibold ${
+          isWin ? "text-emerald-500" : isLoss ? "text-destructive line-through" : "text-foreground"
+        }`}
+      >
+        🎯 {bet.predictedHome} – {bet.predictedAway}
+      </span>
+
+      {/* Payout (jobb) */}
+      {isFinished && isWin && bet.payout != null ? (
+        <span className="text-[11px] font-bold text-emerald-500">+{bet.payout} 🪙</span>
+      ) : isFinished && isLoss ? (
+        <span className="text-[11px] font-semibold text-destructive">−{bet.stake} 🪙</span>
+      ) : (
+        <span className="text-[11px] text-transparent">{bet.stake} 🪙</span>
+      )}
+    </div>
+  );
+}
+
+function useLocalTime(dateStr: string, eventTimeZone: string): string | null {
+  const [localTime, setLocalTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (userTz === eventTimeZone) return;
+
+    const local = new Intl.DateTimeFormat("hu", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: userTz,
+    }).format(new Date(dateStr));
+
+    const event = formatTime(dateStr, eventTimeZone);
+    // Only show if the formatted times actually differ
+    if (local !== event) {
+      setLocalTime(local);
+    }
+  }, [dateStr, eventTimeZone]);
+
+  return localTime;
+}
+
+export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
   const t = useTranslations("matches");
   const isFinished = match.status === "finished";
   const isLive = match.status === "live";
   const isScheduled = match.status === "scheduled";
   const hasNoBet = isScheduled && match.userBets.length === 0;
-  const isUrgent = hasNoBet && isTodayOrTomorrow(match.scheduledAt);
+  const isUrgent = hasNoBet && isTodayOrTomorrow(match.scheduledAt, timezone);
+  const localTime = useLocalTime(match.scheduledAt, timezone);
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full flex-col gap-1 rounded-lg border p-2.5 text-left transition-colors ${
+      className={`flex w-full max-w-sm flex-col rounded-lg border px-3 py-2.5 text-left transition-colors ${
         isUrgent
           ? "border-amber-500/30 border-l-[3px] border-l-amber-500 bg-amber-500/8 hover:bg-amber-500/12"
           : hasNoBet
@@ -111,103 +194,104 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
             : "border-border bg-card hover:bg-accent/50"
       }`}
     >
-      {isFinished || isLive ? (
-        /* ── Finished / Live ── */
-        <>
-          {/* Row 1: status + time */}
-          <div className="flex items-center justify-between">
-            {isLive ? (
-              <span className="flex items-center gap-1 text-xs font-semibold text-red-500">
-                <Circle className="size-1.5 animate-pulse fill-red-500 text-red-500" />
-                {t("live")}
+      <div className="grid grid-cols-[1fr_auto_1fr] gap-x-2">
+        {/* ── Sor 1: Csapatok ── */}
+
+        {/* Hazai csapat */}
+        <div className="flex min-w-0 items-center gap-2 py-0.5">
+          <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
+          <span className="truncate text-sm font-medium">{match.homeTeam.name}</span>
+        </div>
+
+        {/* Középső oszlop: státusz + idő vagy eredmény */}
+        <div className="flex flex-col items-center justify-center gap-0.5 px-2 py-0.5">
+          {isLive ? (
+            <span className="flex items-center gap-1 text-[10px] font-semibold leading-none text-red-500">
+              <Circle className="size-1.5 animate-pulse fill-red-500 text-red-500" />
+              {t("live")}
+            </span>
+          ) : isFinished ? (
+            <span className="text-[9px] font-medium uppercase leading-none tracking-wider text-muted-foreground/50">
+              {t("finished")}
+            </span>
+          ) : (
+            <>
+              <span className="font-mono text-sm font-semibold leading-none tabular-nums">
+                {formatTime(match.scheduledAt, timezone)}
               </span>
-            ) : (
-              <span className="text-xs text-muted-foreground">{t("finished")}</span>
-            )}
-            <span className="font-mono text-xs text-muted-foreground">
-              {formatTime(match.scheduledAt)}
+              {localTime && (
+                <span className="text-[9px] text-muted-foreground/50">
+                  {t("localTime", { time: localTime })}
+                </span>
+              )}
+            </>
+          )}
+          {isFinished || isLive ? (
+            <span className="font-mono text-[22px] font-bold leading-tight tabular-nums">
+              {match.homeScore}–{match.awayScore}
             </span>
-          </div>
+          ) : (
+            <span className="text-[9px] tracking-[0.15em] text-muted-foreground/40">vs</span>
+          )}
+        </div>
 
-          {/* Row 2-3: teams stacked with score */}
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-1.5">
-                <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
-                <span className="text-sm font-medium">{match.homeTeam.name}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
-                <span className="text-sm font-medium">{match.awayTeam.name}</span>
-              </div>
-            </div>
-            <span className="font-mono text-2xl font-bold tabular-nums tracking-wider">
-              {match.homeScore}-{match.awayScore}
-            </span>
-          </div>
+        {/* Vendég csapat */}
+        <div className="flex min-w-0 items-center justify-end gap-2 py-0.5">
+          <span className="truncate text-sm font-medium">{match.awayTeam.name}</span>
+          <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
+        </div>
 
-          {/* Row 3: odds + bets */}
-          <div className="flex items-center justify-between">
-            {match.odds ? (
-              <div className="flex gap-1.5 font-mono text-[11px] text-muted-foreground">
-                <span>1:{match.odds.homeOdds}</span>
-                <span>X:{match.odds.drawOdds}</span>
-                <span>2:{match.odds.awayOdds}</span>
-              </div>
-            ) : (
-              <span />
-            )}
-            {match.userBets.length > 0 && (
-              <div className="flex gap-1">
-                {match.userBets.map((bet) => (
-                  <BetBadge key={bet.id} bet={bet} />
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      ) : (
-        /* ── Scheduled ── */
-        <>
-          {/* Row 1: teams inline + time */}
-          <div className="flex items-center gap-1.5">
-            <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
-            <span className="text-sm font-medium">{match.homeTeam.name}</span>
-            <span className="mx-0.5 text-xs text-muted-foreground">{t("vs")}</span>
-            <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
-            <span className="text-sm font-medium">{match.awayTeam.name}</span>
-            <span className="ml-auto font-mono text-xs text-muted-foreground">
-              {formatTime(match.scheduledAt)}
-            </span>
-          </div>
-
-          {/* Row 2: odds + bet badge */}
-          <div className="flex items-center justify-between">
-            {match.odds ? (
-              <div className="flex gap-1.5 font-mono text-xs text-amber-600">
-                <span>1:{match.odds.homeOdds}</span>
-                <span>X:{match.odds.drawOdds}</span>
-                <span>2:{match.odds.awayOdds}</span>
-              </div>
-            ) : (
-              <span />
-            )}
-            {match.userBets.length > 0 ? (
-              <div className="flex gap-1">
-                {match.userBets.map((bet) => (
-                  <BetBadge key={bet.id} bet={bet} />
-                ))}
-              </div>
-            ) : (
+        {/* ── Sor 2: Odds ── */}
+        {match.odds && (
+          <>
+            <div className="flex items-baseline gap-1 pb-0.5">
+              <span className="text-[9px] font-semibold text-muted-foreground/50">1</span>
               <span
-                className={`text-xs ${isUrgent ? "font-medium text-amber-600" : "text-muted-foreground/40"}`}
+                className={`font-mono text-[11px] font-medium ${isScheduled ? "" : "text-muted-foreground/60"}`}
+                style={isScheduled ? { color: oddsColor(match.odds.homeOdds) } : undefined}
               >
-                {t("noBet")}
+                {match.odds.homeOdds}
               </span>
+            </div>
+            <div className="flex items-baseline justify-center gap-1 pb-0.5">
+              <span className="text-[9px] font-semibold text-muted-foreground/50">X</span>
+              <span
+                className={`font-mono text-[11px] font-medium ${isScheduled ? "" : "text-muted-foreground/60"}`}
+                style={isScheduled ? { color: oddsColor(match.odds.drawOdds) } : undefined}
+              >
+                {match.odds.drawOdds}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-end gap-1 pb-0.5">
+              <span className="text-[9px] font-semibold text-muted-foreground/50">2</span>
+              <span
+                className={`font-mono text-[11px] font-medium ${isScheduled ? "" : "text-muted-foreground/60"}`}
+                style={isScheduled ? { color: oddsColor(match.odds.awayOdds) } : undefined}
+              >
+                {match.odds.awayOdds}
+              </span>
+            </div>
+          </>
+        )}
+
+        {/* ── Sor 3: Tipp ── */}
+        {match.userBets.length > 0
+          ? match.userBets.map((bet) => <BetRow key={bet.id} bet={bet} isFinished={isFinished} />)
+          : isScheduled && (
+              <div
+                className={`col-span-full mt-1 flex justify-center border-t pt-1.5 ${
+                  isUrgent ? "border-amber-500/15" : "border-border"
+                }`}
+              >
+                <span
+                  className={`text-xs ${isUrgent ? "font-medium text-amber-600" : "text-muted-foreground/40"}`}
+                >
+                  {isUrgent ? "🎯 " : ""}
+                  {t("noBet")}
+                </span>
+              </div>
             )}
-          </div>
-        </>
-      )}
+      </div>
     </button>
   );
 }

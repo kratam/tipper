@@ -185,6 +185,7 @@ export default async function TournamentDetailPage({
       <TournamentTabs
         matches={matchesData}
         tournamentId={tournament.id}
+        timezone={tournament.timezone}
         podiumLockDate={tournament.podiumLockDate.toISOString()}
         teams={tournamentTeams}
         podiumGroups={podiumData}

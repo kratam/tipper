@@ -1,6 +1,6 @@
 "use client";
 
-import { Info, Minus, Plus } from "lucide-react";
+import { Info, Loader2, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
@@ -141,9 +141,20 @@ export function BetForm({
         toast.error(result.error);
         return;
       }
-      toast.success(
-        groups.find((g) => g.groupId === groupId)?.existingBet ? t("updateSuccess") : t("success"),
-      );
+      const group = groups.find((g) => g.groupId === groupId);
+      const isUpdate = !!group?.existingBet;
+      const params = {
+        home: homeTeam.name,
+        away: awayTeam.name,
+        homeScore: String(homeScore),
+        awayScore: String(awayScore),
+        stake: String(stakes[groupId] ?? 0),
+        group: group?.groupName ?? "",
+      };
+      toast(isUpdate ? t("updateSuccess", params) : t("success", params), {
+        description: isUpdate ? t("updateSuccessDesc", params) : t("successDesc", params),
+        icon: isUpdate ? "✏️" : "✅",
+      });
       router.refresh();
       onSuccess?.();
     });
@@ -156,7 +167,11 @@ export function BetForm({
         toast.error(result.error);
         return;
       }
-      toast.success(t("cancelSuccess"));
+      const group = groups.find((g) => g.existingBet?.id === betId);
+      toast(t("cancelSuccess", { home: homeTeam.name, away: awayTeam.name }), {
+        description: t("cancelSuccessDesc", { group: group?.groupName ?? "" }),
+        icon: "🗑️",
+      });
       router.refresh();
       onSuccess?.();
     });
@@ -310,7 +325,13 @@ export function BetForm({
                 size="sm"
                 className="flex-1"
               >
-                {group.existingBet ? t("update") : t("submit")}
+                {isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : group.existingBet ? (
+                  t("update")
+                ) : (
+                  t("submit")
+                )}
               </Button>
               {group.existingBet && (
                 <Button
@@ -319,7 +340,7 @@ export function BetForm({
                   onClick={() => handleCancel(group.existingBet?.id ?? "")}
                   disabled={isPending}
                 >
-                  {t("cancel")}
+                  {isPending ? <Loader2 className="size-4 animate-spin" /> : t("cancel")}
                 </Button>
               )}
             </div>
