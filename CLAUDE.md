@@ -34,12 +34,12 @@ Token-alapú tippjáték ahol játékosok versenysorozatok meccseire fogadnak cs
 | Parancs | Leírás |
 |---------|--------|
 | `npm run dev` | Next.js dev server |
-| `npm run build` | Production build |
+| `npm run build` | Production build (`next build`, migráció nélkül) |
 | `npm run lint` | Biome lint + fix |
 | `npm run format` | Biome format |
 | `npm run check` | Biome check |
 | `npm run db:generate` | Drizzle migrations generálás |
-| `npm run db:migrate` | Migrációk futtatása |
+| `npm run db:migrate` | Migrációk futtatása (lokálisan vagy Neon MCP-vel, NEM a Vercel builden) |
 | `npm run db:studio` | Drizzle Studio |
 | `npm run db:seed-odds` | Dev odds seed (prod-védett) |
 | `npm run test` | Vitest run |
@@ -54,3 +54,4 @@ Token-alapú tippjáték ahol játékosok versenysorozatok meccseire fogadnak cs
 - DB műveletek: Drizzle query API, nem raw SQL
 - Commit: conventional commits (feat/fix/chore/docs)
 - Tesztek: Vitest, TDD a pure logikára
+- DB migrációk: deploy előtt kézzel futtatni (Neon MCP / `db:migrate`), Vercel build nem futtatja

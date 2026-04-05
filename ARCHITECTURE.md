@@ -81,6 +81,13 @@ scripts/
 
 A `neon_auth` schema külön (Better Auth által kezelt): user, session, account, verification, jwks.
 
+### Migrációk
+
+Drizzle ORM migrációk a `drizzle/` könyvtárban. **Deploy előtt kézzel kell futtatni** — a Vercel build nem futtatja (`drizzle-kit migrate` timeoutol a Neon websocket-en Vercel US → Neon EU miatt).
+
+Migráció alkalmazás: Neon MCP `run_sql` tool-lal, vagy lokálisan `npm run db:migrate`.
+Migráció generálás: `npm run db:generate` (interaktív, lokálisan).
+
 ## Token rendszer
 
 ### Kiosztás
