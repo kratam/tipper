@@ -233,9 +233,11 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
               <div className="flex flex-col gap-1">
                 <Label className="text-xs">{t("season")}</Label>
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={season}
-                  onChange={(e) => setSeason(e.target.value)}
+                  onChange={(e) => setSeason(e.target.value.replace(/[^0-9]/g, ""))}
                   required
                   className="font-mono"
                 />

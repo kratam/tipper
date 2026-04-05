@@ -9,8 +9,8 @@ import { GroupResultsContent } from "@/components/group-results-content";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NumericInput } from "@/components/ui/numeric-input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -283,102 +283,66 @@ export function GroupDetailTabs({
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1">
                       <Label className="text-xs">{t("tokenPerMatch")}</Label>
-                      <Input
-                        type="number"
+                      <NumericInput
                         value={settings.tokenPerMatch}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            tokenPerMatch: Number(e.target.value),
-                          })
-                        }
+                        onChange={(val) => setSettings({ ...settings, tokenPerMatch: val })}
+                        min={1}
                         className="font-mono"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
                       <Label className="text-xs">{t("initialTokens")}</Label>
-                      <Input
-                        type="number"
+                      <NumericInput
                         value={settings.initialTokens}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            initialTokens: Number(e.target.value),
-                          })
-                        }
+                        onChange={(val) => setSettings({ ...settings, initialTokens: val })}
+                        min={0}
                         className="font-mono"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
                       <Label className="text-xs">{t("bonusGoalDiff")}</Label>
-                      <Input
-                        type="number"
+                      <NumericInput
                         value={settings.bonusGoalDiff}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            bonusGoalDiff: Number(e.target.value),
-                          })
-                        }
+                        onChange={(val) => setSettings({ ...settings, bonusGoalDiff: val })}
+                        min={0}
                         className="font-mono"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
                       <Label className="text-xs">{t("bonusExactScore")}</Label>
-                      <Input
-                        type="number"
+                      <NumericInput
                         value={settings.bonusExactScore}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            bonusExactScore: Number(e.target.value),
-                          })
-                        }
+                        onChange={(val) => setSettings({ ...settings, bonusExactScore: val })}
+                        min={0}
                         className="font-mono"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
                       <Label className="text-xs">{t("bonusPodiumMention")}</Label>
-                      <Input
-                        type="number"
+                      <NumericInput
                         value={settings.bonusPodiumMention}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            bonusPodiumMention: Number(e.target.value),
-                          })
-                        }
+                        onChange={(val) => setSettings({ ...settings, bonusPodiumMention: val })}
+                        min={0}
                         className="font-mono"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
                       <Label className="text-xs">{t("bonusPodiumExact")}</Label>
-                      <Input
-                        type="number"
+                      <NumericInput
                         value={settings.bonusPodiumExact}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            bonusPodiumExact: Number(e.target.value),
-                          })
-                        }
+                        onChange={(val) => setSettings({ ...settings, bonusPodiumExact: val })}
+                        min={0}
                         className="font-mono"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
                       <Label className="text-xs">{t("oddsBoost")}</Label>
-                      <Input
-                        type="number"
+                      <NumericInput
+                        value={settings.oddsBoost}
+                        onChange={(val) => setSettings({ ...settings, oddsBoost: val })}
+                        allowDecimal
                         min={1.0}
                         max={3.0}
-                        step={0.1}
-                        value={settings.oddsBoost}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            oddsBoost: Number(e.target.value),
-                          })
-                        }
                         className="font-mono"
                       />
                     </div>
