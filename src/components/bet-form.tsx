@@ -236,7 +236,7 @@ export function BetForm({
                     <div
                       className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-mono text-sm transition-colors ${
                         predictedOutcome === o.outcome
-                          ? "bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30"
+                          ? "bg-amber-500/20 text-amber-700 ring-1 ring-amber-500/40"
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
@@ -334,7 +334,7 @@ export function BetForm({
                       }}
                       className={`flex flex-col items-center rounded-md px-2.5 py-1 font-medium font-mono text-xs transition-colors ${
                         stakes[group.groupId] === preset.value
-                          ? "bg-foreground text-background"
+                          ? "bg-foreground text-card"
                           : "bg-muted text-muted-foreground hover:text-foreground"
                       }`}
                     >
