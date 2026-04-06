@@ -306,3 +306,69 @@ export async function getPublicGroups(userId: string) {
     },
   });
 }
+
+export interface PublicGroupSuggestion {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  memberCount: number;
+  tokenPerMatch: number;
+  initialTokens: number;
+  bonusGoalDiff: number;
+  bonusExactScore: number;
+  bonusPodiumMention: number;
+  oddsBoost: number;
+  tournament: {
+    name: string;
+    slug: string;
+    status: string;
+  };
+}
+
+export async function getTopPublicGroupsForTournament(
+  userId: string,
+  tournamentId: string,
+  limit: number,
+): Promise<PublicGroupSuggestion[]> {
+  const userGroupIds = await db
+    .select({ groupId: groupMembers.groupId })
+    .from(groupMembers)
+    .where(eq(groupMembers.userId, userId));
+
+  const excludeIds = userGroupIds.map((r) => r.groupId);
+
+  const rows = await db.query.groups.findMany({
+    where: and(
+      eq(groups.isPublic, true),
+      eq(groups.tournamentId, tournamentId),
+      excludeIds.length > 0 ? notInArray(groups.id, excludeIds) : undefined,
+    ),
+    with: {
+      tournament: true,
+      members: true,
+    },
+  });
+
+  return rows
+    .sort((a, b) => b.members.length - a.members.length)
+    .slice(0, limit)
+    .map((g) => ({
+      id: g.id,
+      name: g.name,
+      slug: g.slug,
+      description: g.description,
+      memberCount: g.members.length,
+      tokenPerMatch: g.tokenPerMatch,
+      initialTokens: g.initialTokens,
+      bonusGoalDiff: g.bonusGoalDiff,
+      bonusExactScore: g.bonusExactScore,
+      bonusPodiumMention: g.bonusPodiumMention,
+      oddsBoost: g.oddsBoost,
+      tournament: {
+        name: g.tournament.name,
+        slug: g.tournament.slug,
+        status: g.tournament.status,
+      },
+    }));
+}
