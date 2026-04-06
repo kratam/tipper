@@ -42,6 +42,14 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!.next", "!node_modules", "!dist", "!*.min.js", "!.superpowers"]
+    "includes": [
+      "**",
+      "!.next",
+      "!node_modules",
+      "!dist",
+      "!*.min.js",
+      "!.superpowers",
+      "!.worktrees"
+    ]
   }
 }
