@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMatchPolling } from "@/hooks/use-match-polling";
+import type { PublicGroupSuggestion } from "@/queries/groups";
 
 interface GroupBetInfo {
   groupId: string;
@@ -75,6 +76,7 @@ interface TournamentTabsProps {
   groupBetInfosByMatch: Record<string, GroupBetInfo[]>;
   groupLeaderboards: GroupLeaderboardData[];
   currentUserId: string;
+  topPublicGroups?: PublicGroupSuggestion[];
 }
 
 type MatchFilter = "upcoming" | "played" | "all";
@@ -119,6 +121,7 @@ export function TournamentTabs({
   groupBetInfosByMatch,
   groupLeaderboards,
   currentUserId,
+  topPublicGroups = [],
 }: TournamentTabsProps) {
   const t = useTranslations("tournaments");
   const tMatches = useTranslations("matches");
@@ -227,7 +230,11 @@ export function TournamentTabs({
 
         <TabsContent value="matches" className="mt-4 flex flex-col gap-4">
           {/* Group token summaries */}
-          <GroupTokenSummary groups={groupCardData} currentUserId={currentUserId} />
+          <GroupTokenSummary
+            groups={groupCardData}
+            currentUserId={currentUserId}
+            topPublicGroups={topPublicGroups}
+          />
 
           {/* Match filter */}
           <div className="flex gap-1 rounded-lg bg-muted p-1">
@@ -338,6 +345,7 @@ export function TournamentTabs({
         }
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+        topPublicGroups={topPublicGroups}
       />
     </>
   );
