@@ -85,17 +85,14 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
   const [podiumSilver, setPodiumSilver] = useState("");
   const [podiumBronze, setPodiumBronze] = useState("");
 
-  // Logo editing
-  const [editingLogoId, setEditingLogoId] = useState<string | null>(null);
+  // Name + logo editing (unified)
+  const [editingDetailsId, setEditingDetailsId] = useState<string | null>(null);
+  const [nameInput, setNameInput] = useState("");
   const [logoInput, setLogoInput] = useState("");
 
   // Timezone editing
   const [editingTimezoneId, setEditingTimezoneId] = useState<string | null>(null);
   const [timezoneInput, setTimezoneInput] = useState("");
-
-  // Name editing
-  const [editingNameId, setEditingNameId] = useState<string | null>(null);
-  const [nameInput, setNameInput] = useState("");
 
   // Podium lock date editing
   const [editingPodiumDateId, setEditingPodiumDateId] = useState<string | null>(null);
@@ -164,13 +161,20 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
     });
   }
 
-  function handleSaveName(tournamentId: string) {
-    if (!nameInput.trim()) return;
+  function handleSaveDetails(tournamentId: string, originalName: string, originalLogo: string) {
+    const nameChanged = nameInput.trim() !== originalName;
+    const logoChanged = logoInput.trim() !== originalLogo;
+    if (!nameInput.trim() || (!nameChanged && !logoChanged)) return;
     startTransition(async () => {
       try {
-        await updateTournamentName(tournamentId, nameInput);
-        toast.success(t("nameUpdateSuccess"));
-        setEditingNameId(null);
+        if (nameChanged) {
+          await updateTournamentName(tournamentId, nameInput);
+        }
+        if (logoChanged) {
+          await updateTournamentLogo(tournamentId, logoInput);
+        }
+        toast.success(nameChanged ? t("nameUpdateSuccess") : t("logoUpdateSuccess"));
+        setEditingDetailsId(null);
         router.refresh();
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
@@ -200,21 +204,6 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
         await updateTournamentTimezone(tournamentId, timezoneInput);
         toast.success(t("timezoneUpdateSuccess"));
         setEditingTimezoneId(null);
-        router.refresh();
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        toast.error(message);
-      }
-    });
-  }
-
-  function handleSaveLogo(tournamentId: string) {
-    startTransition(async () => {
-      try {
-        await updateTournamentLogo(tournamentId, logoInput);
-        toast.success(t("logoUpdateSuccess"));
-        setEditingLogoId(null);
-        setLogoInput("");
         router.refresh();
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
@@ -336,30 +325,16 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                         type="button"
                         className="text-muted-foreground hover:text-foreground"
                         onClick={() => {
-                          if (editingNameId === tournament.id) {
-                            setEditingNameId(null);
+                          if (editingDetailsId === tournament.id) {
+                            setEditingDetailsId(null);
                           } else {
-                            setEditingNameId(tournament.id);
+                            setEditingDetailsId(tournament.id);
                             setNameInput(tournament.name);
-                          }
-                        }}
-                      >
-                        <Pencil className="size-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        className="text-muted-foreground hover:text-foreground"
-                        onClick={() => {
-                          if (editingLogoId === tournament.id) {
-                            setEditingLogoId(null);
-                          } else {
-                            setEditingLogoId(tournament.id);
                             setLogoInput(tournament.logoUrl ?? "");
                           }
                         }}
                       >
-                        <Pencil className="size-3" />
-                        <span className="sr-only">Logo</span>
+                        <Pencil className="size-3.5" />
                       </button>
                     </div>
                     <span className="font-mono text-muted-foreground text-xs">
@@ -381,7 +356,8 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                       </button>
                     </span>
                     <span className="font-mono text-muted-foreground text-xs">
-                      {t("podiumLockDate")}: {new Date(tournament.podiumLockDate).toLocaleString()}
+                      {t("podiumLockDate")}:{" "}
+                      {new Date(tournament.podiumLockDate).toLocaleString("hu-HU")}
                       <button
                         type="button"
                         className="ml-1 text-muted-foreground hover:text-foreground"
@@ -431,24 +407,40 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                 </div>
               </div>
 
-              {/* Name editing */}
-              {editingNameId === tournament.id && (
-                <div className="flex items-center gap-2 border-border border-t pt-3">
-                  <Input
-                    value={nameInput}
-                    onChange={(e) => setNameInput(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button
-                    size="sm"
-                    onClick={() => handleSaveName(tournament.id)}
-                    disabled={isPending || !nameInput.trim()}
-                  >
-                    {t("saveLogo")}
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setEditingNameId(null)}>
-                    ✕
-                  </Button>
+              {/* Name + logo editing */}
+              {editingDetailsId === tournament.id && (
+                <div className="flex flex-col gap-3 border-border border-t pt-3">
+                  <div className="flex items-center gap-2">
+                    <Label className="w-16 shrink-0 text-xs">{t("tournamentName")}</Label>
+                    <Input
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="w-16 shrink-0 text-xs">Logo URL</Label>
+                    <Input
+                      value={logoInput}
+                      onChange={(e) => setLogoInput(e.target.value)}
+                      placeholder={t("logoUrlPlaceholder")}
+                      className="flex-1 font-mono text-xs"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button size="sm" variant="ghost" onClick={() => setEditingDetailsId(null)}>
+                      ✕
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        handleSaveDetails(tournament.id, tournament.name, tournament.logoUrl ?? "")
+                      }
+                      disabled={isPending || !nameInput.trim()}
+                    >
+                      {t("saveLogo")}
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -470,25 +462,6 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setEditingPodiumDateId(null)}>
                     ✕
-                  </Button>
-                </div>
-              )}
-
-              {/* Logo URL editing */}
-              {editingLogoId === tournament.id && (
-                <div className="flex items-center gap-2 border-border border-t pt-3">
-                  <Input
-                    value={logoInput}
-                    onChange={(e) => setLogoInput(e.target.value)}
-                    placeholder={t("logoUrlPlaceholder")}
-                    className="flex-1 font-mono text-xs"
-                  />
-                  <Button
-                    size="sm"
-                    onClick={() => handleSaveLogo(tournament.id)}
-                    disabled={isPending}
-                  >
-                    {t("saveLogo")}
                   </Button>
                 </div>
               )}
