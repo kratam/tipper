@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe, LogOut, Menu, Pencil, X } from "lucide-react";
+import { Ellipsis, Globe, LogOut, Menu, Pencil, Shield, Trophy, Users, X } from "lucide-react";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
@@ -16,6 +16,13 @@ import {
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth/client";
 
+interface ActiveTournament {
+  id: string;
+  name: string;
+  slug: string;
+  status: "upcoming" | "active" | "finished";
+}
+
 interface NavProps {
   user: {
     name: string;
@@ -24,9 +31,12 @@ interface NavProps {
     avatarUrl: string | null;
     isAdmin: boolean;
   } | null;
+  activeTournaments: ActiveTournament[];
 }
 
-export function Nav({ user }: NavProps) {
+const MAX_HEADER_TOURNAMENTS = 3;
+
+export function Nav({ user, activeTournaments }: NavProps) {
   const t = useTranslations("nav");
   const tc = useTranslations("common");
   const locale = useLocale();
@@ -80,22 +90,20 @@ export function Nav({ user }: NavProps) {
             </span>
           </Link>
 
-          {/* Desktop nav links */}
+          {/* Desktop nav links — active tournament names */}
           <div className="hidden items-center gap-1 md:flex">
-            {user && (
-              <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/tournaments">{t("tournaments")}</Link>
+            {user &&
+              activeTournaments.slice(0, MAX_HEADER_TOURNAMENTS).map((tournament) => (
+                <Button key={tournament.id} variant="ghost" size="sm" asChild>
+                  <Link href={`/tournaments/${tournament.slug}`}>{tournament.name}</Link>
                 </Button>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/groups">{t("groups")}</Link>
-                </Button>
-                {user.isAdmin && (
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/admin">{t("admin")}</Link>
-                  </Button>
-                )}
-              </>
+              ))}
+            {user && activeTournaments.length > MAX_HEADER_TOURNAMENTS && (
+              <Button variant="ghost" size="icon" className="size-8" asChild>
+                <Link href="/tournaments">
+                  <Ellipsis className="size-4" />
+                </Link>
+              </Button>
             )}
           </div>
 
@@ -125,9 +133,30 @@ export function Nav({ user }: NavProps) {
                       <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                     </Avatar>
                     <span className="max-w-30 truncate text-sm">{displayedName}</span>
+                    <Menu className="size-4 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-auto">
+                  <DropdownMenuItem asChild>
+                    <Link href="/tournaments">
+                      <Trophy className="mr-2 size-4" />
+                      {t("tournaments")}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/groups">
+                      <Users className="mr-2 size-4" />
+                      {t("groups")}
+                    </Link>
+                  </DropdownMenuItem>
+                  {user.isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin">
+                        <Shield className="mr-2 size-4" />
+                        {t("admin")}
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => setDisplayNameOpen(true)}>
                     <Pencil className="mr-2 size-4" />
                     {t("displayName")}
@@ -168,6 +197,21 @@ export function Nav({ user }: NavProps) {
                   </Avatar>
                   <span className="text-sm font-medium">{displayedName}</span>
                 </div>
+                {activeTournaments.slice(0, MAX_HEADER_TOURNAMENTS).map((tournament) => (
+                  <Button
+                    key={tournament.id}
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start"
+                    asChild
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <Link href={`/tournaments/${tournament.slug}`}>
+                      <Trophy className="mr-2 size-4" />
+                      {tournament.name}
+                    </Link>
+                  </Button>
+                ))}
                 <Button
                   variant="ghost"
                   size="sm"

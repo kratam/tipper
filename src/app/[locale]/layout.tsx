@@ -6,6 +6,7 @@ import { SWRProvider } from "@/components/swr-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { routing } from "@/i18n/routing";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { getActiveTournaments } from "@/queries/tournaments";
 
 export default async function LocaleLayout({
   children,
@@ -21,7 +22,7 @@ export default async function LocaleLayout({
   }
 
   const messages = await getMessages();
-  const user = await getCurrentUser();
+  const [user, activeTournaments] = await Promise.all([getCurrentUser(), getActiveTournaments()]);
 
   const navUser = user
     ? {
@@ -36,7 +37,7 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <SWRProvider>
-        <Nav user={navUser} />
+        <Nav user={navUser} activeTournaments={activeTournaments} />
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
         <Toaster />
       </SWRProvider>
