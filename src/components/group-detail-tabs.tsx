@@ -177,7 +177,7 @@ export function GroupDetailTabs({
           <CardContent className="p-0">
             <div className="flex flex-col">
               {/* Header */}
-              <div className="flex items-center gap-4 border-b border-border px-4 py-3 text-xs font-medium text-muted-foreground">
+              <div className="flex items-center gap-4 border-border border-b px-4 py-3 font-medium text-muted-foreground text-xs">
                 <span className="w-10">{tLeaderboard("rank")}</span>
                 <span className="flex-1">{tLeaderboard("player")}</span>
                 <span className="w-20 text-right font-mono">{tLeaderboard("profit")}</span>
@@ -189,10 +189,10 @@ export function GroupDetailTabs({
                   <div
                     key={row.userId}
                     className={`flex items-center gap-4 px-4 py-3 ${
-                      isCurrentUser ? "bg-amber-500/5 ring-1 ring-inset ring-amber-500/20" : ""
+                      isCurrentUser ? "bg-amber-500/5 ring-1 ring-amber-500/20 ring-inset" : ""
                     }`}
                   >
-                    <span className="w-10 font-mono text-sm font-bold">#{row.rank}</span>
+                    <span className="w-10 font-bold font-mono text-sm">#{row.rank}</span>
                     <div className="flex flex-1 items-center gap-2">
                       <Avatar className="size-6">
                         <AvatarImage src={row.userAvatarUrl ?? undefined} />
@@ -207,7 +207,7 @@ export function GroupDetailTabs({
                       </Avatar>
                       <span className="text-sm">{row.userName}</span>
                     </div>
-                    <span className="w-20 text-right font-mono text-sm font-bold text-amber-500">
+                    <span className="w-20 text-right font-bold font-mono text-amber-500 text-sm">
                       {row.profit}
                     </span>
                   </div>
@@ -254,7 +254,7 @@ export function GroupDetailTabs({
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex flex-col gap-0.5">
                   <Label htmlFor="isPublic">{t("public")}</Label>
-                  <span className="text-xs text-muted-foreground">{t("publicDescription")}</span>
+                  <span className="text-muted-foreground text-xs">{t("publicDescription")}</span>
                 </div>
                 <Switch id="isPublic" checked={isPublicState} onCheckedChange={setIsPublicState} />
               </div>
@@ -350,7 +350,7 @@ export function GroupDetailTabs({
                   </Button>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">{t("settingsLocked")}</p>
+                <p className="text-muted-foreground text-sm">{t("settingsLocked")}</p>
               )}
             </CardContent>
           </Card>

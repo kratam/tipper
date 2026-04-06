@@ -50,7 +50,7 @@ function RuleBox({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-muted p-2.5">
       <div className="text-[11px] text-muted-foreground">{label}</div>
-      <div className="text-base font-bold">{value}</div>
+      <div className="font-bold text-base">{value}</div>
     </div>
   );
 }
@@ -84,12 +84,12 @@ export function PublicGroupDialog({
       <DialogContent showCloseButton={false} className="max-w-md overflow-hidden p-0 sm:max-w-md">
         {/* Gradient header */}
         <div className="bg-linear-to-br from-[#1e3a5f] to-[#2d1b69] p-6">
-          <DialogTitle className="text-lg font-bold text-white">{group.name}</DialogTitle>
+          <DialogTitle className="font-bold text-lg text-white">{group.name}</DialogTitle>
           <DialogDescription className="mt-1 text-sm text-white/60">
             {group.tournament.name}
           </DialogDescription>
           <div className="mt-3 flex items-center gap-3">
-            <span className="text-xs text-white/50">
+            <span className="text-white/50 text-xs">
               {t("memberCount", { count: memberCount })}
             </span>
             <StatusBadge status={group.tournament.status} />
@@ -102,10 +102,10 @@ export function PublicGroupDialog({
             {/* Description */}
             {group.description && (
               <div className="mb-4">
-                <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <div className="mb-2 font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
                   {t("descriptionLabel")}
                 </div>
-                <div className="prose prose-sm max-w-none text-sm text-foreground/80 prose-strong:text-foreground prose-ul:my-1 prose-li:my-0">
+                <div className="prose prose-sm prose-li:my-0 prose-ul:my-1 max-w-none prose-strong:text-foreground text-foreground/80 text-sm">
                   <ReactMarkdown
                     allowedElements={["p", "strong", "em", "ul", "ol", "li", "a", "br"]}
                   >
@@ -117,7 +117,7 @@ export function PublicGroupDialog({
 
             {/* Rules grid */}
             <div className="mb-5">
-              <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <div className="mb-2 font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
                 {t("rules")}
               </div>
               <div className="grid grid-cols-2 gap-2">

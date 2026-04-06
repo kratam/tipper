@@ -80,13 +80,13 @@ export function BetDialog({
             <DialogTitle className="flex items-center gap-2">
               {match.homeTeam.name} vs {match.awayTeam.name}
               {match.status === "live" && (
-                <span className="flex items-center gap-1 text-xs font-medium text-red-500">
+                <span className="flex items-center gap-1 font-medium text-red-500 text-xs">
                   <Circle className="size-1.5 animate-pulse fill-red-500 text-red-500" />
                   {t("live")}
                 </span>
               )}
               {match.status === "finished" && (
-                <Badge variant="outline" className="text-xs text-muted-foreground">
+                <Badge variant="outline" className="text-muted-foreground text-xs">
                   {t("finished")}
                 </Badge>
               )}
@@ -102,14 +102,14 @@ export function BetDialog({
               {(match.status === "finished" || match.status === "live") &&
                 match.homeScore !== null &&
                 match.awayScore !== null && (
-                  <div className="text-center font-mono text-3xl font-bold tabular-nums tracking-wider">
+                  <div className="text-center font-bold font-mono text-3xl tabular-nums tracking-wider">
                     {match.homeScore} - {match.awayScore}
                   </div>
                 )}
 
               {match.userBets.length > 0 && (
                 <div className="flex flex-col gap-2">
-                  <span className="text-sm font-medium">{t("yourBet")}</span>
+                  <span className="font-medium text-sm">{t("yourBet")}</span>
                   {match.userBets.map((bet) => {
                     const betColor =
                       bet.result1x2Correct === null
@@ -123,8 +123,8 @@ export function BetDialog({
                         className={`flex items-center justify-between rounded-lg p-3 ${betColor}`}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{bet.groupName}</span>
-                          <span className="font-mono text-sm font-bold">
+                          <span className="text-muted-foreground text-xs">{bet.groupName}</span>
+                          <span className="font-bold font-mono text-sm">
                             {bet.predictedHome} - {bet.predictedAway}
                           </span>
                         </div>
@@ -140,7 +140,7 @@ export function BetDialog({
               )}
 
               {match.userBets.length === 0 && (
-                <p className="text-center text-sm text-muted-foreground">{t("betLocked")}</p>
+                <p className="text-center text-muted-foreground text-sm">{t("betLocked")}</p>
               )}
             </div>
           ) : groups.length > 0 ? (
@@ -156,7 +156,7 @@ export function BetDialog({
             />
           ) : topPublicGroups.length > 0 ? (
             <div className="flex flex-col gap-3">
-              <p className="text-sm text-muted-foreground">{tTournaments("noGroupYetShort")}</p>
+              <p className="text-muted-foreground text-sm">{tTournaments("noGroupYetShort")}</p>
               <GroupCard
                 group={topPublicGroups[0]}
                 memberCount={topPublicGroups[0].memberCount}
@@ -172,7 +172,7 @@ export function BetDialog({
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              <p className="text-sm text-muted-foreground">{tTournaments("noPublicGroup")}</p>
+              <p className="text-muted-foreground text-sm">{tTournaments("noPublicGroup")}</p>
               <Button variant="outline" size="sm" asChild className="w-full gap-2">
                 <Link href="/groups/new">{tTournaments("createGroup")}</Link>
               </Button>

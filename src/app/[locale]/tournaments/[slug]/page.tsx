@@ -195,7 +195,7 @@ export default async function TournamentDetailPage({
         {tournament.logoUrl && (
           <TournamentLogo src={tournament.logoUrl} alt={tournament.name} size={40} />
         )}
-        <h1 className="font-mono text-2xl font-bold tracking-tight">{tournament.name}</h1>
+        <h1 className="font-bold font-mono text-2xl tracking-tight">{tournament.name}</h1>
       </div>
       <TournamentTabs
         matches={matchesData}

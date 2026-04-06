@@ -27,7 +27,7 @@ export default async function TournamentsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-mono text-2xl font-bold tracking-tight">{t("title")}</h1>
+      <h1 className="font-bold font-mono text-2xl tracking-tight">{t("title")}</h1>
 
       {sorted.length === 0 ? (
         <p className="text-muted-foreground">{t("noTournaments")}</p>
@@ -55,19 +55,19 @@ export default async function TournamentsPage() {
         <h2 className="mb-3 font-semibold">{t("howToPlay")}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <p className="text-sm font-medium">{t("howToPlayTokens")}</p>
+            <p className="font-medium text-sm">{t("howToPlayTokens")}</p>
             <p className="text-muted-foreground text-sm">{t("howToPlayTokensDesc")}</p>
           </div>
           <div>
-            <p className="text-sm font-medium">{t("howToPlayBetting")}</p>
+            <p className="font-medium text-sm">{t("howToPlayBetting")}</p>
             <p className="text-muted-foreground text-sm">{t("howToPlayBettingDesc")}</p>
           </div>
           <div>
-            <p className="text-sm font-medium">{t("howToPlayScoring")}</p>
+            <p className="font-medium text-sm">{t("howToPlayScoring")}</p>
             <p className="text-muted-foreground text-sm">{t("howToPlayScoringDesc")}</p>
           </div>
           <div>
-            <p className="text-sm font-medium">{t("howToPlayPodium")}</p>
+            <p className="font-medium text-sm">{t("howToPlayPodium")}</p>
             <p className="text-muted-foreground text-sm">{t("howToPlayPodiumDesc")}</p>
           </div>
         </div>

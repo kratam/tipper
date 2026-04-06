@@ -180,7 +180,7 @@ export function PodiumForm({
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-center text-xs font-medium uppercase tracking-widest text-muted-foreground">
+        <CardTitle className="text-center font-medium text-muted-foreground text-xs uppercase tracking-widest">
           {groupName}
         </CardTitle>
       </CardHeader>
@@ -205,7 +205,7 @@ export function PodiumForm({
                   className={cn(
                     cfg.height,
                     cfg.gradient,
-                    "w-full rounded-t-lg flex items-center justify-center transition-all",
+                    "flex w-full items-center justify-center rounded-t-lg transition-all",
                     isEmpty
                       ? cn("border-2 border-dashed", cfg.borderDashed)
                       : cn("border-2", cfg.border, cfg.shadow),
@@ -223,7 +223,7 @@ export function PodiumForm({
                   ) : (
                     <div className="flex flex-col items-center gap-1">
                       <TeamLogo team={team} size={cfg.medal === "gold" ? "md" : "sm"} />
-                      <span className={cn("text-[10px] sm:text-xs font-bold", cfg.textColor)}>
+                      <span className={cn("font-bold text-[10px] sm:text-xs", cfg.textColor)}>
                         {team.name.length > 8 ? team.name.slice(0, 3).toUpperCase() : team.name}
                       </span>
                     </div>
@@ -231,7 +231,7 @@ export function PodiumForm({
                 </div>
                 {/* Position number bar */}
                 <div
-                  className={cn("w-full py-1 text-center text-xs font-bold text-white", cfg.bgBar)}
+                  className={cn("w-full py-1 text-center font-bold text-white text-xs", cfg.bgBar)}
                 >
                   {cfg.label}
                 </div>

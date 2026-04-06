@@ -74,7 +74,7 @@ export function Nav({ user, activeTournaments }: NavProps) {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
+      <nav className="sticky top-0 z-50 border-border border-b bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
@@ -85,7 +85,7 @@ export function Nav({ user, activeTournaments }: NavProps) {
               height={32}
               className="size-8"
             />
-            <span className="font-brand text-xl tracking-tight bg-linear-to-r from-(--brand-blue-dark) via-(--brand-blue) to-(--brand-gold) bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-(--brand-blue-dark) via-(--brand-blue) to-(--brand-gold) bg-clip-text font-brand text-transparent text-xl tracking-tight">
               TippCasino
             </span>
           </Link>
@@ -187,7 +187,7 @@ export function Nav({ user, activeTournaments }: NavProps) {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="border-t border-border bg-background px-4 pb-4 pt-2 md:hidden">
+          <div className="border-border border-t bg-background px-4 pt-2 pb-4 md:hidden">
             {user ? (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 px-2 py-2">
@@ -195,7 +195,7 @@ export function Nav({ user, activeTournaments }: NavProps) {
                     <AvatarImage src={user.avatarUrl ?? undefined} />
                     <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium">{displayedName}</span>
+                  <span className="font-medium text-sm">{displayedName}</span>
                 </div>
                 {activeTournaments.slice(0, MAX_HEADER_TOURNAMENTS).map((tournament) => (
                   <Button

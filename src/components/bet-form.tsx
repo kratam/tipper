@@ -49,7 +49,7 @@ function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number
       >
         <Minus className="size-3" />
       </button>
-      <span className="w-7 text-center font-mono text-2xl font-bold tabular-nums">{value}</span>
+      <span className="w-7 text-center font-bold font-mono text-2xl tabular-nums">{value}</span>
       <button
         type="button"
         onClick={() => onChange(Math.min(99, value + 1))}
@@ -68,7 +68,7 @@ function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
     );
   }
   return (
-    <span className="flex size-10 items-center justify-center rounded bg-muted font-mono text-xs font-bold">
+    <span className="flex size-10 items-center justify-center rounded bg-muted font-bold font-mono text-xs">
       {name.slice(0, 3).toUpperCase()}
     </span>
   );
@@ -213,9 +213,9 @@ export function BetForm({
             </div>
 
             {/* Names */}
-            <span className="text-center text-xs font-medium leading-tight">{homeTeam.name}</span>
+            <span className="text-center font-medium text-xs leading-tight">{homeTeam.name}</span>
             <div />
-            <span className="text-center text-xs font-medium leading-tight">{awayTeam.name}</span>
+            <span className="text-center font-medium text-xs leading-tight">{awayTeam.name}</span>
 
             {/* Score steppers with colon */}
             <div className="flex justify-center pt-1">
@@ -248,7 +248,7 @@ export function BetForm({
               : null}
           </div>
           {!odds && (
-            <p className="text-center text-xs text-amber-500">{tMatches("oddsNotAvailable")}</p>
+            <p className="text-center text-amber-500 text-xs">{tMatches("oddsNotAvailable")}</p>
           )}
         </div>
 
@@ -256,12 +256,12 @@ export function BetForm({
         {groups.map((group) => {
           const effectiveBalance = group.projectedBalance + (group.existingBet?.stake ?? 0);
           return (
-            <div key={group.groupId} className="border-t border-border px-5 py-4">
+            <div key={group.groupId} className="border-border border-t px-5 py-4">
               <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm font-medium">
+                <span className="font-medium text-sm">
                   {group.groupName}
                   {odds && (
-                    <span className="ml-1 font-mono text-xs text-amber-500">
+                    <span className="ml-1 font-mono text-amber-500 text-xs">
                       (
                       {(
                         Number(
@@ -277,7 +277,7 @@ export function BetForm({
                   )}
                 </span>
                 <div className="flex items-center gap-1">
-                  <span className="font-mono text-xs text-muted-foreground">
+                  <span className="font-mono text-muted-foreground text-xs">
                     {t("projectedBalance")}: {effectiveBalance}
                   </span>
                   {(group.pendingDistributions > 0 || group.existingBet) && (
@@ -307,7 +307,7 @@ export function BetForm({
                                 <span>+{group.existingBet.stake}</span>
                               </div>
                             )}
-                            <div className="my-0.5 border-t border-primary-foreground/20" />
+                            <div className="my-0.5 border-primary-foreground/20 border-t" />
                             <div className="flex justify-between gap-4 font-bold">
                               <span>{t("projectedBalance")}:</span>
                               <span>{effectiveBalance}</span>
@@ -322,7 +322,7 @@ export function BetForm({
 
               {/* Stake chips + custom input */}
               <div className="mb-3 flex items-center gap-1.5">
-                <span className="mr-1 shrink-0 text-xs text-muted-foreground">{t("stake")}</span>
+                <span className="mr-1 shrink-0 text-muted-foreground text-xs">{t("stake")}</span>
                 {computeStakePresets(effectiveBalance, group.unbettedMatchCountOnDay).map(
                   (preset) => (
                     <button
@@ -332,7 +332,7 @@ export function BetForm({
                         setStakes({ ...stakes, [group.groupId]: preset.value });
                         setStakeInputs({ ...stakeInputs, [group.groupId]: String(preset.value) });
                       }}
-                      className={`flex flex-col items-center rounded-md px-2.5 py-1 font-mono text-xs font-medium transition-colors ${
+                      className={`flex flex-col items-center rounded-md px-2.5 py-1 font-medium font-mono text-xs transition-colors ${
                         stakes[group.groupId] === preset.value
                           ? "bg-foreground text-background"
                           : "bg-muted text-muted-foreground hover:text-foreground"

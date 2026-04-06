@@ -33,7 +33,7 @@ export default async function GroupsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-mono text-2xl font-bold tracking-tight">{t("title")}</h1>
+        <h1 className="font-bold font-mono text-2xl tracking-tight">{t("title")}</h1>
         <Button size="sm" asChild>
           <Link href="/groups/new" className="gap-2">
             <Plus className="size-4" />

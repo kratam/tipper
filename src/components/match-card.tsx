@@ -43,7 +43,7 @@ function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
     );
   }
   return (
-    <span className="flex size-7 items-center justify-center rounded bg-muted font-mono text-[9px] font-bold">
+    <span className="flex size-7 items-center justify-center rounded bg-muted font-bold font-mono text-[9px]">
       {name.slice(0, 3).toUpperCase()}
     </span>
   );
@@ -131,7 +131,7 @@ function BetRow({ bet, isFinished }: { bet: UserBet; isFinished: boolean }) {
 
       {/* Tipp (közép) */}
       <span
-        className={`text-[13px] font-semibold ${
+        className={`font-semibold text-[13px] ${
           isWin ? "text-emerald-500" : isLoss ? "text-destructive line-through" : "text-foreground"
         }`}
       >
@@ -140,9 +140,9 @@ function BetRow({ bet, isFinished }: { bet: UserBet; isFinished: boolean }) {
 
       {/* Payout (jobb) */}
       {isFinished && isWin && bet.payout != null ? (
-        <span className="text-[11px] font-bold text-emerald-500">+{bet.payout} 🪙</span>
+        <span className="font-bold text-[11px] text-emerald-500">+{bet.payout} 🪙</span>
       ) : isFinished && isLoss ? (
-        <span className="text-[11px] font-semibold text-destructive">−{bet.stake} 🪙</span>
+        <span className="font-semibold text-[11px] text-destructive">−{bet.stake} 🪙</span>
       ) : (
         <span className="text-[11px] text-transparent">{bet.stake} 🪙</span>
       )}
@@ -200,23 +200,23 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
         {/* Hazai csapat */}
         <div className="flex min-w-0 items-center gap-2 py-0.5">
           <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
-          <span className="truncate text-sm font-medium">{match.homeTeam.name}</span>
+          <span className="truncate font-medium text-sm">{match.homeTeam.name}</span>
         </div>
 
         {/* Középső oszlop: státusz + idő vagy eredmény */}
         <div className="flex flex-col items-center justify-center gap-0.5 px-2 py-0.5">
           {isLive ? (
-            <span className="flex items-center gap-1 text-[10px] font-semibold leading-none text-red-500">
+            <span className="flex items-center gap-1 font-semibold text-[10px] text-red-500 leading-none">
               <Circle className="size-1.5 animate-pulse fill-red-500 text-red-500" />
               {t("live")}
             </span>
           ) : isFinished ? (
-            <span className="text-[9px] font-medium uppercase leading-none tracking-wider text-muted-foreground/50">
+            <span className="font-medium text-[9px] text-muted-foreground/50 uppercase leading-none tracking-wider">
               {t("finished")}
             </span>
           ) : (
             <>
-              <span className="font-mono text-sm font-semibold leading-none tabular-nums">
+              <span className="font-mono font-semibold text-sm tabular-nums leading-none">
                 {formatTime(match.scheduledAt, timezone)}
               </span>
               {localTime && (
@@ -227,17 +227,17 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
             </>
           )}
           {isFinished || isLive ? (
-            <span className="font-mono text-[22px] font-bold leading-tight tabular-nums">
+            <span className="font-bold font-mono text-[22px] tabular-nums leading-tight">
               {match.homeScore}–{match.awayScore}
             </span>
           ) : (
-            <span className="text-[9px] tracking-[0.15em] text-muted-foreground/40">vs</span>
+            <span className="text-[9px] text-muted-foreground/40 tracking-[0.15em]">vs</span>
           )}
         </div>
 
         {/* Vendég csapat */}
         <div className="flex min-w-0 items-center justify-end gap-2 py-0.5">
-          <span className="truncate text-sm font-medium">{match.awayTeam.name}</span>
+          <span className="truncate font-medium text-sm">{match.awayTeam.name}</span>
           <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
         </div>
 
@@ -245,27 +245,27 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
         {match.odds && (
           <>
             <div className="flex items-baseline gap-1 pb-0.5">
-              <span className="text-[9px] font-semibold text-muted-foreground/50">1</span>
+              <span className="font-semibold text-[9px] text-muted-foreground/50">1</span>
               <span
-                className={`font-mono text-[11px] font-medium ${isScheduled ? "" : "text-muted-foreground/60"}`}
+                className={`font-medium font-mono text-[11px] ${isScheduled ? "" : "text-muted-foreground/60"}`}
                 style={isScheduled ? { color: oddsColor(match.odds.homeOdds) } : undefined}
               >
                 {match.odds.homeOdds}
               </span>
             </div>
             <div className="flex items-baseline justify-center gap-1 pb-0.5">
-              <span className="text-[9px] font-semibold text-muted-foreground/50">X</span>
+              <span className="font-semibold text-[9px] text-muted-foreground/50">X</span>
               <span
-                className={`font-mono text-[11px] font-medium ${isScheduled ? "" : "text-muted-foreground/60"}`}
+                className={`font-medium font-mono text-[11px] ${isScheduled ? "" : "text-muted-foreground/60"}`}
                 style={isScheduled ? { color: oddsColor(match.odds.drawOdds) } : undefined}
               >
                 {match.odds.drawOdds}
               </span>
             </div>
             <div className="flex items-baseline justify-end gap-1 pb-0.5">
-              <span className="text-[9px] font-semibold text-muted-foreground/50">2</span>
+              <span className="font-semibold text-[9px] text-muted-foreground/50">2</span>
               <span
-                className={`font-mono text-[11px] font-medium ${isScheduled ? "" : "text-muted-foreground/60"}`}
+                className={`font-medium font-mono text-[11px] ${isScheduled ? "" : "text-muted-foreground/60"}`}
                 style={isScheduled ? { color: oddsColor(match.odds.awayOdds) } : undefined}
               >
                 {match.odds.awayOdds}

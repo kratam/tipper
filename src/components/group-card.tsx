@@ -32,7 +32,7 @@ function ProfitBadge({ profit }: { profit: number }) {
 
   return (
     <div className="flex items-center gap-1 rounded-md bg-black/25 px-2 py-1">
-      <span className={`font-mono text-sm font-bold ${colorClass}`}>{formatted}</span>
+      <span className={`font-bold font-mono text-sm ${colorClass}`}>{formatted}</span>
     </div>
   );
 }
@@ -58,7 +58,7 @@ function CardInner({ group, memberCount, profit, variant = "own" }: GroupCardPro
       className={cn(
         "overflow-hidden rounded-xl border transition-colors",
         variant === "public"
-          ? "border-dashed border-border"
+          ? "border-border border-dashed"
           : "border-border shadow-sm hover:ring-1 hover:ring-foreground/20",
       )}
     >
@@ -66,7 +66,7 @@ function CardInner({ group, memberCount, profit, variant = "own" }: GroupCardPro
       <div className="bg-linear-to-br from-[#1e3a5f] to-[#2d1b69] p-4">
         <div className="flex items-start justify-between">
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-bold text-white">{group.name}</div>
+            <div className="truncate font-bold text-sm text-white">{group.name}</div>
             <div className="mt-0.5 truncate text-[11px] text-white/55">{group.tournament.name}</div>
           </div>
           {variant === "own" && profit != null ? (
@@ -80,7 +80,7 @@ function CardInner({ group, memberCount, profit, variant = "own" }: GroupCardPro
       {/* Body */}
       <div className="bg-card p-3">
         {group.description && (
-          <div className="mb-2.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground [&_p]:m-0">
+          <div className="mb-2.5 line-clamp-2 text-muted-foreground text-xs leading-relaxed [&_p]:m-0">
             <ReactMarkdown allowedElements={["p", "strong", "em"]}>
               {group.description}
             </ReactMarkdown>

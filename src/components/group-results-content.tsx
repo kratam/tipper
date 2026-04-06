@@ -49,7 +49,7 @@ function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
     );
   }
   return (
-    <span className="flex size-5 items-center justify-center rounded bg-muted font-mono text-[8px] font-bold">
+    <span className="flex size-5 items-center justify-center rounded bg-muted font-bold font-mono text-[8px]">
       {name.slice(0, 3).toUpperCase()}
     </span>
   );
@@ -83,7 +83,7 @@ export function GroupResultsContent({
   if (matches.length === 0) {
     return (
       <Card>
-        <CardContent className="p-6 text-center text-sm text-muted-foreground">
+        <CardContent className="p-6 text-center text-muted-foreground text-sm">
           {t("noBetsYet")}
         </CardContent>
       </Card>
@@ -103,11 +103,11 @@ export function GroupResultsContent({
                 <AccordionTrigger className="px-3 py-2.5 hover:no-underline">
                   <div className="flex flex-1 items-center gap-2">
                     <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
-                    <span className="font-mono text-sm font-bold tabular-nums">
+                    <span className="font-bold font-mono text-sm tabular-nums">
                       {match.homeScore}-{match.awayScore}
                     </span>
                     <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
-                    <span className="ml-auto text-xs text-muted-foreground">
+                    <span className="ml-auto text-muted-foreground text-xs">
                       {t("betCount", {
                         count: matchBets.length,
                         total: memberCount,
@@ -117,11 +117,11 @@ export function GroupResultsContent({
                 </AccordionTrigger>
                 <AccordionContent>
                   {sortedBets.length === 0 ? (
-                    <p className="px-3 py-2 text-xs text-muted-foreground">{t("noBetsYet")}</p>
+                    <p className="px-3 py-2 text-muted-foreground text-xs">{t("noBetsYet")}</p>
                   ) : (
                     <div className="flex flex-col">
                       {/* Header */}
-                      <div className="flex items-center gap-2 px-3 pb-1 text-[11px] font-medium text-muted-foreground">
+                      <div className="flex items-center gap-2 px-3 pb-1 font-medium text-[11px] text-muted-foreground">
                         <span className="flex-1">{/* player column */}</span>
                         <span className="w-10 text-center">{t("prediction")}</span>
                         <span className="w-10 text-right">{tBetting("stake")}</span>
@@ -139,7 +139,7 @@ export function GroupResultsContent({
                             key={bet.userId}
                             className={`flex items-center gap-2 px-3 py-1.5 ${
                               isCurrentUser
-                                ? "bg-amber-500/5 ring-1 ring-inset ring-amber-500/20"
+                                ? "bg-amber-500/5 ring-1 ring-amber-500/20 ring-inset"
                                 : ""
                             }`}
                           >
@@ -155,7 +155,7 @@ export function GroupResultsContent({
                             </div>
                             {/* Prediction */}
                             <span
-                              className={`w-10 text-center font-mono text-xs font-medium ${
+                              className={`w-10 text-center font-medium font-mono text-xs ${
                                 bet.exactScoreCorrect
                                   ? "text-amber-500"
                                   : bet.goalDiffCorrect
@@ -168,12 +168,12 @@ export function GroupResultsContent({
                               {bet.predictedHome}-{bet.predictedAway}
                             </span>
                             {/* Stake */}
-                            <span className="w-10 text-right font-mono text-xs text-muted-foreground">
+                            <span className="w-10 text-right font-mono text-muted-foreground text-xs">
                               {bet.stake}
                             </span>
                             {/* Net profit */}
                             <span
-                              className={`w-12 text-right font-mono text-xs font-bold ${
+                              className={`w-12 text-right font-bold font-mono text-xs ${
                                 netProfit > 0 ? "text-emerald-500" : "text-destructive"
                               }`}
                             >

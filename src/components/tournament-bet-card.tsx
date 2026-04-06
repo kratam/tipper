@@ -33,7 +33,7 @@ export async function TournamentBetCard({
           )}
           <span className="font-medium">{tournamentName}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm font-medium text-primary">
+        <div className="flex items-center gap-2 font-medium text-primary text-sm">
           {t("goToBetting")}
           <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
         </div>
@@ -46,16 +46,16 @@ export async function TournamentBetCard({
             <div key={day.dateKey} className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">{day.label}</span>
               <div className="flex items-center gap-1.5">
-                <span className="font-mono text-xs text-muted-foreground">
+                <span className="font-mono text-muted-foreground text-xs">
                   {t("dayMatchCount", { count: day.totalMatches })}
                 </span>
                 {day.missingBets > 0 ? (
-                  <span className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                  <span className="flex items-center gap-1 font-medium text-amber-600 text-xs dark:text-amber-400">
                     <CircleAlert className="size-3.5" />
                     {t("missingBets", { count: day.missingBets })}
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                  <span className="flex items-center gap-1 font-medium text-emerald-600 text-xs dark:text-emerald-400">
                     <CircleCheck className="size-3.5" />
                     {t("allDone")}
                   </span>
@@ -65,19 +65,19 @@ export async function TournamentBetCard({
           ))}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">{t("noUpcomingMatches")}</p>
+        <p className="text-muted-foreground text-sm">{t("noUpcomingMatches")}</p>
       )}
 
       {/* Summary footer */}
       {days.length > 0 && (
-        <div className="border-t border-border pt-2">
+        <div className="border-border border-t pt-2">
           {totalMissing > 0 ? (
-            <span className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+            <span className="flex items-center gap-1.5 font-medium text-amber-600 text-xs dark:text-amber-400">
               <CircleAlert className="size-3.5" />
               {t("totalMissing", { count: totalMissing })}
             </span>
           ) : (
-            <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+            <span className="flex items-center gap-1.5 font-medium text-emerald-600 text-xs dark:text-emerald-400">
               <CircleCheck className="size-3.5" />
               {t("allBetsDone")}
             </span>

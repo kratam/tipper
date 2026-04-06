@@ -49,7 +49,7 @@ function ProfitDisplay({ profit }: { profit: number }) {
         ? "text-red-600 dark:text-red-400"
         : "text-muted-foreground";
 
-  return <span className={`font-mono text-sm font-bold ${colorClass}`}>{formatted}</span>;
+  return <span className={`font-bold font-mono text-sm ${colorClass}`}>{formatted}</span>;
 }
 
 export function GroupTokenSummary({
@@ -63,10 +63,10 @@ export function GroupTokenSummary({
   if (groups.length === 0) {
     return (
       <>
-        <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4">
+        <div className="rounded-lg border border-border border-dashed bg-muted/30 p-4">
           {topPublicGroups && topPublicGroups.length > 0 ? (
             <div className="flex flex-col gap-4">
-              <p className="text-sm text-muted-foreground">{t("noGroupYet")}</p>
+              <p className="text-muted-foreground text-sm">{t("noGroupYet")}</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {topPublicGroups.map((group) => (
                   <GroupCard
@@ -78,7 +78,7 @@ export function GroupTokenSummary({
                   />
                 ))}
               </div>
-              <Button variant="outline" size="sm" asChild className="self-start gap-2">
+              <Button variant="outline" size="sm" asChild className="gap-2 self-start">
                 <Link href="/groups">
                   <Users className="size-4" />
                   {t("browseGroups")}
@@ -87,8 +87,8 @@ export function GroupTokenSummary({
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              <p className="text-sm text-muted-foreground">{t("noPublicGroup")}</p>
-              <Button variant="outline" size="sm" asChild className="self-start gap-2">
+              <p className="text-muted-foreground text-sm">{t("noPublicGroup")}</p>
+              <Button variant="outline" size="sm" asChild className="gap-2 self-start">
                 <Link href="/groups/new">{t("createGroup")}</Link>
               </Button>
             </div>
@@ -135,10 +135,10 @@ export function GroupTokenSummary({
                     <div
                       key={entry.userId}
                       className={`flex items-center gap-2 rounded px-2 py-1 text-sm ${
-                        isMe ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""
+                        isMe ? "bg-amber-500/10 ring-1 ring-amber-500/20 ring-inset" : ""
                       }`}
                     >
-                      <span className="w-8 font-mono text-xs text-muted-foreground">
+                      <span className="w-8 font-mono text-muted-foreground text-xs">
                         #{entry.rank}
                       </span>
                       <span className={`flex-1 truncate ${isMe ? "font-medium" : ""}`}>
@@ -152,9 +152,9 @@ export function GroupTokenSummary({
             )}
 
             {/* Footer: profit + unbetted info */}
-            <div className="flex items-center gap-3 border-t border-border pt-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-3 border-border border-t pt-2 text-muted-foreground text-xs">
               <span
-                className={`flex items-center gap-1 font-mono font-medium ${
+                className={`flex items-center gap-1 font-medium font-mono ${
                   g.myProfit > 0
                     ? "text-emerald-600 dark:text-emerald-400"
                     : g.myProfit < 0

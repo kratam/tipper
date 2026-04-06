@@ -109,7 +109,7 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div className="flex flex-col gap-0.5">
               <Label htmlFor="isPublic">{t("public")}</Label>
-              <span className="text-xs text-muted-foreground">{t("publicDescription")}</span>
+              <span className="text-muted-foreground text-xs">{t("publicDescription")}</span>
             </div>
             <Switch id="isPublic" checked={isPublic} onCheckedChange={setIsPublic} />
           </div>
@@ -129,7 +129,7 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
           {/* Collapsible advanced settings */}
           <button
             type="button"
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            className="flex items-center gap-2 text-muted-foreground text-sm hover:text-foreground"
             onClick={() => setShowAdvanced(!showAdvanced)}
           >
             {showAdvanced ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}

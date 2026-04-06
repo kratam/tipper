@@ -18,7 +18,7 @@ export default async function CreateGroupPage() {
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
-      <h1 className="font-mono text-2xl font-bold tracking-tight">{t("create")}</h1>
+      <h1 className="font-bold font-mono text-2xl tracking-tight">{t("create")}</h1>
       <CreateGroupForm
         tournaments={availableTournaments.map((t) => ({
           id: t.id,

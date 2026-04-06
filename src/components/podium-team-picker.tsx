@@ -62,7 +62,7 @@ export function TeamPicker({
         <PopoverTrigger asChild>{children}</PopoverTrigger>
         <PopoverContent className="w-64 p-0" align="center">
           <div className="border-b px-4 py-2">
-            <p className="text-sm font-semibold">
+            <p className="font-semibold text-sm">
               {medalEmojis[medal]} {t(medal)}
             </p>
           </div>

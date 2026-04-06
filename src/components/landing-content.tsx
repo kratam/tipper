@@ -30,7 +30,7 @@ export function LandingContent() {
           className="size-28 sm:size-32"
           priority
         />
-        <h1 className="font-brand text-6xl tracking-tight bg-linear-to-r from-(--brand-blue-dark) via-(--brand-blue) to-(--brand-gold) bg-clip-text text-transparent sm:text-7xl">
+        <h1 className="bg-linear-to-r from-(--brand-blue-dark) via-(--brand-blue) to-(--brand-gold) bg-clip-text font-brand text-6xl text-transparent tracking-tight sm:text-7xl">
           {t("title")}
         </h1>
         <p className="max-w-md text-lg text-muted-foreground">{t("subtitle")}</p>
@@ -49,7 +49,7 @@ export function LandingContent() {
             <CardTitle className="text-base">{t("featureBet")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">{t("featureBetDesc")}</p>
+            <p className="text-muted-foreground text-sm">{t("featureBetDesc")}</p>
           </CardContent>
         </Card>
 
@@ -61,7 +61,7 @@ export function LandingContent() {
             <CardTitle className="text-base">{t("featureCompete")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">{t("featureCompeteDesc")}</p>
+            <p className="text-muted-foreground text-sm">{t("featureCompeteDesc")}</p>
           </CardContent>
         </Card>
 
@@ -73,13 +73,13 @@ export function LandingContent() {
             <CardTitle className="text-base">{t("featureWin")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">{t("featureWinDesc")}</p>
+            <p className="text-muted-foreground text-sm">{t("featureWinDesc")}</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Footer */}
-      <footer className="text-xs text-muted-foreground flex gap-3">
+      <footer className="flex gap-3 text-muted-foreground text-xs">
         <Link href="/privacy" className="hover:underline">
           {t("privacy")}
         </Link>

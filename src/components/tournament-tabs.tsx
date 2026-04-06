@@ -241,7 +241,7 @@ export function TournamentTabs({
             <button
               type="button"
               onClick={() => setFilter("upcoming")}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
                 filter === "upcoming"
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -252,7 +252,7 @@ export function TournamentTabs({
             <button
               type="button"
               onClick={() => setFilter("played")}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
                 filter === "played"
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -263,7 +263,7 @@ export function TournamentTabs({
             <button
               type="button"
               onClick={() => setFilter("all")}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
                 filter === "all"
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -281,8 +281,8 @@ export function TournamentTabs({
                 <AccordionItem key={day.dateKey} value={day.dateKey} className="border-none">
                   <AccordionTrigger className="rounded-lg bg-muted/50 px-4 py-2.5 hover:no-underline">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{day.label}</span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="font-medium text-sm">{day.label}</span>
+                      <span className="text-muted-foreground text-xs">
                         {t("betProgress", {
                           betCount: day.matches.filter((m) =>
                             groupBetInfosByMatch[m.id]?.some((g) => g.existingBet),

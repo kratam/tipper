@@ -32,8 +32,8 @@ export function PodiumTeamList({ teams, selectedId, disabledIds, onSelect }: Pod
               onClick={() => onSelect(team.id)}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 text-left transition-colors",
-                isSelected && "bg-primary/10 border-l-3 border-primary",
-                isDisabled && "opacity-40 cursor-not-allowed",
+                isSelected && "border-primary border-l-3 bg-primary/10",
+                isDisabled && "cursor-not-allowed opacity-40",
                 !isSelected && !isDisabled && "hover:bg-muted",
               )}
             >
@@ -46,11 +46,11 @@ export function PodiumTeamList({ teams, selectedId, disabledIds, onSelect }: Pod
                   className="size-7 rounded-full object-contain"
                 />
               ) : (
-                <span className="flex size-7 items-center justify-center rounded-full bg-muted text-xs font-bold">
+                <span className="flex size-7 items-center justify-center rounded-full bg-muted font-bold text-xs">
                   {team.name.slice(0, 3).toUpperCase()}
                 </span>
               )}
-              <span className={cn("text-sm flex-1", isSelected && "font-semibold")}>
+              <span className={cn("flex-1 text-sm", isSelected && "font-semibold")}>
                 {team.name}
               </span>
               {isSelected && <span className="text-primary text-sm">✓</span>}

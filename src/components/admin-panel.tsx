@@ -320,7 +320,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
 
       {/* Existing tournaments */}
       <div className="flex flex-col gap-4">
-        <h2 className="font-mono text-lg font-bold">{t("existingTournaments")}</h2>
+        <h2 className="font-bold font-mono text-lg">{t("existingTournaments")}</h2>
         {tournaments.map((tournament) => (
           <Card key={tournament.id}>
             <CardContent className="flex flex-col gap-4 p-4">
@@ -331,7 +331,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                   )}
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{tournament.name}</span>
+                      <span className="font-medium text-sm">{tournament.name}</span>
                       <button
                         type="button"
                         className="text-muted-foreground hover:text-foreground"
@@ -362,7 +362,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                         <span className="sr-only">Logo</span>
                       </button>
                     </div>
-                    <span className="font-mono text-xs text-muted-foreground">
+                    <span className="font-mono text-muted-foreground text-xs">
                       {t("leagueId")}: {tournament.apiLeagueId} | {t("season")}:{" "}
                       {tournament.apiSeason} | {tournament.timezone}
                       <button
@@ -380,7 +380,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                         <Pencil className="inline size-3" />
                       </button>
                     </span>
-                    <span className="font-mono text-xs text-muted-foreground">
+                    <span className="font-mono text-muted-foreground text-xs">
                       {t("podiumLockDate")}: {new Date(tournament.podiumLockDate).toLocaleString()}
                       <button
                         type="button"
@@ -433,7 +433,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
 
               {/* Name editing */}
               {editingNameId === tournament.id && (
-                <div className="flex items-center gap-2 border-t border-border pt-3">
+                <div className="flex items-center gap-2 border-border border-t pt-3">
                   <Input
                     value={nameInput}
                     onChange={(e) => setNameInput(e.target.value)}
@@ -454,7 +454,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
 
               {/* Podium lock date editing */}
               {editingPodiumDateId === tournament.id && (
-                <div className="flex items-center gap-2 border-t border-border pt-3">
+                <div className="flex items-center gap-2 border-border border-t pt-3">
                   <Input
                     type="datetime-local"
                     value={podiumDateInput}
@@ -476,7 +476,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
 
               {/* Logo URL editing */}
               {editingLogoId === tournament.id && (
-                <div className="flex items-center gap-2 border-t border-border pt-3">
+                <div className="flex items-center gap-2 border-border border-t pt-3">
                   <Input
                     value={logoInput}
                     onChange={(e) => setLogoInput(e.target.value)}
@@ -495,7 +495,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
 
               {/* Timezone editing */}
               {editingTimezoneId === tournament.id && (
-                <div className="flex items-center gap-2 border-t border-border pt-3">
+                <div className="flex items-center gap-2 border-border border-t pt-3">
                   <Select value={timezoneInput} onValueChange={setTimezoneInput}>
                     <SelectTrigger className="flex-1">
                       <SelectValue />
@@ -523,7 +523,7 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
 
               {/* Podium selection for finishing */}
               {finishingId === tournament.id && tournament.teams.length > 0 && (
-                <div className="flex flex-col gap-3 border-t border-border pt-3">
+                <div className="flex flex-col gap-3 border-border border-t pt-3">
                   {[
                     { label: "\u{1F947}", value: podiumGold, onChange: setPodiumGold },
                     { label: "\u{1F948}", value: podiumSilver, onChange: setPodiumSilver },

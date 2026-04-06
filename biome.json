@@ -18,7 +18,8 @@
         "useExhaustiveDependencies": "warn"
       },
       "suspicious": { "noExplicitAny": "warn" },
-      "style": { "noNonNullAssertion": "error", "useNodejsImportProtocol": "error" }
+      "style": { "noNonNullAssertion": "error", "useNodejsImportProtocol": "error" },
+      "nursery": { "useSortedClasses": "error" }
     }
   },
   "formatter": {
