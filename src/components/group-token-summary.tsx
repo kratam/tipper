@@ -1,8 +1,20 @@
 "use client";
 
-import { ChevronRight, CircleAlert, CircleCheck, TrendingDown, TrendingUp } from "lucide-react";
+import {
+  ChevronRight,
+  CircleAlert,
+  CircleCheck,
+  TrendingDown,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { GroupCard } from "@/components/group-card";
+import { PublicGroupDialog } from "@/components/public-group-dialog";
+import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import type { PublicGroupSuggestion } from "@/queries/groups";
 
 interface MiniLeaderboardEntry {
   rank: number;
@@ -25,6 +37,7 @@ interface GroupCardItem {
 interface GroupTokenSummaryProps {
   groups: GroupCardItem[];
   currentUserId: string;
+  topPublicGroups?: PublicGroupSuggestion[];
 }
 
 function ProfitDisplay({ profit }: { profit: number }) {
@@ -39,10 +52,62 @@ function ProfitDisplay({ profit }: { profit: number }) {
   return <span className={`font-mono text-sm font-bold ${colorClass}`}>{formatted}</span>;
 }
 
-export function GroupTokenSummary({ groups, currentUserId }: GroupTokenSummaryProps) {
+export function GroupTokenSummary({
+  groups,
+  currentUserId,
+  topPublicGroups = [],
+}: GroupTokenSummaryProps) {
   const t = useTranslations("tournaments");
+  const [selectedGroup, setSelectedGroup] = useState<PublicGroupSuggestion | null>(null);
 
-  if (groups.length === 0) return null;
+  if (groups.length === 0) {
+    return (
+      <>
+        <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4">
+          {topPublicGroups && topPublicGroups.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              <p className="text-sm text-muted-foreground">{t("noGroupYet")}</p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {topPublicGroups.map((group) => (
+                  <GroupCard
+                    key={group.id}
+                    group={group}
+                    memberCount={group.memberCount}
+                    variant="public"
+                    onClick={() => setSelectedGroup(group)}
+                  />
+                ))}
+              </div>
+              <Button variant="outline" size="sm" asChild className="self-start gap-2">
+                <Link href="/groups">
+                  <Users className="size-4" />
+                  {t("browseGroups")}
+                </Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <p className="text-sm text-muted-foreground">{t("noPublicGroup")}</p>
+              <Button variant="outline" size="sm" asChild className="self-start gap-2">
+                <Link href="/groups/new">{t("createGroup")}</Link>
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {selectedGroup && (
+          <PublicGroupDialog
+            group={selectedGroup}
+            memberCount={selectedGroup.memberCount}
+            open={!!selectedGroup}
+            onOpenChange={(open) => {
+              if (!open) setSelectedGroup(null);
+            }}
+          />
+        )}
+      </>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
