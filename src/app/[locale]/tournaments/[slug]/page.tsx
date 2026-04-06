@@ -60,23 +60,16 @@ export default async function TournamentDetailPage({
   }));
 
   // Phase 3: batch balance + podium + leaderboards in parallel
-  const [batchBalances, podiumData, groupLeaderboards] = await Promise.all([
+  const [batchBalances, existingPodiumBet, groupLeaderboards] = await Promise.all([
     getBatchProjectedBalances(user.id, groupsForBalance, matches),
-    Promise.all(
-      relevantGroups.map(async (gm) => {
-        const existingBet = await getPodiumBet(user.id, tournament.id, gm.group.id);
-        return {
-          groupId: gm.group.id,
-          groupName: gm.group.name,
-          existingBet: existingBet
-            ? {
-                goldTeamId: existingBet.goldTeamId,
-                silverTeamId: existingBet.silverTeamId,
-                bronzeTeamId: existingBet.bronzeTeamId,
-              }
-            : null,
-        };
-      }),
+    getPodiumBet(user.id, tournament.id).then((bet) =>
+      bet
+        ? {
+            goldTeamId: bet.goldTeamId,
+            silverTeamId: bet.silverTeamId,
+            bronzeTeamId: bet.bronzeTeamId,
+          }
+        : null,
     ),
     Promise.all(
       relevantGroups.map(async (gm) => {
@@ -203,7 +196,7 @@ export default async function TournamentDetailPage({
         timezone={tournament.timezone}
         podiumLockDate={tournament.podiumLockDate.toISOString()}
         teams={tournamentTeams}
-        podiumGroups={podiumData}
+        existingPodiumBet={existingPodiumBet}
         groupBetInfosByMatch={groupBetInfosByMatch}
         groupLeaderboards={groupLeaderboards}
         currentUserId={user.id}

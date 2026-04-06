@@ -2,12 +2,11 @@
 
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { groupMembers, podiumBets, tournaments } from "@/db/schema";
+import { podiumBets, tournaments } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 
 interface PlacePodiumBetInput {
   tournamentId: string;
-  groupId: string;
   goldTeamId: string;
   silverTeamId: string;
   bronzeTeamId: string;
@@ -17,13 +16,7 @@ export async function placePodiumBet(input: PlacePodiumBetInput) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
-  const { tournamentId, groupId, goldTeamId, silverTeamId, bronzeTeamId } = input;
-
-  // Verify membership
-  const membership = await db.query.groupMembers.findFirst({
-    where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, user.id)),
-  });
-  if (!membership) throw new Error("Not a member of this group");
+  const { tournamentId, goldTeamId, silverTeamId, bronzeTeamId } = input;
 
   // Check podiumLockDate hasn't passed
   const tournament = await db.query.tournaments.findFirst({
@@ -35,11 +28,7 @@ export async function placePodiumBet(input: PlacePodiumBetInput) {
   }
 
   const existing = await db.query.podiumBets.findFirst({
-    where: and(
-      eq(podiumBets.userId, user.id),
-      eq(podiumBets.tournamentId, tournamentId),
-      eq(podiumBets.groupId, groupId),
-    ),
+    where: and(eq(podiumBets.userId, user.id), eq(podiumBets.tournamentId, tournamentId)),
   });
 
   if (existing) {
@@ -55,7 +44,6 @@ export async function placePodiumBet(input: PlacePodiumBetInput) {
     .values({
       userId: user.id,
       tournamentId,
-      groupId,
       goldTeamId,
       silverTeamId,
       bronzeTeamId,

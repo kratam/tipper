@@ -1,8 +1,8 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { groups, podiumBets, tokenLedger, tournaments } from "@/db/schema";
+import { groupMembers, groups, podiumBets, tokenLedger, tournaments } from "@/db/schema";
 import { fetchLeagueLogoUrl } from "@/lib/api-sports";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { calculatePodiumPoints } from "@/lib/scoring";
@@ -144,30 +144,37 @@ export async function finishTournament(input: FinishTournamentInput) {
 
   const actual = { gold: goldTeamId, silver: silverTeamId, bronze: bronzeTeamId };
 
-  for (const bet of allPodiumBets) {
-    const group = await db.query.groups.findFirst({
-      where: and(eq(groups.id, bet.groupId), eq(groups.tournamentId, tournamentId)),
-    });
-    if (!group) continue;
+  // All groups in this tournament
+  const tournamentGroups = await db.query.groups.findMany({
+    where: eq(groups.tournamentId, tournamentId),
+  });
 
-    const points = calculatePodiumPoints(
-      { gold: bet.goldTeamId, silver: bet.silverTeamId, bronze: bet.bronzeTeamId },
-      actual,
-      {
+  for (const bet of allPodiumBets) {
+    // Find all groups the user belongs to in this tournament
+    const userMemberships = await db.query.groupMembers.findMany({
+      where: eq(groupMembers.userId, bet.userId),
+    });
+    const userGroupIds = new Set(userMemberships.map((m) => m.groupId));
+    const userGroups = tournamentGroups.filter((g) => userGroupIds.has(g.id));
+
+    const prediction = { gold: bet.goldTeamId, silver: bet.silverTeamId, bronze: bet.bronzeTeamId };
+
+    for (const group of userGroups) {
+      const points = calculatePodiumPoints(prediction, actual, {
         bonusPodiumMention: group.bonusPodiumMention,
         bonusPodiumExact: group.bonusPodiumExact,
-      },
-    );
-
-    if (points > 0) {
-      await db.insert(tokenLedger).values({
-        userId: bet.userId,
-        groupId: bet.groupId,
-        tournamentId,
-        amount: points,
-        type: "win",
-        referenceId: bet.id,
       });
+
+      if (points > 0) {
+        await db.insert(tokenLedger).values({
+          userId: bet.userId,
+          groupId: group.id,
+          tournamentId,
+          amount: points,
+          type: "win",
+          referenceId: bet.id,
+        });
+      }
     }
   }
 }

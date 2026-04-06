@@ -78,6 +78,13 @@
       "when": 1775242248008,
       "tag": "0010_group_slug_scoped_to_tournament",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1775242248009,
+      "tag": "0011_podium_bets_remove_group",
+      "breakpoints": true
     }
   ]
 }

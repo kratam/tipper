@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { placePodiumBet } from "@/actions/podium-bets";
 import { TeamPicker } from "@/components/podium-team-picker";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -25,8 +25,6 @@ interface ExistingPodiumBet {
 
 interface PodiumFormProps {
   tournamentId: string;
-  groupId: string;
-  groupName: string;
   teams: TeamOption[];
   existingBet: ExistingPodiumBet | null;
   isLocked: boolean;
@@ -121,14 +119,7 @@ function TeamLogo({ team, size = "md" }: { team: TeamOption; size?: "sm" | "md" 
   );
 }
 
-export function PodiumForm({
-  tournamentId,
-  groupId,
-  groupName,
-  teams,
-  existingBet,
-  isLocked,
-}: PodiumFormProps) {
+export function PodiumForm({ tournamentId, teams, existingBet, isLocked }: PodiumFormProps) {
   const t = useTranslations("podium");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -155,7 +146,6 @@ export function PodiumForm({
       try {
         await placePodiumBet({
           tournamentId,
-          groupId,
           goldTeamId: selections.gold,
           silverTeamId: selections.silver,
           bronzeTeamId: selections.bronze,
@@ -179,12 +169,7 @@ export function PodiumForm({
 
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-center font-medium text-muted-foreground text-xs uppercase tracking-widest">
-          {groupName}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4 px-4 pb-4">
+      <CardContent className="flex flex-col gap-4 px-4 py-4">
         {/* Podium */}
         <div className="flex items-end justify-center gap-1 sm:gap-1.5">
           {podiumConfig.map((cfg) => {

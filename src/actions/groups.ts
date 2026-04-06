@@ -3,7 +3,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { bets, groupMembers, groups, podiumBets, tokenLedger, tournaments } from "@/db/schema";
+import { bets, groupMembers, groups, tokenLedger, tournaments } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { generateInviteCode, slugify } from "@/lib/utils";
 import { getGroupByInviteCode } from "@/queries/groups";
@@ -204,10 +204,9 @@ export async function deleteGroup(groupId: string) {
   if (!group) throw new Error("Group not found");
   if (group.ownerId !== user.id) throw new Error("Unauthorized");
 
-  // Delete in FK order
+  // Delete in FK order (podium bets are tournament-scoped, not group-scoped)
   await db.delete(tokenLedger).where(eq(tokenLedger.groupId, groupId));
   await db.delete(bets).where(eq(bets.groupId, groupId));
-  await db.delete(podiumBets).where(eq(podiumBets.groupId, groupId));
   await db.delete(groupMembers).where(eq(groupMembers.groupId, groupId));
   await db.delete(groups).where(eq(groups.id, groupId));
 }

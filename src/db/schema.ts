@@ -183,9 +183,6 @@ export const podiumBets = pgTable(
     tournamentId: uuid("tournament_id")
       .references(() => tournaments.id)
       .notNull(),
-    groupId: uuid("group_id")
-      .references(() => groups.id)
-      .notNull(),
     goldTeamId: uuid("gold_team_id")
       .references(() => teams.id)
       .notNull(),
@@ -197,7 +194,7 @@ export const podiumBets = pgTable(
       .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [uniqueIndex("podium_unique_idx").on(table.userId, table.tournamentId, table.groupId)],
+  (table) => [uniqueIndex("podium_unique_idx").on(table.userId, table.tournamentId)],
 );
 
 export const tokenLedger = pgTable(

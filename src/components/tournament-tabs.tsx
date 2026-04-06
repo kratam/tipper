@@ -39,14 +39,10 @@ interface TeamOption {
   logoUrl: string | null;
 }
 
-interface PodiumGroupData {
-  groupId: string;
-  groupName: string;
-  existingBet: {
-    goldTeamId: string;
-    silverTeamId: string;
-    bronzeTeamId: string;
-  } | null;
+interface ExistingPodiumBet {
+  goldTeamId: string;
+  silverTeamId: string;
+  bronzeTeamId: string;
 }
 
 interface MiniLeaderboardEntry {
@@ -72,7 +68,7 @@ interface TournamentTabsProps {
   timezone: string;
   podiumLockDate: string;
   teams: TeamOption[];
-  podiumGroups: PodiumGroupData[];
+  existingPodiumBet: ExistingPodiumBet | null;
   groupBetInfosByMatch: Record<string, GroupBetInfo[]>;
   groupLeaderboards: GroupLeaderboardData[];
   currentUserId: string;
@@ -117,7 +113,7 @@ export function TournamentTabs({
   timezone,
   podiumLockDate,
   teams,
-  podiumGroups,
+  existingPodiumBet,
   groupBetInfosByMatch,
   groupLeaderboards,
   currentUserId,
@@ -125,7 +121,6 @@ export function TournamentTabs({
 }: TournamentTabsProps) {
   const t = useTranslations("tournaments");
   const tMatches = useTranslations("matches");
-  const tPodium = useTranslations("podium");
   const locale = useLocale();
 
   const [filter, setFilter] = useState<MatchFilter>("upcoming");
@@ -279,7 +274,7 @@ export function TournamentTabs({
             <Accordion type="multiple" defaultValue={initialOpen} className="flex flex-col gap-2">
               {filteredDays.map((day) => (
                 <AccordionItem key={day.dateKey} value={day.dateKey} className="border-none">
-                  <AccordionTrigger className="rounded-lg bg-muted/50 px-4 py-2.5 hover:no-underline">
+                  <AccordionTrigger className="rounded-lg bg-muted px-4 py-2.5 hover:no-underline">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm">{day.label}</span>
                       <span className="text-muted-foreground text-xs">
@@ -311,21 +306,12 @@ export function TournamentTabs({
         </TabsContent>
 
         <TabsContent value="podium" className="mt-4 flex flex-col gap-4">
-          {podiumGroups.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">{tPodium("title")}</p>
-          ) : (
-            podiumGroups.map((pg) => (
-              <PodiumForm
-                key={pg.groupId}
-                tournamentId={tournamentId}
-                groupId={pg.groupId}
-                groupName={pg.groupName}
-                teams={teams}
-                existingBet={pg.existingBet}
-                isLocked={isLocked}
-              />
-            ))
-          )}
+          <PodiumForm
+            tournamentId={tournamentId}
+            teams={teams}
+            existingBet={existingPodiumBet}
+            isLocked={isLocked}
+          />
         </TabsContent>
       </Tabs>
 

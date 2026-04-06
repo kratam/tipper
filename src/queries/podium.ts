@@ -3,13 +3,9 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { matches, podiumBets, teams } from "@/db/schema";
 
-export async function getPodiumBet(userId: string, tournamentId: string, groupId: string) {
+export async function getPodiumBet(userId: string, tournamentId: string) {
   return db.query.podiumBets.findFirst({
-    where: and(
-      eq(podiumBets.userId, userId),
-      eq(podiumBets.tournamentId, tournamentId),
-      eq(podiumBets.groupId, groupId),
-    ),
+    where: and(eq(podiumBets.userId, userId), eq(podiumBets.tournamentId, tournamentId)),
   });
 }
 
