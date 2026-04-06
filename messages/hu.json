@@ -54,7 +54,12 @@
     "howToPlayScoring": "Pontszámítás",
     "howToPlayScoringDesc": "Helyes győztes/döntetlen: tét × odds. Bónusz jár, ha a gólkülönbség is stimmel, és külön bónusz a pontos eredményért. Rossz tippért 0 tokent kapsz.",
     "howToPlayPodium": "Dobogós tipp",
-    "howToPlayPodiumDesc": "A versenysorozat lezárása előtt megjósolhatod az első három csapat sorrendjét. Minden helyes pozícióért bónusz jár."
+    "howToPlayPodiumDesc": "A versenysorozat lezárása előtt megjósolhatod az első három csapat sorrendjét. Minden helyes pozícióért bónusz jár.",
+    "noGroupYet": "Még nem vagy tagja egyetlen csoportnak sem. Csatlakozz és versenyezz!",
+    "noGroupYetShort": "Még nem vagy tagja csoportnak.",
+    "noPublicGroup": "Még nincs aktív csoport ehhez a versenysorozathoz.",
+    "browseGroups": "Csoportok böngészése",
+    "createGroup": "Csoport létrehozása"
   },
   "matches": {
     "scheduled": "Tervezett",

@@ -6,7 +6,12 @@ import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { pickMiniLeaderboard } from "@/lib/leaderboard-utils";
 import { getUserBetsForTournament } from "@/queries/bets";
-import { getBatchProjectedBalances, getUserGroups } from "@/queries/groups";
+import {
+  getBatchProjectedBalances,
+  getTopPublicGroupsForTournament,
+  getUserGroups,
+  type PublicGroupSuggestion,
+} from "@/queries/groups";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
 import { getMatchesForTournament } from "@/queries/matches";
 import { getPodiumBet, getTournamentTeams } from "@/queries/podium";
@@ -42,6 +47,13 @@ export default async function TournamentDetailPage({
   const relevantGroups = userGroupMemberships.filter(
     (gm) => gm.group.tournamentId === tournament.id,
   );
+
+  // Phase 2.5: top public groups if user has no groups for this tournament
+  const topPublicGroups: PublicGroupSuggestion[] =
+    relevantGroups.length === 0
+      ? await getTopPublicGroupsForTournament(user.id, tournament.id, 2)
+      : [];
+
   const groupsForBalance = relevantGroups.map((gm) => ({
     id: gm.group.id,
     tokenPerMatch: gm.group.tokenPerMatch,
@@ -195,6 +207,7 @@ export default async function TournamentDetailPage({
         groupBetInfosByMatch={groupBetInfosByMatch}
         groupLeaderboards={groupLeaderboards}
         currentUserId={user.id}
+        topPublicGroups={topPublicGroups}
       />
     </div>
   );

@@ -54,7 +54,12 @@
     "howToPlayScoring": "Scoring",
     "howToPlayScoringDesc": "Correct winner/draw: stake × odds. Bonus for correct goal difference, and a bigger bonus for the exact score. Wrong prediction earns 0.",
     "howToPlayPodium": "Podium prediction",
-    "howToPlayPodiumDesc": "Before the tournament closes, predict the top 3 teams in order. You earn bonus tokens for each correct position."
+    "howToPlayPodiumDesc": "Before the tournament closes, predict the top 3 teams in order. You earn bonus tokens for each correct position.",
+    "noGroupYet": "You're not a member of any group yet. Join and compete!",
+    "noGroupYetShort": "You're not a member of any group yet.",
+    "noPublicGroup": "No active groups for this tournament yet.",
+    "browseGroups": "Browse groups",
+    "createGroup": "Create a group"
   },
   "matches": {
     "scheduled": "Scheduled",
