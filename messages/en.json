@@ -202,7 +202,9 @@
     "logoUrlPlaceholder": "Logo URL (empty = no logo)",
     "saveLogo": "Save",
     "logoUpdateSuccess": "Logo updated!",
-    "timezoneUpdateSuccess": "Timezone updated!"
+    "timezoneUpdateSuccess": "Timezone updated!",
+    "nameUpdateSuccess": "Name updated!",
+    "podiumDateUpdateSuccess": "Podium lock date updated!"
   },
   "join": {
     "title": "Join Group",

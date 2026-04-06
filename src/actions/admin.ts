@@ -57,6 +57,25 @@ export async function createTournament(input: CreateTournamentInput) {
   return tournament;
 }
 
+export async function updateTournamentName(tournamentId: string, name: string) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+  if (!user.isAdmin) throw new Error("Unauthorized");
+
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Name cannot be empty");
+
+  await db.update(tournaments).set({ name: trimmed }).where(eq(tournaments.id, tournamentId));
+}
+
+export async function updateTournamentPodiumLockDate(tournamentId: string, podiumLockDate: Date) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+  if (!user.isAdmin) throw new Error("Unauthorized");
+
+  await db.update(tournaments).set({ podiumLockDate }).where(eq(tournaments.id, tournamentId));
+}
+
 export async function updateTournamentTimezone(tournamentId: string, timezone: string) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");

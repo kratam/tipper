@@ -9,6 +9,8 @@ import {
   finishTournament,
   triggerSync,
   updateTournamentLogo,
+  updateTournamentName,
+  updateTournamentPodiumLockDate,
   updateTournamentStatus,
   updateTournamentTimezone,
 } from "@/actions/admin";
@@ -58,6 +60,7 @@ interface TournamentInfo {
   apiSeason: number;
   logoUrl: string | null;
   timezone: string;
+  podiumLockDate: Date;
   teams: TeamInfo[];
 }
 
@@ -89,6 +92,14 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
   // Timezone editing
   const [editingTimezoneId, setEditingTimezoneId] = useState<string | null>(null);
   const [timezoneInput, setTimezoneInput] = useState("");
+
+  // Name editing
+  const [editingNameId, setEditingNameId] = useState<string | null>(null);
+  const [nameInput, setNameInput] = useState("");
+
+  // Podium lock date editing
+  const [editingPodiumDateId, setEditingPodiumDateId] = useState<string | null>(null);
+  const [podiumDateInput, setPodiumDateInput] = useState("");
 
   function handleCreateTournament(e: React.FormEvent) {
     e.preventDefault();
@@ -145,6 +156,36 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
         setPodiumGold("");
         setPodiumSilver("");
         setPodiumBronze("");
+        router.refresh();
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        toast.error(message);
+      }
+    });
+  }
+
+  function handleSaveName(tournamentId: string) {
+    if (!nameInput.trim()) return;
+    startTransition(async () => {
+      try {
+        await updateTournamentName(tournamentId, nameInput);
+        toast.success(t("nameUpdateSuccess"));
+        setEditingNameId(null);
+        router.refresh();
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        toast.error(message);
+      }
+    });
+  }
+
+  function handleSavePodiumDate(tournamentId: string) {
+    if (!podiumDateInput) return;
+    startTransition(async () => {
+      try {
+        await updateTournamentPodiumLockDate(tournamentId, new Date(podiumDateInput));
+        toast.success(t("podiumDateUpdateSuccess"));
+        setEditingPodiumDateId(null);
         router.refresh();
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
@@ -295,6 +336,20 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                         type="button"
                         className="text-muted-foreground hover:text-foreground"
                         onClick={() => {
+                          if (editingNameId === tournament.id) {
+                            setEditingNameId(null);
+                          } else {
+                            setEditingNameId(tournament.id);
+                            setNameInput(tournament.name);
+                          }
+                        }}
+                      >
+                        <Pencil className="size-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        className="text-muted-foreground hover:text-foreground"
+                        onClick={() => {
                           if (editingLogoId === tournament.id) {
                             setEditingLogoId(null);
                           } else {
@@ -303,7 +358,8 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                           }
                         }}
                       >
-                        <Pencil className="size-3.5" />
+                        <Pencil className="size-3" />
+                        <span className="sr-only">Logo</span>
                       </button>
                     </div>
                     <span className="font-mono text-xs text-muted-foreground">
@@ -318,6 +374,28 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                           } else {
                             setEditingTimezoneId(tournament.id);
                             setTimezoneInput(tournament.timezone);
+                          }
+                        }}
+                      >
+                        <Pencil className="inline size-3" />
+                      </button>
+                    </span>
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {t("podiumLockDate")}: {new Date(tournament.podiumLockDate).toLocaleString()}
+                      <button
+                        type="button"
+                        className="ml-1 text-muted-foreground hover:text-foreground"
+                        onClick={() => {
+                          if (editingPodiumDateId === tournament.id) {
+                            setEditingPodiumDateId(null);
+                          } else {
+                            setEditingPodiumDateId(tournament.id);
+                            // Format as datetime-local value
+                            const d = new Date(tournament.podiumLockDate);
+                            const pad = (n: number) => String(n).padStart(2, "0");
+                            setPodiumDateInput(
+                              `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
+                            );
                           }
                         }}
                       >
@@ -352,6 +430,49 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                   )}
                 </div>
               </div>
+
+              {/* Name editing */}
+              {editingNameId === tournament.id && (
+                <div className="flex items-center gap-2 border-t border-border pt-3">
+                  <Input
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => handleSaveName(tournament.id)}
+                    disabled={isPending || !nameInput.trim()}
+                  >
+                    {t("saveLogo")}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingNameId(null)}>
+                    ✕
+                  </Button>
+                </div>
+              )}
+
+              {/* Podium lock date editing */}
+              {editingPodiumDateId === tournament.id && (
+                <div className="flex items-center gap-2 border-t border-border pt-3">
+                  <Input
+                    type="datetime-local"
+                    value={podiumDateInput}
+                    onChange={(e) => setPodiumDateInput(e.target.value)}
+                    className="flex-1 font-mono"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => handleSavePodiumDate(tournament.id)}
+                    disabled={isPending || !podiumDateInput}
+                  >
+                    {t("saveLogo")}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingPodiumDateId(null)}>
+                    ✕
+                  </Button>
+                </div>
+              )}
 
               {/* Logo URL editing */}
               {editingLogoId === tournament.id && (

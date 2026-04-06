@@ -30,6 +30,7 @@ export default async function AdminPage() {
       apiSeason: tour.apiSeason,
       logoUrl: tour.logoUrl,
       timezone: tour.timezone,
+      podiumLockDate: tour.podiumLockDate,
       teams: await getTournamentTeams(tour.id),
     })),
   );

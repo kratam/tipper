@@ -202,7 +202,9 @@
     "logoUrlPlaceholder": "Logó URL (üres = nincs logó)",
     "saveLogo": "Mentés",
     "logoUpdateSuccess": "Logó sikeresen frissítve!",
-    "timezoneUpdateSuccess": "Időzóna sikeresen frissítve!"
+    "timezoneUpdateSuccess": "Időzóna sikeresen frissítve!",
+    "nameUpdateSuccess": "Név sikeresen frissítve!",
+    "podiumDateUpdateSuccess": "Dobogós tipp záró dátuma sikeresen frissítve!"
   },
   "join": {
     "title": "Csatlakozás csoporthoz",
