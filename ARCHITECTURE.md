@@ -14,7 +14,9 @@ src/
     privacy/, terms/       — Statikus oldalak
   app/api/
     auth/[...path]/        — Neon Auth proxy
-    cron/sync/             — Vercel Cron endpoint (*/5 * * * *)
+    cron/nightly/          — Éjszakai cron (naponta 03:00 UTC)
+    cron/match-finish/     — QStash-triggered meccs befejezés check
+    cron/sync/             — Admin manuális sync trigger
   actions/                 — Server Actions
     admin.ts               — Tournament CRUD, sync trigger, finish with podium
     bets.ts                — Tipp leadás/módosítás, payout számítás
@@ -38,6 +40,8 @@ src/
     auth/client.ts         — Client-oldali auth utils
     auth/user-sync.ts      — getCurrentUser(), auto-sync DB-be
     api-sports.ts          — api-sports.io client (fixtures, odds, logo)
+    sync.ts                — Shared sync logika (fixtures, odds, scoring, tokens)
+    qstash.ts              — QStash client (match-finish ütemezés)
     scoring.ts             — Pontozási logika (pure, tesztelt)
     tokens.ts              — Token számítások (pure, tesztelt)
     schedule-override.ts   — Menetrend override detektálás
@@ -137,29 +141,54 @@ Pure függvények: `src/lib/scoring.ts` (tesztelve)
 
 ## Cron sync
 
-`/api/cron/sync` — Vercel cron, 5 percenként (`vercel.json`).
+Event-driven architektúra QStash-sel a Neon compute optimalizálás érdekében. A DB csak akkor ébred fel amikor tényleg szükséges.
 
-### Smart cron
+### Endpointok
 
-API hívás csak ha van rá ok:
-1. Van live meccs
-2. Van meccs ±15 percen belül induló
-3. Van meccs ±30 percen belül befejeződő (scheduledAt + 3h)
-4. Utolsó odds sync > 6 órája
+| Endpoint | Trigger | Feladat |
+|----------|---------|---------|
+| `/api/cron/nightly` | Vercel cron, naponta 03:00 UTC | Teljes sync + QStash ütemezés |
+| `/api/cron/match-finish` | QStash POST | Meccs befejezés detektálás + pontozás |
+| `/api/cron/sync` | Admin panel (manuális) | Teljes sync (admin trigger) |
 
-### Sync lépések (aktív versenysorozatonként)
+### Éjszakai cron (`/api/cron/nightly`)
 
-0. **Logo backfill** — ha `logoUrl` NULL → `/leagues?id=` API hívás
-1. **Fixtures sync** — api-sports.io → matches tábla (upsert apiGameId alapján)
-2. **Odds sync** → match_odds tábla + NULL `oddsAtBet` kitöltés meglévő tippeken
-3. **Finished meccsek pontozása** → `calculateBetPayout` → bets.payout + token_ledger win
-4. **Cancelled meccsek** → stake refund a ledger-be
-5. **Token kiosztás** — `DATE(scheduledAt) <= CURRENT_DATE`, idempotens
-6. **Schedule override** — detektálás és alkalmazás (lásd alább)
+Naponta egyszer fut (03:00 UTC), `vercel.json` cron:
 
-### Upcoming versenysorozatok
+1. **Logo backfill** — ha `logoUrl` NULL → `/leagues?id=` API hívás
+2. **Full sync** — minden active + upcoming versenysorozatra:
+   - Fixtures sync (api-sports.io → matches upsert)
+   - Odds sync (→ match_odds + NULL `oddsAtBet` kitöltés)
+   - Schedule override detektálás/alkalmazás
+   - Finished meccsek pontozása (safety net)
+   - Cancelled meccsek refund
+3. **Token kiosztás** — `DATE(scheduledAt) <= CURRENT_DATE`, idempotens
+4. **QStash ütemezés** — mai meccsekre `scheduledAt + 2h30m` időpontra match-finish check
 
-6 óránként frissítés (stale sync check az utolsó odds lekérdezés alapján).
+### Match-finish check (`/api/cron/match-finish`)
+
+QStash-ből hívva, POST. Csak fixtures sync (1 API hívás/tournament, odds nélkül):
+
+- **Finished** meccs → pontozás + payout
+- **Cancelled** meccs → refund
+- **Még live** → QStash self-reschedule 10 perc múlva
+- **Még van mai meccs** → QStash reschedule a következő meccs várható végére
+- **Minden kész** → stop → Neon elalszik
+
+### Shared sync logika
+
+`src/lib/sync.ts` — mindhárom endpoint által használt függvények:
+- `syncTournament()` — fixtures + odds + schedule overrides
+- `syncFixtures()` — csak fixtures (match-finish használja)
+- `syncOdds()` — csak odds
+- `distributeTokensForTournament()` — token kiosztás
+- `backfillTournamentLogos()` — logo feltöltés
+
+### QStash (`src/lib/qstash.ts`)
+
+Upstash QStash message queue a célzott API hívásokhoz. Free tier: 500 msg/nap.
+- `scheduleMatchFinishCheck(delaySeconds)` — POST ütemezés `/api/cron/match-finish`-re
+- Env: `QSTASH_TOKEN`
 
 ## Schedule override
 
@@ -198,11 +227,12 @@ NEON_AUTH_BASE_URL        — https://ep-....neonauth.c-2.eu-central-1.aws.neon.
 NEON_AUTH_COOKIE_SECRET   — 32+ karakter
 NEXT_PUBLIC_APP_URL       — http://localhost:3000 (lokál) / https://tippcasino.vercel.app (prod)
 CRON_SECRET               — Vercel cron endpoint védelem (Bearer token)
+QSTASH_TOKEN              — Upstash QStash API token
 ```
 
 ## Ismert korlátok
 
-- **Vercel cron**: 5 percenként (GuestGuru Pro plan)
+- **Vercel cron**: naponta 1× (03:00 UTC), QStash-sel kiegészítve
 - **api-sports.io**: 7500 request/hó
 - **Neon Auth**: saját Google OAuth credentials (Neon Console-ban konfigurálva)
 - **Eredmény**: csak regulation time (3 period), overtime nem számít
