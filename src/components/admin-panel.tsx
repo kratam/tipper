@@ -30,7 +30,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "@/i18n/navigation";
 
-const SUPPORTED_LEAGUES = [{ id: 111, name: "IIHF World Championship" }] as const;
+const SUPPORTED_LEAGUES = [
+  { id: 111, name: "IIHF World Championship" },
+  { id: 166, name: "IIHF Div1a World Championship" },
+] as const;
 
 const TIMEZONES = [
   "Europe/Budapest",
