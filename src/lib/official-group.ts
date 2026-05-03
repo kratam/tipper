@@ -1,5 +1,7 @@
-import { eq } from "drizzle-orm";
-import { users } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
+import { groupMembers, groups, users } from "@/db/schema";
+import { distributeInitialTokens } from "@/lib/tokens";
+import { generateInviteCode } from "@/lib/utils";
 
 export const SYSTEM_USER_EMAIL = "system@tippcasino.local";
 
@@ -36,4 +38,78 @@ export async function getSystemUserId(): Promise<string> {
 
   cachedSystemUserId = row.id;
   return row.id;
+}
+
+/**
+ * Create the official group for a tournament. Idempotent — if one already
+ * exists for this tournament, returns it. The system user is the owner but
+ * NOT inserted into group_members (so it doesn't appear as a member).
+ */
+export async function createOfficialGroup(tournamentId: string) {
+  const { db } = await import("@/db");
+
+  const existing = await db.query.groups.findFirst({
+    where: and(eq(groups.tournamentId, tournamentId), eq(groups.isOfficial, true)),
+  });
+  if (existing) return existing;
+
+  const ownerId = await getSystemUserId();
+
+  const [created] = await db
+    .insert(groups)
+    .values({
+      name: OFFICIAL_GROUP_NAME,
+      slug: OFFICIAL_GROUP_SLUG,
+      inviteCode: generateInviteCode(),
+      ownerId,
+      tournamentId,
+      tokenPerMatch: 100,
+      initialTokens: 200,
+      bonusGoalDiff: 5,
+      bonusExactScore: 10,
+      bonusPodiumMention: 20,
+      bonusPodiumExact: 20,
+      oddsBoost: 1.1,
+      isPublic: true,
+      isOfficial: true,
+    })
+    .returning();
+
+  return created;
+}
+
+/**
+ * Idempotent lazy auto-join. If the user is already a member of the
+ * tournament's official group → no-op. Otherwise: insert membership and
+ * distribute initial + catch-up tokens.
+ *
+ * Safe to call on every page view. If the official group doesn't exist
+ * yet (admin hasn't created the tournament via the new flow), this
+ * creates it on demand.
+ */
+export async function ensureOfficialMembership(
+  userId: string,
+  tournamentId: string,
+): Promise<void> {
+  const officialGroup = await createOfficialGroup(tournamentId);
+
+  const { db } = await import("@/db");
+
+  const existingMembership = await db.query.groupMembers.findFirst({
+    where: and(eq(groupMembers.groupId, officialGroup.id), eq(groupMembers.userId, userId)),
+  });
+  if (existingMembership) return;
+
+  await db.insert(groupMembers).values({
+    groupId: officialGroup.id,
+    userId,
+  });
+
+  await distributeInitialTokens(
+    userId,
+    officialGroup.id,
+    tournamentId,
+    officialGroup.initialTokens,
+    officialGroup.tokenPerMatch,
+  );
 }
