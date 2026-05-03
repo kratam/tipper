@@ -164,7 +164,14 @@
     "allDone": "Kész",
     "noUpcomingMatches": "Nincs meccs a következő 3 napban",
     "totalMissing": "Összesen {count} tipp hiányzik",
-    "allBetsDone": "Minden tipp leadva a következő 3 napra"
+    "allBetsDone": "Minden tipp leadva a következő 3 napra",
+    "officialBadge": "Hivatalos",
+    "viewDetails": "Részletek",
+    "myRank": "Helyezésed",
+    "myProfit": "Profitod",
+    "officialGroupNameReserved": "Ez a név fenntartva a hivatalos csoportoknak",
+    "cannotDeleteOfficial": "Hivatalos csoport nem törölhető",
+    "cannotLeaveOfficial": "Hivatalos csoportból nem lehet kilépni"
   },
   "podium": {
     "title": "Dobogós tipp",
