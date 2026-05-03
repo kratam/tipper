@@ -6,6 +6,7 @@ import { groupMembers, groups, podiumBets, tokenLedger, tournaments } from "@/db
 import { fetchLeagueLogoUrl } from "@/lib/api-sports";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { calculatePodiumPoints } from "@/lib/scoring";
+import { backfillTournamentLogos, distributeTokensForTournament, syncTournament } from "@/lib/sync";
 import { slugify } from "@/lib/utils";
 
 export async function triggerSync() {
@@ -13,16 +14,49 @@ export async function triggerSync() {
   if (!user) throw new Error("Not authenticated");
   if (!user.isAdmin) throw new Error("Unauthorized");
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/cron/sync`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${process.env.CRON_SECRET}`,
-    },
+  const activeTournaments = await db.query.tournaments.findMany({
+    where: eq(tournaments.status, "active"),
   });
+  const upcomingTournaments = await db.query.tournaments.findMany({
+    where: eq(tournaments.status, "upcoming"),
+  });
+  const allTournaments = [...activeTournaments, ...upcomingTournaments];
 
-  if (!res.ok) throw new Error("Sync failed");
-  return res.json();
+  await backfillTournamentLogos(allTournaments);
+
+  const errors: { name: string; error: string }[] = [];
+
+  for (const tournament of allTournaments) {
+    try {
+      await syncTournament(tournament);
+    } catch (e) {
+      errors.push({
+        name: tournament.name,
+        error: e instanceof Error ? e.message : "Unknown error",
+      });
+    }
+  }
+
+  for (const tournament of activeTournaments) {
+    try {
+      await distributeTokensForTournament(tournament.id);
+    } catch (e) {
+      errors.push({
+        name: tournament.name,
+        error: e instanceof Error ? e.message : "Unknown error",
+      });
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`Sync errors: ${errors.map((x) => `${x.name}: ${x.error}`).join("; ")}`);
+  }
+
+  return {
+    ok: true,
+    synced: allTournaments.length,
+    tokenDistribution: activeTournaments.length,
+  };
 }
 
 interface CreateTournamentInput {
