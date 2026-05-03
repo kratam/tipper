@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { BetDialog } from "@/components/bet-dialog";
 import { GroupTokenSummary } from "@/components/group-token-summary";
 import { MatchCard, type MatchCardData } from "@/components/match-card";
+import { OfficialGroupCard } from "@/components/official-group-card";
 import { PodiumForm } from "@/components/podium-form";
 import {
   Accordion,
@@ -62,6 +63,18 @@ interface GroupLeaderboardData {
   miniLeaderboard: MiniLeaderboardEntry[];
 }
 
+interface OfficialCardData {
+  groupId: string;
+  groupName: string;
+  groupSlug: string;
+  tournamentSlug: string;
+  oddsBoost: number;
+  tokenPerMatch: number;
+  myProfit: number;
+  myRank: number | null;
+  miniLeaderboard: MiniLeaderboardEntry[];
+}
+
 interface TournamentTabsProps {
   matches: MatchCardData[];
   tournamentId: string;
@@ -73,6 +86,7 @@ interface TournamentTabsProps {
   groupLeaderboards: GroupLeaderboardData[];
   currentUserId: string;
   topPublicGroups?: PublicGroupSuggestion[];
+  officialCard: OfficialCardData | null;
 }
 
 type MatchFilter = "upcoming" | "played" | "all";
@@ -118,6 +132,7 @@ export function TournamentTabs({
   groupLeaderboards,
   currentUserId,
   topPublicGroups = [],
+  officialCard,
 }: TournamentTabsProps) {
   const t = useTranslations("tournaments");
   const tMatches = useTranslations("matches");
@@ -130,12 +145,25 @@ export function TournamentTabs({
   // Live polling: merge fresh score/status/bet data from SWR
   const liveMatches = useMatchPolling(tournamentId, matches);
 
+  // Ensure the official group is always first inside each match's group list
+  const sortedGroupInfosByMatch = useMemo(() => {
+    const result: Record<string, GroupBetInfo[]> = {};
+    for (const [matchId, groupInfos] of Object.entries(groupBetInfosByMatch)) {
+      result[matchId] = [...groupInfos].sort((a, b) => {
+        if (a.groupId === officialCard?.groupId) return -1;
+        if (b.groupId === officialCard?.groupId) return 1;
+        return 0;
+      });
+    }
+    return result;
+  }, [groupBetInfosByMatch, officialCard?.groupId]);
+
   // Per-group card data: merge leaderboard info with unbetted counts and balance
   const groupCardData = useMemo(() => {
     const unbettedMap = new Map<string, number>();
     for (const match of liveMatches) {
       if (match.status !== "scheduled") continue;
-      const groupInfos = groupBetInfosByMatch[match.id] ?? [];
+      const groupInfos = sortedGroupInfosByMatch[match.id] ?? [];
       for (const gi of groupInfos) {
         if (!gi.existingBet) {
           unbettedMap.set(gi.groupId, (unbettedMap.get(gi.groupId) ?? 0) + 1);
@@ -147,7 +175,7 @@ export function TournamentTabs({
       ...gl,
       unbettedCount: unbettedMap.get(gl.groupId) ?? 0,
     }));
-  }, [liveMatches, groupBetInfosByMatch, groupLeaderboards]);
+  }, [liveMatches, sortedGroupInfosByMatch, groupLeaderboards]);
 
   // Group matches by day
   const dayGroups = useMemo(() => {
@@ -200,7 +228,7 @@ export function TournamentTabs({
     const result: Record<string, number> = {};
     for (const match of day.matches) {
       if (match.status !== "scheduled") continue;
-      const groupInfos = groupBetInfosByMatch[match.id] ?? [];
+      const groupInfos = sortedGroupInfosByMatch[match.id] ?? [];
       for (const gi of groupInfos) {
         if (!gi.existingBet) {
           result[gi.groupId] = (result[gi.groupId] ?? 0) + 1;
@@ -208,7 +236,7 @@ export function TournamentTabs({
       }
     }
     return result;
-  }, [selectedMatch, dayGroups, groupBetInfosByMatch, timezone]);
+  }, [selectedMatch, dayGroups, sortedGroupInfosByMatch, timezone]);
 
   function handleMatchClick(match: MatchCardData) {
     setSelectedMatch(match);
@@ -217,6 +245,20 @@ export function TournamentTabs({
 
   return (
     <>
+      {officialCard && (
+        <div className="mb-4">
+          <OfficialGroupCard
+            groupName={officialCard.groupName}
+            groupSlug={officialCard.groupSlug}
+            tournamentSlug={officialCard.tournamentSlug}
+            oddsBoost={officialCard.oddsBoost}
+            myProfit={officialCard.myProfit}
+            myRank={officialCard.myRank}
+            miniLeaderboard={officialCard.miniLeaderboard}
+            currentUserId={currentUserId}
+          />
+        </div>
+      )}
       <Tabs defaultValue="matches">
         <TabsList>
           <TabsTrigger value="matches">{t("matches")}</TabsTrigger>
@@ -280,7 +322,7 @@ export function TournamentTabs({
                       <span className="text-muted-foreground text-xs">
                         {t("betProgress", {
                           betCount: day.matches.filter((m) =>
-                            groupBetInfosByMatch[m.id]?.some((g) => g.existingBet),
+                            sortedGroupInfosByMatch[m.id]?.some((g) => g.existingBet),
                           ).length,
                           total: day.matches.length,
                         })}
@@ -320,7 +362,7 @@ export function TournamentTabs({
         match={selectedMatch}
         groups={
           selectedMatch
-            ? (groupBetInfosByMatch[selectedMatch.id] ?? []).map((g) => ({
+            ? (sortedGroupInfosByMatch[selectedMatch.id] ?? []).map((g) => ({
                 ...g,
                 unbettedMatchCountOnDay: Math.max(
                   1,
