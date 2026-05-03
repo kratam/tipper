@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { bets, groupMembers, groups, tokenLedger, tournaments } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { isReservedOfficialSlug } from "@/lib/official-group";
 import { distributeInitialTokens } from "@/lib/tokens";
 import { generateInviteCode, slugify } from "@/lib/utils";
 import { getGroupByInviteCode } from "@/queries/groups";
@@ -37,6 +38,9 @@ export async function createGroup(input: CreateGroupInput) {
   if (!tournament) throw new Error("Tournament not found");
 
   const slug = slugify(input.name);
+  if (isReservedOfficialSlug(slug)) {
+    throw new Error("officialGroupNameReserved");
+  }
   const inviteCode = generateInviteCode();
 
   const [group] = await db
