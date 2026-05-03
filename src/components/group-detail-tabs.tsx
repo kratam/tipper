@@ -70,6 +70,8 @@ interface GroupBet {
 interface GroupDetailTabsProps {
   groupId: string;
   isOwner: boolean;
+  isOfficial: boolean;
+  canEditSettings: boolean;
   currentUserId: string;
   tournamentStatus: string;
   isPublic: boolean;
@@ -84,6 +86,8 @@ interface GroupDetailTabsProps {
 export function GroupDetailTabs({
   groupId,
   isOwner,
+  isOfficial,
+  canEditSettings,
   currentUserId,
   tournamentStatus,
   isPublic,
@@ -167,7 +171,7 @@ export function GroupDetailTabs({
       <TabsList>
         <TabsTrigger value="leaderboard">{t("leaderboard")}</TabsTrigger>
         <TabsTrigger value="results">{t("results")}</TabsTrigger>
-        {isOwner && <TabsTrigger value="settings">{t("settings")}</TabsTrigger>}
+        {canEditSettings && <TabsTrigger value="settings">{t("settings")}</TabsTrigger>}
       </TabsList>
 
       {/* Leaderboard */}
@@ -217,8 +221,8 @@ export function GroupDetailTabs({
           </CardContent>
         </Card>
 
-        {/* Leave group button (non-owners only) */}
-        {!isOwner && (
+        {/* Leave group button (non-owners, non-official only) */}
+        {!isOwner && !isOfficial && (
           <Button
             variant="outline"
             size="sm"
@@ -242,8 +246,8 @@ export function GroupDetailTabs({
         />
       </TabsContent>
 
-      {/* Settings (owner only) */}
-      {isOwner && (
+      {/* Settings (owner or admin-on-official) */}
+      {canEditSettings && (
         <TabsContent value="settings" className="mt-4 flex flex-col gap-4">
           {/* Public & Description — always editable */}
           <Card>
@@ -394,19 +398,23 @@ export function GroupDetailTabs({
             </CardContent>
           </Card>
 
-          <Separator />
+          {!isOfficial && (
+            <>
+              <Separator />
 
-          {/* Delete group */}
-          <Button
-            variant="destructive"
-            size="sm"
-            className="w-fit gap-2"
-            onClick={() => handleDeleteGroup()}
-            disabled={isPending}
-          >
-            <Trash2 className="size-4" />
-            {t("deleteGroup")}
-          </Button>
+              {/* Delete group */}
+              <Button
+                variant="destructive"
+                size="sm"
+                className="w-fit gap-2"
+                onClick={() => handleDeleteGroup()}
+                disabled={isPending}
+              >
+                <Trash2 className="size-4" />
+                {t("deleteGroup")}
+              </Button>
+            </>
+          )}
         </TabsContent>
       )}
     </Tabs>

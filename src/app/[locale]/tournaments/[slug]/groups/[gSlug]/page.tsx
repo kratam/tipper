@@ -34,6 +34,7 @@ export default async function GroupDetailPage({
   ]);
 
   const isOwner = group.ownerId === user.id;
+  const canEditSettings = isOwner || (user.isAdmin && group.isOfficial);
   const isMember = group.members.some((m) => m.userId === user.id);
 
   if (!isMember) {
@@ -58,6 +59,8 @@ export default async function GroupDetailPage({
       <GroupDetailTabs
         groupId={group.id}
         isOwner={isOwner}
+        isOfficial={group.isOfficial}
+        canEditSettings={canEditSettings}
         currentUserId={user.id}
         isPublic={group.isPublic}
         description={group.description}
