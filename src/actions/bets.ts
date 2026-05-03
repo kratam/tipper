@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { bets, groupMembers, groups, matches, tokenLedger } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { ensureOfficialMembership } from "@/lib/official-group";
 import { getRelevantOdds } from "@/lib/tokens";
 import { getProjectedBalance } from "@/queries/groups";
 import { getLatestOdds } from "@/queries/matches";
@@ -24,6 +25,19 @@ export async function placeBet(input: PlaceBetInput): Promise<ActionResult> {
 
   const { matchId, groupId, predictedHome, predictedAway, stake } = input;
 
+  const group = await db.query.groups.findFirst({
+    where: eq(groups.id, groupId),
+  });
+  if (!group) return { success: false, error: "Group not found" };
+
+  // Safety net: auto-join the official group if the user isn't a member yet.
+  // The tournament page normally handles this on visit, but if a user
+  // somehow reaches placeBet without going through the page, this catches
+  // it. Idempotent — no-op if already a member.
+  if (group.isOfficial) {
+    await ensureOfficialMembership(user.id, group.tournamentId);
+  }
+
   // Verify membership
   const membership = await db.query.groupMembers.findFirst({
     where: and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, user.id)),
@@ -39,12 +53,6 @@ export async function placeBet(input: PlaceBetInput): Promise<ActionResult> {
     return { success: false, error: "Match already started or finished" };
   if (matchRow.scheduledAt <= new Date())
     return { success: false, error: "Match has already started" };
-
-  // Get group info for tournamentId
-  const group = await db.query.groups.findFirst({
-    where: eq(groups.id, groupId),
-  });
-  if (!group) return { success: false, error: "Group not found" };
 
   // Get latest odds
   const latestOdds = await getLatestOdds(matchId);
