@@ -127,6 +127,7 @@ export const groups = pgTable(
     isPublic: boolean("is_public").default(false).notNull(),
     description: text("description"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    isOfficial: boolean("is_official").default(false).notNull(),
   },
   (table) => [uniqueIndex("group_tournament_slug_idx").on(table.tournamentId, table.slug)],
 );

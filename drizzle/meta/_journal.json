@@ -85,6 +85,13 @@
       "when": 1775242248009,
       "tag": "0011_podium_bets_remove_group",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1777140000000,
+      "tag": "0012_official_group",
+      "breakpoints": true
     }
   ]
 }
