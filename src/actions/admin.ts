@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { groupMembers, groups, podiumBets, tokenLedger, tournaments } from "@/db/schema";
 import { fetchLeagueLogoUrl } from "@/lib/api-sports";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { createOfficialGroup } from "@/lib/official-group";
 import { calculatePodiumPoints } from "@/lib/scoring";
 import { backfillTournamentLogos, distributeTokensForTournament, syncTournament } from "@/lib/sync";
 import { slugify } from "@/lib/utils";
@@ -87,6 +88,11 @@ export async function createTournament(input: CreateTournamentInput) {
       logoUrl,
     })
     .returning();
+
+  // Auto-create the official group for this tournament. If this fails the
+  // tournament still exists — the backfill SQL is idempotent and can be
+  // re-run to add the official group later.
+  await createOfficialGroup(tournament.id);
 
   return tournament;
 }
