@@ -163,7 +163,8 @@ export async function updateGroupSettings(groupId: string, settings: GroupSettin
     with: { tournament: true },
   });
   if (!group) throw new Error("Group not found");
-  if (group.ownerId !== user.id) throw new Error("Unauthorized");
+  const canEdit = group.ownerId === user.id || (user.isAdmin && group.isOfficial);
+  if (!canEdit) throw new Error("Unauthorized");
 
   // isPublic and description can always be changed
   // Game rules can only be changed when tournament is upcoming
