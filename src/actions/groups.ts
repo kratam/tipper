@@ -207,6 +207,7 @@ export async function deleteGroup(groupId: string) {
     where: eq(groups.id, groupId),
   });
   if (!group) throw new Error("Group not found");
+  if (group.isOfficial) throw new Error("cannotDeleteOfficial");
   if (group.ownerId !== user.id) throw new Error("Unauthorized");
 
   // Delete in FK order (podium bets are tournament-scoped, not group-scoped)
@@ -224,6 +225,7 @@ export async function leaveGroup(groupId: string) {
     where: eq(groups.id, groupId),
   });
   if (!group) throw new Error("Group not found");
+  if (group.isOfficial) throw new Error("cannotLeaveOfficial");
   if (group.ownerId === user.id) {
     throw new Error("Owner cannot leave the group. Transfer ownership or delete the group.");
   }
