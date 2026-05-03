@@ -24,7 +24,8 @@ INSERT INTO groups (
 SELECT
   'Hivatalos',
   'hivatalos',
-  encode(gen_random_bytes(6), 'hex'),
+  -- 12-char hex from gen_random_uuid (pgcrypto's gen_random_bytes is not always available on Neon)
+  SUBSTRING(REPLACE(gen_random_uuid()::text, '-', '') FROM 1 FOR 12),
   (SELECT id FROM users WHERE email = 'system@tippcasino.local'),
   t.id,
   100, 200, 5, 10, 20, 20, 1.1, true, true
