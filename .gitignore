@@ -41,3 +41,7 @@ yarn-error.log*
 next-env.d.ts
 .superpowers/
 .worktrees/
+
+# playwright mcp test artifacts (root-only screenshots)
+.playwright-mcp/
+/*.png
