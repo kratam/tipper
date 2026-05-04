@@ -63,6 +63,7 @@ export default async function TournamentDetailPage({
 
   const groupsForBalance = relevantGroups.map((gm) => ({
     id: gm.group.id,
+    initialTokens: gm.group.initialTokens,
     tokenPerMatch: gm.group.tokenPerMatch,
   }));
 

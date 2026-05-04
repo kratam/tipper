@@ -2,6 +2,7 @@ import "server-only";
 import { and, eq, inArray, notInArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { bets, groupMembers, groups, matches, tokenLedger, tournaments } from "@/db/schema";
+import { computeProjectedFromCumulativeBudget, dateToDateNum } from "@/lib/tokens";
 
 export async function getUserGroups(userId: string) {
   return db.query.groupMembers.findMany({
@@ -59,13 +60,29 @@ export async function getTokenBalance(userId: string, groupId: string): Promise<
 }
 
 /**
- * Calculate projected balance for a user in a group for a specific match day.
- * projected = actual + pending_up_to_day × tokenPerMatch - futureBetsNet
+ * Calculate projected balance — i.e. the maximum new stake the user may place
+ * on the target match.
  *
- * Day-scoped pending ensures future-day tokens can't be spent on earlier days.
- * The futureBetsNet correction undoes the effect of bets placed on later-day
- * matches — those bets reduced actual but are backed by later distributions,
- * so they shouldn't limit the current day's budget.
+ * Model: a user's lifetime budget at any point in time is
+ *   initialTokens + tokenPerMatch × (matches whose date has arrived).
+ * Active bets reduce that budget. A bet on a future match implicitly borrows
+ * against tokens that haven't been distributed yet, so the constraint is:
+ *
+ *   for every cutoff date D' ≥ targetDay:
+ *     sum(stakes for active bets on matches with date ≤ D')
+ *       ≤ initialTokens + tokenPerMatch × (matches with date ≤ D')
+ *
+ * The projected balance is the smallest slack across all such D'. This
+ * prevents a user from placing a future-day bet that exceeds the cumulative
+ * budget available by that day, while still allowing them to "earmark"
+ * upcoming distributions for a future-day stake.
+ *
+ * actual / pending in the return value preserve the legacy meaning used by
+ * the bet-form tooltip:
+ *   actual  = real ledger sum minus the effect of bets on matches after the
+ *             target day (so the tooltip shows what's "really there" today).
+ *   pending = count of matches on or before the target day that haven't
+ *             been distributed yet.
  */
 export async function getProjectedBalance(
   userId: string,
@@ -83,53 +100,63 @@ export async function getProjectedBalance(
   if (!targetMatch)
     return { projected: 0, actual: 0, pending: 0, tokenPerMatch: group.tokenPerMatch };
 
-  const actual = await getTokenBalance(userId, groupId);
-
-  // Pending distributions for matches on Day ≤ target day
-  const pendingResult = await db
-    .select({ count: sql<number>`count(*)` })
+  // Fetch every non-cancelled match in the tournament (date + id only).
+  const tournamentMatches = await db
+    .select({ id: matches.id, scheduledAt: matches.scheduledAt })
     .from(matches)
     .where(
-      and(
-        eq(matches.tournamentId, group.tournamentId),
-        eq(matches.status, "scheduled"),
-        sql`DATE(${matches.scheduledAt}) <= DATE(${targetMatch.scheduledAt})`,
-        sql`NOT EXISTS (
-          SELECT 1 FROM token_ledger tl
-          WHERE tl.user_id = ${userId}
-            AND tl.group_id = ${groupId}
-            AND tl.type = 'distribution'
-            AND tl.reference_id = ${matches.id}
-        )`,
-      ),
+      and(eq(matches.tournamentId, group.tournamentId), sql`${matches.status} <> 'cancelled'`),
     );
-  const pending = Number(pendingResult[0].count);
 
-  // Correction: net effect of bets/refunds on matches AFTER target day.
-  // These reduced actual but are backed by later-day distributions,
-  // so subtract them to restore the current day's true budget.
-  const futureBetsResult = await db
-    .select({
-      net: sql<number>`COALESCE(SUM(${tokenLedger.amount}), 0)`,
-    })
-    .from(tokenLedger)
-    .innerJoin(bets, eq(tokenLedger.referenceId, bets.id))
+  // Active-bet stakes joined to their match dates.
+  const activeBetRows = await db
+    .select({ stake: bets.stake, scheduledAt: matches.scheduledAt })
+    .from(bets)
     .innerJoin(matches, eq(bets.matchId, matches.id))
+    .where(and(eq(bets.userId, userId), eq(bets.groupId, groupId)));
+
+  // Already-distributed matchIds for this user (drives the tooltip's pending count).
+  const distributionRows = await db
+    .select({ matchId: tokenLedger.referenceId })
+    .from(tokenLedger)
     .where(
       and(
         eq(tokenLedger.userId, userId),
         eq(tokenLedger.groupId, groupId),
-        inArray(tokenLedger.type, ["bet", "refund"]),
-        sql`DATE(${matches.scheduledAt}) > DATE(${targetMatch.scheduledAt})`,
+        eq(tokenLedger.type, "distribution"),
+        sql`${tokenLedger.referenceId} IS NOT NULL`,
       ),
     );
-  const futureBetsNet = Number(futureBetsResult[0]?.net ?? 0);
+  const distributedSet = new Set(distributionRows.map((r) => r.matchId).filter((x) => x !== null));
 
-  // Day-scoped actual: exclude the effect of future-day bets
-  const dayActual = actual - futureBetsNet;
-  const projected = dayActual + pending * group.tokenPerMatch;
+  const targetDateNum = dateToDateNum(targetMatch.scheduledAt);
+  const projected = computeProjectedFromCumulativeBudget({
+    initialTokens: group.initialTokens,
+    tokenPerMatch: group.tokenPerMatch,
+    targetDateNum,
+    matchDates: tournamentMatches.map((m) => dateToDateNum(m.scheduledAt)),
+    activeBets: activeBetRows.map((b) => ({
+      stake: b.stake,
+      dateNum: dateToDateNum(b.scheduledAt),
+    })),
+  });
 
-  return { projected, actual: dayActual, pending, tokenPerMatch: group.tokenPerMatch };
+  // Tooltip values (legacy semantics)
+  const actual = await getTokenBalance(userId, groupId);
+  const futureBetsNet = activeBetRows
+    .filter((b) => dateToDateNum(b.scheduledAt) > targetDateNum)
+    .reduce((sum, b) => sum - b.stake, 0); // bets are negative ledger entries
+  const tooltipActual = actual - futureBetsNet;
+  const pending = tournamentMatches.filter(
+    (m) => dateToDateNum(m.scheduledAt) <= targetDateNum && !distributedSet.has(m.id),
+  ).length;
+
+  return {
+    projected,
+    actual: tooltipActual,
+    pending,
+    tokenPerMatch: group.tokenPerMatch,
+  };
 }
 
 /**
@@ -157,14 +184,15 @@ export async function getUserProfit(userId: string, groupId: string): Promise<nu
 }
 
 /**
- * Batch-compute projected balances for all (group, match) pairs in 3 DB queries.
- * Returns result[matchId][groupId] = { projected, actual, pending, tokenPerMatch }
+ * Batch-compute projected balances for all (group, match) pairs.
+ * Returns result[matchId][groupId] = { projected, actual, pending, tokenPerMatch }.
  *
- * Replaces N×M sequential getProjectedBalance calls on the tournament page.
+ * See getProjectedBalance for the underlying budget model. This batch variant
+ * fetches all data in 3 queries and does the per-pair work in memory.
  */
 export async function getBatchProjectedBalances(
   userId: string,
-  groupsData: Array<{ id: string; tokenPerMatch: number }>,
+  groupsData: Array<{ id: string; initialTokens: number; tokenPerMatch: number }>,
   allMatches: Array<{ id: string; scheduledAt: Date; status: string }>,
 ): Promise<
   Record<
@@ -176,7 +204,7 @@ export async function getBatchProjectedBalances(
 
   const groupIds = groupsData.map((g) => g.id);
 
-  // Query 1: actual balances per group
+  // Query 1: actual ledger sum per group
   const balanceRows = await db
     .select({
       groupId: tokenLedger.groupId,
@@ -190,7 +218,7 @@ export async function getBatchProjectedBalances(
     balanceRows.map((r) => [r.groupId, Number(r.balance)]),
   );
 
-  // Query 2: already-distributed matchIds per group
+  // Query 2: already-distributed matchIds per group (drives tooltip pending count)
   const distributionRows = await db
     .select({ groupId: tokenLedger.groupId, matchId: tokenLedger.referenceId })
     .from(tokenLedger)
@@ -206,46 +234,32 @@ export async function getBatchProjectedBalances(
   for (const r of distributionRows) {
     if (!r.matchId) continue;
     if (!distributedByGroup.has(r.groupId)) distributedByGroup.set(r.groupId, new Set());
-    const groupSet = distributedByGroup.get(r.groupId);
-    if (groupSet) groupSet.add(r.matchId);
+    distributedByGroup.get(r.groupId)?.add(r.matchId);
   }
 
-  // Query 3: bet/refund ledger entries with match references (for future-day correction)
-  const betRefundRows = await db
+  // Query 3: active bets joined with their match dates per group
+  const activeBetRows = await db
     .select({
-      groupId: tokenLedger.groupId,
-      amount: tokenLedger.amount,
+      groupId: bets.groupId,
+      stake: bets.stake,
       matchId: bets.matchId,
+      scheduledAt: matches.scheduledAt,
     })
-    .from(tokenLedger)
-    .innerJoin(bets, eq(tokenLedger.referenceId, bets.id))
-    .where(
-      and(
-        eq(tokenLedger.userId, userId),
-        inArray(tokenLedger.groupId, groupIds),
-        inArray(tokenLedger.type, ["bet", "refund"]),
-      ),
-    );
+    .from(bets)
+    .innerJoin(matches, eq(bets.matchId, matches.id))
+    .where(and(eq(bets.userId, userId), inArray(bets.groupId, groupIds)));
 
-  // In-memory computation — same logic as getProjectedBalance but for all pairs.
-  // DATE comparison uses UTC (consistent with PostgreSQL default timezone)
-  const toDateNum = (d: Date) =>
-    d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+  // Eligible matches for budget (non-cancelled tournament matches we're computing for)
+  const budgetMatches = allMatches.filter((m) => m.status !== "cancelled");
+  const matchDates = budgetMatches.map((m) => dateToDateNum(m.scheduledAt));
 
-  const scheduledMatches = allMatches.filter((m) => m.status === "scheduled");
-  const matchDateMap = new Map(allMatches.map((m) => [m.id, toDateNum(m.scheduledAt)]));
-
-  // Index betRefundRows by groupId for efficient lookup
-  const betRefundByGroup = new Map<string, Array<{ amount: number; dateNum: number }>>();
-  for (const r of betRefundRows) {
-    const dateNum = matchDateMap.get(r.matchId);
-    if (dateNum === undefined) continue;
-    const existing = betRefundByGroup.get(r.groupId);
-    if (existing) {
-      existing.push({ amount: Number(r.amount), dateNum });
-    } else {
-      betRefundByGroup.set(r.groupId, [{ amount: Number(r.amount), dateNum }]);
-    }
+  // Index active bets by group
+  const activeBetsByGroup = new Map<string, Array<{ stake: number; dateNum: number }>>();
+  for (const r of activeBetRows) {
+    const entry = { stake: r.stake, dateNum: dateToDateNum(r.scheduledAt) };
+    const existing = activeBetsByGroup.get(r.groupId);
+    if (existing) existing.push(entry);
+    else activeBetsByGroup.set(r.groupId, [entry]);
   }
 
   const result: Record<
@@ -255,28 +269,33 @@ export async function getBatchProjectedBalances(
 
   for (const match of allMatches) {
     result[match.id] = {};
-    const matchDateNum = toDateNum(match.scheduledAt);
+    const targetDateNum = dateToDateNum(match.scheduledAt);
 
     for (const group of groupsData) {
       const actual = actualByGroup.get(group.id) ?? 0;
       const distributed = distributedByGroup.get(group.id) ?? new Set<string>();
+      const activeBets = activeBetsByGroup.get(group.id) ?? [];
 
-      const pending = scheduledMatches.filter(
-        (m) => toDateNum(m.scheduledAt) <= matchDateNum && !distributed.has(m.id),
+      const projected = computeProjectedFromCumulativeBudget({
+        initialTokens: group.initialTokens,
+        tokenPerMatch: group.tokenPerMatch,
+        targetDateNum,
+        matchDates,
+        activeBets,
+      });
+
+      const futureBetsNet = activeBets
+        .filter((b) => b.dateNum > targetDateNum)
+        .reduce((sum, b) => sum - b.stake, 0); // bets are negative ledger entries
+      const tooltipActual = actual - futureBetsNet;
+
+      const pending = budgetMatches.filter(
+        (m) => dateToDateNum(m.scheduledAt) <= targetDateNum && !distributed.has(m.id),
       ).length;
 
-      // Correction: undo effect of bets/refunds on matches AFTER this day
-      const groupBetRefunds = betRefundByGroup.get(group.id) ?? [];
-      const futureBetsNet = groupBetRefunds
-        .filter((r) => r.dateNum > matchDateNum)
-        .reduce((sum, r) => sum + r.amount, 0);
-
-      // Day-scoped actual: exclude the effect of future-day bets
-      const dayActual = actual - futureBetsNet;
-
       result[match.id][group.id] = {
-        projected: dayActual + pending * group.tokenPerMatch,
-        actual: dayActual,
+        projected,
+        actual: tooltipActual,
         pending,
         tokenPerMatch: group.tokenPerMatch,
       };

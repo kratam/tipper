@@ -98,13 +98,17 @@ export async function ensureOfficialMembership(
   const existingMembership = await db.query.groupMembers.findFirst({
     where: and(eq(groupMembers.groupId, officialGroup.id), eq(groupMembers.userId, userId)),
   });
-  if (existingMembership) return;
 
-  await db.insert(groupMembers).values({
-    groupId: officialGroup.id,
-    userId,
-  });
+  if (!existingMembership) {
+    await db.insert(groupMembers).values({
+      groupId: officialGroup.id,
+      userId,
+    });
+  }
 
+  // Always run — distributeInitialTokens is idempotent and back-fills any
+  // catch-up tokens for matches whose date has arrived since the user
+  // last visited (cheap NOT EXISTS check per match).
   await distributeInitialTokens(
     userId,
     officialGroup.id,
