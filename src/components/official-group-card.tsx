@@ -38,12 +38,12 @@ export function OfficialGroupCard({
   const t = useTranslations("groups");
 
   return (
-    <Card className="border-amber-500/40 bg-gradient-to-br from-amber-500/5 to-transparent">
+    <Card className="ring-2 ring-amber-500/50">
       <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
         <div className="flex items-center gap-2">
           <Crown className="size-5 text-amber-500" />
           <CardTitle className="text-base">{groupName}</CardTitle>
-          <Badge variant="outline" className="border-amber-500/40 text-amber-600">
+          <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-700">
             {t("officialBadge")}
           </Badge>
         </div>
