@@ -23,7 +23,7 @@ export async function TournamentBetCard({
   return (
     <Link
       href={`/tournaments/${tournamentSlug}`}
-      className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-accent/50"
+      className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:bg-accent hover:ring-1 hover:ring-foreground/15"
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-3">

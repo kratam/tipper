@@ -1,10 +1,12 @@
 "use server";
 
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { bets, groupMembers, groups, tokenLedger, tournaments } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { isReservedOfficialSlug } from "@/lib/official-group";
+import { distributeInitialTokens } from "@/lib/tokens";
 import { generateInviteCode, slugify } from "@/lib/utils";
 import { getGroupByInviteCode } from "@/queries/groups";
 
@@ -36,6 +38,9 @@ export async function createGroup(input: CreateGroupInput) {
   if (!tournament) throw new Error("Tournament not found");
 
   const slug = slugify(input.name);
+  if (isReservedOfficialSlug(slug)) {
+    throw new Error("officialGroupNameReserved");
+  }
   const inviteCode = generateInviteCode();
 
   const [group] = await db
@@ -158,7 +163,8 @@ export async function updateGroupSettings(groupId: string, settings: GroupSettin
     with: { tournament: true },
   });
   if (!group) throw new Error("Group not found");
-  if (group.ownerId !== user.id) throw new Error("Unauthorized");
+  const canEdit = group.ownerId === user.id || (user.isAdmin && group.isOfficial);
+  if (!canEdit) throw new Error("Unauthorized");
 
   // isPublic and description can always be changed
   // Game rules can only be changed when tournament is upcoming
@@ -202,6 +208,7 @@ export async function deleteGroup(groupId: string) {
     where: eq(groups.id, groupId),
   });
   if (!group) throw new Error("Group not found");
+  if (group.isOfficial) throw new Error("cannotDeleteOfficial");
   if (group.ownerId !== user.id) throw new Error("Unauthorized");
 
   // Delete in FK order (podium bets are tournament-scoped, not group-scoped)
@@ -219,6 +226,7 @@ export async function leaveGroup(groupId: string) {
     where: eq(groups.id, groupId),
   });
   if (!group) throw new Error("Group not found");
+  if (group.isOfficial) throw new Error("cannotLeaveOfficial");
   if (group.ownerId === user.id) {
     throw new Error("Owner cannot leave the group. Transfer ownership or delete the group.");
   }
@@ -226,78 +234,4 @@ export async function leaveGroup(groupId: string) {
   await db
     .delete(groupMembers)
     .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, user.id)));
-}
-
-/**
- * Give a user their initial tokens + catch-up tokens for all matches
- * that have already been distributed in this group.
- */
-async function distributeInitialTokens(
-  userId: string,
-  groupId: string,
-  tournamentId: string,
-  initialTokens: number,
-  tokenPerMatch: number,
-): Promise<void> {
-  // 1. Initial tokens (one-time, referenceId=NULL)
-  const existingInitial = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(tokenLedger)
-    .where(
-      and(
-        eq(tokenLedger.userId, userId),
-        eq(tokenLedger.groupId, groupId),
-        eq(tokenLedger.type, "distribution"),
-        sql`${tokenLedger.referenceId} IS NULL`,
-      ),
-    );
-
-  if (Number(existingInitial[0].count) === 0) {
-    await db.insert(tokenLedger).values({
-      userId,
-      groupId,
-      tournamentId,
-      amount: initialTokens,
-      type: "distribution",
-    });
-  }
-
-  // 2. Catch-up: find all matches that have been distributed to ANY member in this group
-  const distributedMatchIds = await db
-    .selectDistinct({ matchId: tokenLedger.referenceId })
-    .from(tokenLedger)
-    .where(
-      and(
-        eq(tokenLedger.groupId, groupId),
-        eq(tokenLedger.type, "distribution"),
-        sql`${tokenLedger.referenceId} IS NOT NULL`,
-      ),
-    );
-
-  for (const { matchId } of distributedMatchIds) {
-    if (!matchId) continue;
-
-    const existing = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(tokenLedger)
-      .where(
-        and(
-          eq(tokenLedger.userId, userId),
-          eq(tokenLedger.groupId, groupId),
-          eq(tokenLedger.type, "distribution"),
-          eq(tokenLedger.referenceId, matchId),
-        ),
-      );
-
-    if (Number(existing[0].count) > 0) continue;
-
-    await db.insert(tokenLedger).values({
-      userId,
-      groupId,
-      tournamentId,
-      amount: tokenPerMatch,
-      type: "distribution",
-      referenceId: matchId,
-    });
-  }
 }

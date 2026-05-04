@@ -297,6 +297,7 @@ export async function getPublicGroups(userId: string) {
   return db.query.groups.findMany({
     where: and(
       eq(groups.isPublic, true),
+      eq(groups.isOfficial, false),
       excludeIds.length > 0 ? notInArray(groups.id, excludeIds) : undefined,
     ),
     with: {
@@ -341,6 +342,7 @@ export async function getTopPublicGroupsForTournament(
   const rows = await db.query.groups.findMany({
     where: and(
       eq(groups.isPublic, true),
+      eq(groups.isOfficial, false),
       eq(groups.tournamentId, tournamentId),
       excludeIds.length > 0 ? notInArray(groups.id, excludeIds) : undefined,
     ),

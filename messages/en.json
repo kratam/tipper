@@ -164,7 +164,14 @@
     "allDone": "Done",
     "noUpcomingMatches": "No matches in the next 3 days",
     "totalMissing": "{count} bets missing in total",
-    "allBetsDone": "All bets placed for the next 3 days"
+    "allBetsDone": "All bets placed for the next 3 days",
+    "officialBadge": "Official",
+    "viewDetails": "Details",
+    "myRank": "Your rank",
+    "myProfit": "Your profit",
+    "officialGroupNameReserved": "This name is reserved for official groups",
+    "cannotDeleteOfficial": "Official groups cannot be deleted",
+    "cannotLeaveOfficial": "Cannot leave the official group"
   },
   "podium": {
     "title": "Podium Prediction",

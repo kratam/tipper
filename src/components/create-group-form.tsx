@@ -21,6 +21,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "@/i18n/navigation";
+import { isReservedOfficialSlug } from "@/lib/official-group";
+import { slugify } from "@/lib/utils";
 
 interface CreateGroupFormProps {
   tournaments: { id: string; name: string; slug: string; logoUrl: string | null }[];
@@ -31,6 +33,7 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
   const [tournamentId, setTournamentId] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [description, setDescription] = useState("");
@@ -48,6 +51,15 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !tournamentId) return;
+
+    // Client-side reserved name check — server-side throws can't surface
+    // friendly messages through Next.js Server Action error handling.
+    if (isReservedOfficialSlug(slugify(name.trim()))) {
+      setNameError(t("officialGroupNameReserved"));
+      toast.error(t("officialGroupNameReserved"));
+      return;
+    }
+    setNameError(null);
 
     startTransition(async () => {
       try {
@@ -77,11 +89,16 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
             <Input
               id="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (nameError) setNameError(null);
+              }}
               placeholder={t("name")}
               required
               minLength={2}
+              aria-invalid={nameError ? true : undefined}
             />
+            {nameError && <p className="text-destructive text-xs">{nameError}</p>}
           </div>
 
           <div className="flex flex-col gap-2">

@@ -5,6 +5,7 @@ import { TournamentTabs } from "@/components/tournament-tabs";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { pickMiniLeaderboard } from "@/lib/leaderboard-utils";
+import { ensureOfficialMembership } from "@/lib/official-group";
 import { getUserBetsForTournament } from "@/queries/bets";
 import {
   getBatchProjectedBalances,
@@ -36,6 +37,9 @@ export default async function TournamentDetailPage({
   }
   if (!tournament) notFound();
 
+  // Lazy auto-join to the tournament's official group. Idempotent.
+  await ensureOfficialMembership(user.id, tournament.id);
+
   // Phase 2: all independent data in parallel
   const [matches, userBets, userGroupMemberships, tournamentTeams] = await Promise.all([
     getMatchesForTournament(tournament.id),
@@ -48,9 +52,12 @@ export default async function TournamentDetailPage({
     (gm) => gm.group.tournamentId === tournament.id,
   );
 
-  // Phase 2.5: top public groups if user has no groups for this tournament
+  const officialGroupMembership = relevantGroups.find((gm) => gm.group.isOfficial);
+  const userOnlyGroupMemberships = relevantGroups.filter((gm) => !gm.group.isOfficial);
+
+  // Phase 2.5: top public groups if user has no CUSTOM groups for this tournament
   const topPublicGroups: PublicGroupSuggestion[] =
-    relevantGroups.length === 0
+    userOnlyGroupMemberships.length === 0
       ? await getTopPublicGroupsForTournament(user.id, tournament.id, 2)
       : [];
 
@@ -146,6 +153,24 @@ export default async function TournamentDetailPage({
     });
   }
 
+  const officialCard = officialGroupMembership
+    ? (() => {
+        const og = officialGroupMembership.group;
+        const lb = groupLeaderboards.find((l) => l.groupId === og.id);
+        return {
+          groupId: og.id,
+          groupName: og.name,
+          groupSlug: og.slug,
+          tournamentSlug: tournament.slug,
+          oddsBoost: og.oddsBoost,
+          tokenPerMatch: og.tokenPerMatch,
+          myProfit: lb?.myProfit ?? 0,
+          myRank: lb?.myRank ?? null,
+          miniLeaderboard: lb?.miniLeaderboard ?? [],
+        };
+      })()
+    : null;
+
   // Serialize matches for client component
   const matchesData = matches.map((m) => ({
     id: m.id,
@@ -201,6 +226,7 @@ export default async function TournamentDetailPage({
         groupLeaderboards={groupLeaderboards}
         currentUserId={user.id}
         topPublicGroups={topPublicGroups}
+        officialCard={officialCard}
       />
     </div>
   );

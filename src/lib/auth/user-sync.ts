@@ -30,6 +30,16 @@ async function fetchSession(): Promise<{
 
 export async function getCurrentUser() {
   try {
+    // Dev-only impersonation bypass for E2E / smoke testing.
+    // Looks up a user by email and skips the OAuth session check entirely.
+    // Hard-gated to NODE_ENV !== "production" — Vercel env can't accidentally enable it.
+    if (process.env.NODE_ENV !== "production" && process.env.DEV_IMPERSONATE_EMAIL) {
+      const impersonated = await db.query.users.findFirst({
+        where: eq(users.email, process.env.DEV_IMPERSONATE_EMAIL),
+      });
+      if (impersonated) return impersonated;
+    }
+
     const session = await fetchSession();
     if (!session?.user) return null;
 
