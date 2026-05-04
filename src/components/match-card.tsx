@@ -211,7 +211,7 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
       onClick={onClick}
       className={`flex w-full max-w-sm flex-col rounded-lg border px-3 py-2.5 text-left transition-colors ${
         isUrgent
-          ? "border-amber-500/30 border-l-[3px] border-l-amber-500 bg-amber-500/8 hover:bg-blue-100/50"
+          ? "border-amber-500/40 border-l-[3px] border-l-amber-500 bg-amber-100 hover:bg-amber-200/70 dark:bg-amber-950/40 dark:hover:bg-amber-950/60"
           : hasNoBet
             ? "border-border border-l-[3px] border-l-amber-400 bg-card hover:bg-blue-50"
             : "border-border bg-card hover:bg-blue-50"
