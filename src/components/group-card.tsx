@@ -56,10 +56,10 @@ function CardInner({ group, memberCount, profit, variant = "own" }: GroupCardPro
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border transition-colors",
+        "overflow-hidden rounded-xl border transition-all",
         variant === "public"
-          ? "border-border border-dashed"
-          : "border-border shadow-sm hover:ring-1 hover:ring-foreground/20",
+          ? "border-border border-dashed hover:ring-1 hover:ring-foreground/15"
+          : "border-border shadow-sm hover:ring-1 hover:ring-foreground/15",
       )}
     >
       {/* Gradient header */}
