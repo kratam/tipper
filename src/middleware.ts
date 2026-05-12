@@ -1,24 +1,11 @@
 import type { NextRequest } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
+import { rewriteAuthCookies } from "@/lib/auth/cookie-fix";
 
 const NEON_AUTH_SESSION_VERIFIER_PARAM = "neon_auth_session_verifier";
 
 const intlMiddleware = createIntlMiddleware(routing);
-
-// See src/app/api/auth/[...path]/route.ts — upstream sets SameSite=None;Partitioned,
-// which Safari iOS strips on cross-site navigation. Lax is universally compatible.
-function rewriteAuthCookies(headers: Headers): void {
-  const cookies = headers.getSetCookie();
-  if (cookies.length === 0) return;
-  headers.delete("set-cookie");
-  for (const cookie of cookies) {
-    const fixed = cookie
-      .replace(/;\s*Partitioned/i, "")
-      .replace(/;\s*SameSite=None/i, "; SameSite=Lax");
-    headers.append("set-cookie", fixed);
-  }
-}
 
 export default async function middleware(request: NextRequest) {
   // If this is an OAuth callback with session verifier, process auth first
@@ -46,12 +33,10 @@ export default async function middleware(request: NextRequest) {
     }
 
     // If auth middleware returned 200, merge its cookies into the intl response
+    rewriteAuthCookies(authResponse.headers);
     const intlResponse = intlMiddleware(request);
     for (const cookie of authResponse.headers.getSetCookie()) {
-      const fixed = cookie
-        .replace(/;\s*Partitioned/i, "")
-        .replace(/;\s*SameSite=None/i, "; SameSite=Lax");
-      intlResponse.headers.append("Set-Cookie", fixed);
+      intlResponse.headers.append("Set-Cookie", cookie);
     }
     return intlResponse;
   }
