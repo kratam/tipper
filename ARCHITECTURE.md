@@ -184,6 +184,8 @@ QStash-ből hívva, POST. Csak fixtures sync (1 API hívás/tournament, odds né
 - `distributeTokensForTournament()` — token kiosztás
 - `backfillTournamentLogos()` — logo feltöltés
 
+**Home/away flip kezelése:** az api-sports `/games` időnként megfordítja a `teams.home`/`teams.away` értékeket az eredeti import után. A `syncFixtures` UPDATE ága a `homeTeamId`/`awayTeamId` mezőket is frissíti (nem csak az insertnél), és scheduled/live meccsen flip-eli a nyitott (még nem pontozott) tippek `predicted_home`/`predicted_away` értékeit + újraszámolja az `oddsAtBet`-et. Ezzel a csapat-szándék megőrződik, és az odds szinkronban marad az API jelenlegi `Home`/`Away` konvenciójával.
+
 ### QStash (`src/lib/qstash.ts`)
 
 Upstash QStash message queue a célzott API hívásokhoz. Free tier: 500 msg/nap.

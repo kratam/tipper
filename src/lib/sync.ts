@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   bets,
@@ -61,11 +61,15 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<number, 
     if (existingMatch) {
       const wasFinished = existingMatch.status === "finished";
       const wasCancelled = existingMatch.status === "cancelled";
+      const teamsSwapped =
+        existingMatch.homeTeamId === awayTeamId && existingMatch.awayTeamId === homeTeamId;
 
       await db
         .update(matches)
         .set({
           status: newStatus,
+          homeTeamId,
+          awayTeamId,
           homeScore: newStatus === "finished" ? regulationScore.home : game.scores.home,
           awayScore: newStatus === "finished" ? regulationScore.away : game.scores.away,
           scheduledAt: new Date(game.date),
@@ -73,6 +77,10 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<number, 
           updatedAt: new Date(),
         })
         .where(eq(matches.id, existingMatch.id));
+
+      if (teamsSwapped && !wasFinished && !wasCancelled) {
+        await flipBetsForMatch(existingMatch.id);
+      }
 
       if (!wasFinished && newStatus === "finished") {
         await scoreMatch(existingMatch.id, regulationScore.home, regulationScore.away);
@@ -335,6 +343,39 @@ async function scoreMatch(matchId: string, homeScore: number, awayScore: number)
         referenceId: bet.id,
       });
     }
+  }
+}
+
+async function flipBetsForMatch(matchId: string): Promise<void> {
+  const latestOdds = await db.query.matchOdds.findFirst({
+    where: eq(matchOdds.matchId, matchId),
+    orderBy: desc(matchOdds.fetchedAt),
+  });
+
+  const pendingBets = await db.query.bets.findMany({
+    where: and(eq(bets.matchId, matchId), isNull(bets.payout)),
+  });
+
+  for (const bet of pendingBets) {
+    const flippedHome = bet.predictedAway;
+    const flippedAway = bet.predictedHome;
+    const newOddsAtBet = latestOdds
+      ? getRelevantOdds(flippedHome, flippedAway, {
+          homeOdds: latestOdds.homeOdds,
+          drawOdds: latestOdds.drawOdds,
+          awayOdds: latestOdds.awayOdds,
+        })
+      : null;
+
+    await db
+      .update(bets)
+      .set({
+        predictedHome: flippedHome,
+        predictedAway: flippedAway,
+        oddsAtBet: newOddsAtBet === null ? null : String(newOddsAtBet),
+        updatedAt: new Date(),
+      })
+      .where(eq(bets.id, bet.id));
   }
 }
 
