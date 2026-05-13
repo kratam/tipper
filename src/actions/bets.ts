@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { bets, groupMembers, groups, matches, tokenLedger } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { ensureOfficialMembership } from "@/lib/official-group";
-import { getRelevantOdds } from "@/lib/tokens";
+import { canAffordBetStake, getRelevantOdds } from "@/lib/tokens";
 import { getProjectedBalance } from "@/queries/groups";
 import { getLatestOdds } from "@/queries/matches";
 
@@ -65,37 +65,37 @@ export async function placeBet(input: PlaceBetInput): Promise<ActionResult> {
     where: and(eq(bets.userId, user.id), eq(bets.matchId, matchId), eq(bets.groupId, groupId)),
   });
 
+  // Check projected balance BEFORE any ledger writes. The `activeBets` rows
+  // used by getProjectedBalance still include any existing bet for this
+  // match with its old stake, so `projected` is the new-stake budget *after*
+  // subtracting the old stake. We add it back via canAffordBetStake to mirror
+  // bet-form.tsx's effectiveBalance computation — see [[bet-form.tsx:257]].
+  const { projected } = await getProjectedBalance(user.id, groupId, matchId);
+  const existingStake = existingBet?.stake ?? 0;
+  if (!canAffordBetStake(projected, existingStake, stake))
+    return { success: false, error: "Insufficient token balance" };
+
   if (existingBet) {
-    // Refund old stake
-    await db.insert(tokenLedger).values({
-      userId: user.id,
-      groupId,
-      tournamentId: group.tournamentId,
-      amount: existingBet.stake,
-      type: "refund",
-      referenceId: existingBet.id,
-    });
+    // Refund old + deduct new in a single multi-row INSERT (atomic at SQL level).
+    await db.insert(tokenLedger).values([
+      {
+        userId: user.id,
+        groupId,
+        tournamentId: group.tournamentId,
+        amount: existingBet.stake,
+        type: "refund",
+        referenceId: existingBet.id,
+      },
+      {
+        userId: user.id,
+        groupId,
+        tournamentId: group.tournamentId,
+        amount: -stake,
+        type: "bet",
+        referenceId: existingBet.id,
+      },
+    ]);
 
-    // Check projected balance after refund
-    const { projected: projectedAfterRefund } = await getProjectedBalance(
-      user.id,
-      groupId,
-      matchId,
-    );
-    if (projectedAfterRefund < stake)
-      return { success: false, error: "Insufficient token balance" };
-
-    // Deduct new stake
-    await db.insert(tokenLedger).values({
-      userId: user.id,
-      groupId,
-      tournamentId: group.tournamentId,
-      amount: -stake,
-      type: "bet",
-      referenceId: existingBet.id,
-    });
-
-    // Update bet
     await db
       .update(bets)
       .set({
@@ -113,10 +113,6 @@ export async function placeBet(input: PlaceBetInput): Promise<ActionResult> {
 
     return { success: true };
   }
-
-  // New bet — check projected balance
-  const { projected } = await getProjectedBalance(user.id, groupId, matchId);
-  if (projected < stake) return { success: false, error: "Insufficient token balance" };
 
   const [newBet] = await db
     .insert(bets)

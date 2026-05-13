@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateProjectedBalance,
+  canAffordBetStake,
   computeProjectedFromCumulativeBudget,
   dateToDateNum,
+  getEffectiveBudgetForBet,
   getRelevantOdds,
 } from "@/lib/tokens";
 
@@ -195,5 +197,58 @@ describe("computeProjectedFromCumulativeBudget", () => {
         activeBets: [],
       }),
     ).toBe(200);
+  });
+});
+
+describe("getEffectiveBudgetForBet", () => {
+  it("returns projected for new bet (existingStake=0)", () => {
+    expect(getEffectiveBudgetForBet(500, 0)).toBe(500);
+  });
+
+  it("adds back existing stake for modification", () => {
+    expect(getEffectiveBudgetForBet(0, 134)).toBe(134);
+    expect(getEffectiveBudgetForBet(50, 134)).toBe(184);
+  });
+
+  it("works with negative projected (over-committed user)", () => {
+    expect(getEffectiveBudgetForBet(-50, 100)).toBe(50);
+  });
+});
+
+describe("canAffordBetStake", () => {
+  it("allows new bet up to projected balance", () => {
+    expect(canAffordBetStake(500, 0, 500)).toBe(true);
+    expect(canAffordBetStake(500, 0, 1)).toBe(true);
+  });
+
+  it("rejects new bet exceeding projected balance", () => {
+    expect(canAffordBetStake(500, 0, 501)).toBe(false);
+  });
+
+  // Regression: the reported bug — user modifying tip with same stake (134→134)
+  // got "Insufficient token balance" because projected excludes the old stake,
+  // so the check was effectively projected (0) < newStake (134).
+  it("allows modifying existing bet to same stake (regression: insufficient bug)", () => {
+    expect(canAffordBetStake(0, 134, 134)).toBe(true);
+  });
+
+  it("allows raising stake when effective budget supports it", () => {
+    // projected=50 means after subtracting the old 134, there's 50 free.
+    // Effective budget = 50 + 134 = 184 → can raise to 184.
+    expect(canAffordBetStake(50, 134, 184)).toBe(true);
+    expect(canAffordBetStake(50, 134, 150)).toBe(true);
+  });
+
+  it("rejects raising stake beyond effective budget", () => {
+    expect(canAffordBetStake(50, 134, 185)).toBe(false);
+  });
+
+  it("allows lowering stake on existing bet", () => {
+    expect(canAffordBetStake(0, 134, 50)).toBe(true);
+    expect(canAffordBetStake(0, 134, 1)).toBe(true);
+  });
+
+  it("rejects new bet when projected is zero and no existing bet", () => {
+    expect(canAffordBetStake(0, 0, 1)).toBe(false);
   });
 });

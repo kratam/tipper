@@ -58,6 +58,31 @@ export function dateToDateNum(d: Date): number {
   return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
 }
 
+/**
+ * Maximum stake the user may place on the target match.
+ *
+ * Mirrors bet-form.tsx's `effectiveBalance`: when modifying an existing bet,
+ * the old stake is "freed" by the refund, so it must be added back to the
+ * projected balance — which (per getProjectedBalance) is computed from
+ * `activeBets` that still include the old bet with its old stake.
+ *
+ * Pass existingBetStake=0 for new bets.
+ */
+export function getEffectiveBudgetForBet(
+  projectedBalance: number,
+  existingBetStake: number,
+): number {
+  return projectedBalance + existingBetStake;
+}
+
+export function canAffordBetStake(
+  projectedBalance: number,
+  existingBetStake: number,
+  newStake: number,
+): boolean {
+  return getEffectiveBudgetForBet(projectedBalance, existingBetStake) >= newStake;
+}
+
 export function getRelevantOdds(
   predictedHome: number,
   predictedAway: number,
