@@ -1,6 +1,7 @@
 import "server-only";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { cache } from "react";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 
@@ -28,7 +29,7 @@ async function fetchSession(): Promise<{
   return response.json().catch(() => null);
 }
 
-export async function getCurrentUser() {
+export const getCurrentUser = cache(async () => {
   try {
     // Dev-only impersonation bypass for E2E / smoke testing.
     // Looks up a user by email and skips the OAuth session check entirely.
@@ -45,22 +46,10 @@ export async function getCurrentUser() {
 
     const authUser = session.user;
 
-    // Try to find by email first
-    const existing = await db.query.users.findFirst({
-      where: eq(users.email, authUser.email),
-    });
-
-    if (existing) return existing;
-
-    // Try to find by googleId (neon auth user ID)
-    const existingByGoogleId = await db.query.users.findFirst({
-      where: eq(users.googleId, authUser.id),
-    });
-
-    if (existingByGoogleId) return existingByGoogleId;
-
-    // Create new user
-    const [newUser] = await db
+    // Atomic upsert keyed on google_id (stable Neon Auth user ID).
+    // Race-safe: concurrent first-login renders both UPDATE the same row instead
+    // of the second one violating users_google_id_unique.
+    const [user] = await db
       .insert(users)
       .values({
         googleId: authUser.id,
@@ -69,17 +58,18 @@ export async function getCurrentUser() {
         avatarUrl: authUser.image ?? null,
       })
       .onConflictDoUpdate({
-        target: users.email,
+        target: users.googleId,
         set: {
+          email: authUser.email,
           name: authUser.name ?? authUser.email,
           avatarUrl: authUser.image ?? null,
         },
       })
       .returning();
 
-    return newUser;
+    return user;
   } catch (error) {
     console.error("[getCurrentUser] Error:", error);
     return null;
   }
-}
+});
