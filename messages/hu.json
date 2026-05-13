@@ -171,7 +171,8 @@
     "myProfit": "Profitod",
     "officialGroupNameReserved": "Ez a név fenntartva a hivatalos csoportoknak",
     "cannotDeleteOfficial": "Hivatalos csoport nem törölhető",
-    "cannotLeaveOfficial": "Hivatalos csoportból nem lehet kilépni"
+    "cannotLeaveOfficial": "Hivatalos csoportból nem lehet kilépni",
+    "archivedTournaments": "Archivált versenysorozatok"
   },
   "podium": {
     "title": "Dobogós tipp",
@@ -216,7 +217,13 @@
     "logoUpdateSuccess": "Logó sikeresen frissítve!",
     "timezoneUpdateSuccess": "Időzóna sikeresen frissítve!",
     "nameUpdateSuccess": "Név sikeresen frissítve!",
-    "podiumDateUpdateSuccess": "Dobogós tipp záró dátuma sikeresen frissítve!"
+    "podiumDateUpdateSuccess": "Dobogós tipp záró dátuma sikeresen frissítve!",
+    "archive": "Archiválás",
+    "unarchive": "Visszaállítás",
+    "archivedBadge": "Archivált",
+    "archiveConfirm": "Biztosan archiválod a(z) „{name}\" versenysorozatot? Csak a listákból tűnik el, a csoporttagok továbbra is elérik.",
+    "archiveSuccess": "Versenysorozat archiválva!",
+    "unarchiveSuccess": "Versenysorozat visszaállítva!"
   },
   "join": {
     "title": "Csatlakozás csoporthoz",

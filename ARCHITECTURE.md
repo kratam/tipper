@@ -72,7 +72,7 @@ scripts/
 | Tábla | Kulcs mezők | Megjegyzés |
 |-------|-------------|------------|
 | `users` | googleId, email, name, displayName, avatarUrl, isAdmin | Neon Auth-ból szinkronizált |
-| `tournaments` | name, slug, apiLeagueId, apiSeason, status, podiumLockDate, gold/silver/bronzeTeamId, useScheduleOverrides | Versenysorozat + dobogó eredmények |
+| `tournaments` | name, slug, apiLeagueId, apiSeason, status, podiumLockDate, gold/silver/bronzeTeamId, useScheduleOverrides, isArchived | Versenysorozat + dobogó eredmények. `isArchived` flag elrejti a listákból (csak `finished` archiválható). |
 | `teams` | apiTeamId (UNIQUE), name, logoUrl | api-sports.io-ból upsert |
 | `matches` | tournamentId, apiGameId (UNIQUE), home/awayTeamId, home/awayScore, status, scheduledAt, round | Index: (tournamentId, status) |
 | `match_odds` | matchId, homeOdds, drawOdds, awayOdds, fetchedAt | decimal(6,2), többszöri lekérdezés |

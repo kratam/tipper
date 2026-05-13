@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
+import { ArchivedGroupsSection } from "@/components/archived-groups-section";
 import { GroupCard } from "@/components/group-card";
 import { PublicGroupsSection } from "@/components/public-groups-section";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,11 @@ export default async function GroupsPage() {
     }),
   );
 
-  // Public groups: not finished, user not a member
+  const activeGroups = groupsWithProfits.filter((gm) => !gm.group.tournament.isArchived);
+  const archivedGroups = groupsWithProfits.filter((gm) => gm.group.tournament.isArchived);
+
+  // Public groups: not finished, user not a member (archived tournaments already
+  // filtered out at query level).
   const allPublicGroups = await getPublicGroups(user.id);
   const publicGroups = allPublicGroups.filter((g) => g.tournament.status !== "finished");
 
@@ -42,11 +47,11 @@ export default async function GroupsPage() {
         </Button>
       </div>
 
-      {groupsWithProfits.length === 0 ? (
+      {activeGroups.length === 0 ? (
         <p className="text-muted-foreground">{t("noGroups")}</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {groupsWithProfits.map((gm) => (
+          {activeGroups.map((gm) => (
             <GroupCard
               key={gm.group.id}
               group={gm.group}
@@ -62,6 +67,13 @@ export default async function GroupsPage() {
         <>
           <Separator />
           <PublicGroupsSection groups={publicGroups} />
+        </>
+      )}
+
+      {archivedGroups.length > 0 && (
+        <>
+          <Separator />
+          <ArchivedGroupsSection items={archivedGroups} />
         </>
       )}
     </div>

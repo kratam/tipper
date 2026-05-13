@@ -171,7 +171,8 @@
     "myProfit": "Your profit",
     "officialGroupNameReserved": "This name is reserved for official groups",
     "cannotDeleteOfficial": "Official groups cannot be deleted",
-    "cannotLeaveOfficial": "Cannot leave the official group"
+    "cannotLeaveOfficial": "Cannot leave the official group",
+    "archivedTournaments": "Archived tournaments"
   },
   "podium": {
     "title": "Podium Prediction",
@@ -216,7 +217,13 @@
     "logoUpdateSuccess": "Logo updated!",
     "timezoneUpdateSuccess": "Timezone updated!",
     "nameUpdateSuccess": "Name updated!",
-    "podiumDateUpdateSuccess": "Podium lock date updated!"
+    "podiumDateUpdateSuccess": "Podium lock date updated!",
+    "archive": "Archive",
+    "unarchive": "Restore",
+    "archivedBadge": "Archived",
+    "archiveConfirm": "Are you sure you want to archive \"{name}\"? It will only be hidden from listings; group members can still access it.",
+    "archiveSuccess": "Tournament archived!",
+    "unarchiveSuccess": "Tournament restored!"
   },
   "join": {
     "title": "Join Group",

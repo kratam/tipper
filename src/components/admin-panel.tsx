@@ -1,12 +1,13 @@
 "use client";
 
-import { Pencil, RefreshCw } from "lucide-react";
+import { Archive, ArchiveRestore, Pencil, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   createTournament,
   finishTournament,
+  setTournamentArchived,
   triggerSync,
   updateTournamentLogo,
   updateTournamentName,
@@ -64,6 +65,7 @@ interface TournamentInfo {
   logoUrl: string | null;
   timezone: string;
   podiumLockDate: Date;
+  isArchived: boolean;
   teams: TeamInfo[];
 }
 
@@ -220,6 +222,20 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
       try {
         await triggerSync();
         toast.success(t("syncSuccess"));
+        router.refresh();
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        toast.error(message);
+      }
+    });
+  }
+
+  function handleArchiveToggle(tournamentId: string, nextArchived: boolean, name: string) {
+    if (nextArchived && !window.confirm(t("archiveConfirm", { name }))) return;
+    startTransition(async () => {
+      try {
+        await setTournamentArchived(tournamentId, nextArchived);
+        toast.success(nextArchived ? t("archiveSuccess") : t("unarchiveSuccess"));
         router.refresh();
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
@@ -385,6 +401,11 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <TournamentStatusBadge status={tournament.status} />
+                  {tournament.isArchived && (
+                    <span className="rounded-full border border-muted-foreground/30 bg-muted px-2 py-0.5 text-muted-foreground text-xs">
+                      {t("archivedBadge")}
+                    </span>
+                  )}
                   {tournament.status === "upcoming" && (
                     <Button
                       variant="outline"
@@ -405,6 +426,30 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                       disabled={isPending}
                     >
                       {t("setFinished")}
+                    </Button>
+                  )}
+                  {tournament.status === "finished" && !tournament.isArchived && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1"
+                      onClick={() => handleArchiveToggle(tournament.id, true, tournament.name)}
+                      disabled={isPending}
+                    >
+                      <Archive className="size-3.5" />
+                      {t("archive")}
+                    </Button>
+                  )}
+                  {tournament.isArchived && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1"
+                      onClick={() => handleArchiveToggle(tournament.id, false, tournament.name)}
+                      disabled={isPending}
+                    >
+                      <ArchiveRestore className="size-3.5" />
+                      {t("unarchive")}
                     </Button>
                   )}
                 </div>

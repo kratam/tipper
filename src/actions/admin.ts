@@ -148,6 +148,25 @@ export async function updateTournamentStatus(tournamentId: string, status: Tourn
   await db.update(tournaments).set({ status }).where(eq(tournaments.id, tournamentId));
 }
 
+export async function setTournamentArchived(tournamentId: string, isArchived: boolean) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Not authenticated");
+  if (!user.isAdmin) throw new Error("Unauthorized");
+
+  if (isArchived) {
+    const tournament = await db.query.tournaments.findFirst({
+      where: eq(tournaments.id, tournamentId),
+      columns: { status: true },
+    });
+    if (!tournament) throw new Error("Tournament not found");
+    if (tournament.status !== "finished") {
+      throw new Error("Only finished tournaments can be archived");
+    }
+  }
+
+  await db.update(tournaments).set({ isArchived }).where(eq(tournaments.id, tournamentId));
+}
+
 interface FinishTournamentInput {
   tournamentId: string;
   goldTeamId: string;

@@ -313,10 +313,20 @@ export async function getPublicGroups(userId: string) {
 
   const excludeIds = userGroupIds.map((r) => r.groupId);
 
+  const nonArchivedTournamentIds = (
+    await db
+      .select({ id: tournaments.id })
+      .from(tournaments)
+      .where(eq(tournaments.isArchived, false))
+  ).map((r) => r.id);
+
+  if (nonArchivedTournamentIds.length === 0) return [];
+
   return db.query.groups.findMany({
     where: and(
       eq(groups.isPublic, true),
       eq(groups.isOfficial, false),
+      inArray(groups.tournamentId, nonArchivedTournamentIds),
       excludeIds.length > 0 ? notInArray(groups.id, excludeIds) : undefined,
     ),
     with: {
@@ -351,6 +361,12 @@ export async function getTopPublicGroupsForTournament(
   tournamentId: string,
   limit: number,
 ): Promise<PublicGroupSuggestion[]> {
+  const tournament = await db.query.tournaments.findFirst({
+    where: eq(tournaments.id, tournamentId),
+    columns: { isArchived: true },
+  });
+  if (tournament?.isArchived) return [];
+
   const userGroupIds = await db
     .select({ groupId: groupMembers.groupId })
     .from(groupMembers)

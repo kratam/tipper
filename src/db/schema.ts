@@ -57,6 +57,7 @@ export const tournaments = pgTable("tournaments", {
   silverTeamId: uuid("silver_team_id").references(() => teams.id),
   bronzeTeamId: uuid("bronze_team_id").references(() => teams.id),
   useScheduleOverrides: boolean("use_schedule_overrides").default(false).notNull(),
+  isArchived: boolean("is_archived").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

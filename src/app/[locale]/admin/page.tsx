@@ -18,7 +18,7 @@ export default async function AdminPage() {
   }
 
   const t = await getTranslations("admin");
-  const tournaments = await getTournaments();
+  const tournaments = await getTournaments({ includeArchived: true });
 
   const tournamentsWithTeams = await Promise.all(
     tournaments.map(async (tour) => ({
@@ -31,6 +31,7 @@ export default async function AdminPage() {
       logoUrl: tour.logoUrl,
       timezone: tour.timezone,
       podiumLockDate: tour.podiumLockDate,
+      isArchived: tour.isArchived,
       teams: await getTournamentTeams(tour.id),
     })),
   );
