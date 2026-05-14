@@ -209,7 +209,7 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full max-w-sm flex-col rounded-lg border px-3 py-2.5 text-left transition-all hover:bg-accent hover:ring-1 hover:ring-foreground/15 ${
+      className={`flex w-full flex-col rounded-lg border px-3 py-2.5 text-left transition-all hover:bg-accent hover:ring-1 hover:ring-foreground/15 ${
         isUrgent
           ? "border-amber-500/40 border-l-[3px] border-l-amber-500 bg-amber-100 dark:bg-amber-950/40"
           : hasNoBet

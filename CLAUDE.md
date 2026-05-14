@@ -39,7 +39,7 @@ Token-alapú tippjáték ahol játékosok versenysorozatok meccseire fogadnak cs
 | `npm run format` | Biome format |
 | `npm run check` | Biome check |
 | `npm run db:generate` | Drizzle migrations generálás |
-| `npm run db:migrate` | Migrációk futtatása (lokálisan vagy Neon MCP-vel, NEM a Vercel builden) |
+| `npm run db:migrate` | Migrációk futtatása (lokálisan, NEM a Vercel builden) |
 | `npm run db:studio` | Drizzle Studio |
 | `npm run db:seed-odds` | Dev odds seed (prod-védett) |
 | `npm run test` | Vitest run |
@@ -54,4 +54,5 @@ Token-alapú tippjáték ahol játékosok versenysorozatok meccseire fogadnak cs
 - DB műveletek: Drizzle query API, nem raw SQL
 - Commit: conventional commits (feat/fix/chore/docs)
 - Tesztek: Vitest, TDD a pure logikára
-- DB migrációk: deploy előtt kézzel futtatni (Neon MCP / `db:migrate`), Vercel build nem futtatja
+- DB migrációk: séma-változás **kizárólag** `db:generate` → `db:migrate` úton. Soha ne menjen ki séma-változás `drizzle-kit push`-csal, kézi SQL-lel vagy Neon MCP migrációval — különben a `drizzle.__drizzle_migrations` napló elcsúszik a tényleges sémától, és a `db:migrate` némán elhasal (status 1, üres stderr), mert újra le akarja futtatni a már létező objektumokat. Deploy előtt a migrációkat kézzel kell futtatni, a Vercel build nem futtatja.
+- Neon branch-ek: `production` (default) és `dev`. Az `.env.local` a `dev` branch-re mutat. Ha a `dev` séma/napló elcsúszik, a legtisztább javítás a `dev` branch `reset_from_parent`-ja (production pontos másolata lesz, naplóstul).
