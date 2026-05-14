@@ -217,7 +217,7 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
             : "border-border bg-card"
       }`}
     >
-      <div className="grid grid-cols-[1fr_auto_1fr] gap-x-2">
+      <div className="grid w-full grid-cols-[1fr_auto_1fr] gap-x-2">
         {/* ── Sor 1: Idő / státusz ── */}
         <div className="col-span-full flex flex-col items-center">
           {isLive ? (
