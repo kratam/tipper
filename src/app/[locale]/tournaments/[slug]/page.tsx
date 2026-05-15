@@ -95,6 +95,7 @@ export default async function TournamentDetailPage({
             rank: e.rank,
             userId: e.userId,
             userName: e.userName,
+            userAvatarUrl: e.userAvatarUrl,
             profit: e.profit,
           })),
         };

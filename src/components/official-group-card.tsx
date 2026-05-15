@@ -2,7 +2,7 @@
 
 import { Crown } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
@@ -11,6 +11,7 @@ interface MiniLeaderboardEntry {
   rank: number;
   userId: string;
   userName: string;
+  userAvatarUrl: string | null;
   profit: number;
 }
 
@@ -78,6 +79,7 @@ export function OfficialGroupCard({
                 >
                   <span className="w-6 font-mono">#{row.rank}</span>
                   <Avatar className="size-5">
+                    <AvatarImage src={row.userAvatarUrl ?? undefined} />
                     <AvatarFallback className="text-[10px]">
                       {row.userName
                         .split(" ")

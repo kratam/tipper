@@ -50,6 +50,7 @@ interface MiniLeaderboardEntry {
   rank: number;
   userId: string;
   userName: string;
+  userAvatarUrl: string | null;
   profit: number;
 }
 

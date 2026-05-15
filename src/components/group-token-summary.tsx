@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { GroupCard } from "@/components/group-card";
 import { PublicGroupDialog } from "@/components/public-group-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import type { PublicGroupSuggestion } from "@/queries/groups";
@@ -20,6 +21,7 @@ interface MiniLeaderboardEntry {
   rank: number;
   userId: string;
   userName: string;
+  userAvatarUrl: string | null;
   profit: number;
 }
 
@@ -141,6 +143,17 @@ export function GroupTokenSummary({
                       <span className="w-8 font-mono text-muted-foreground text-xs">
                         #{entry.rank}
                       </span>
+                      <Avatar className="size-5">
+                        <AvatarImage src={entry.userAvatarUrl ?? undefined} />
+                        <AvatarFallback className="text-[10px]">
+                          {entry.userName
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()
+                            .slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
                       <span className={`flex-1 truncate ${isMe ? "font-medium" : ""}`}>
                         {entry.userName}
                       </span>
