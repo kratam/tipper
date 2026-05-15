@@ -7,6 +7,7 @@ import { BetForm } from "@/components/bet-form";
 import { GroupCard } from "@/components/group-card";
 import type { MatchCardData } from "@/components/match-card";
 import { PublicGroupDialog } from "@/components/public-group-dialog";
+import { TokenIcon } from "@/components/token-icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -144,8 +145,9 @@ export function BetDialog({
                           <span className="font-bold font-mono text-sm">
                             {bet.predictedHome} - {bet.predictedAway}
                           </span>
-                          <span className="font-mono text-muted-foreground text-xs">
-                            {bet.stake}🪙
+                          <span className="inline-flex items-center gap-0.5 font-mono text-muted-foreground text-xs">
+                            {bet.stake}
+                            <TokenIcon size={12} />
                           </span>
                         </div>
                         {netLabel != null && (

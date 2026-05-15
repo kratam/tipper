@@ -4,6 +4,7 @@ import { Circle } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { TokenIcon } from "@/components/token-icon";
 
 interface MatchOdds {
   homeOdds: string;
@@ -132,7 +133,7 @@ function StakePill({ bet, isFinished }: { bet: UserBet; isFinished: boolean }) {
       ) : (
         <span>{bet.stake}</span>
       )}
-      🪙
+      <TokenIcon size={10} />
     </span>
   );
 }
