@@ -58,6 +58,8 @@
     "noGroupYet": "You're not a member of any group yet. Join and compete!",
     "noGroupYetShort": "You're not a member of any group yet.",
     "noPublicGroup": "No active groups for this tournament yet.",
+    "joinAnotherGroup": "Join another group, or create your own:",
+    "createOwnGroupHint": "Want to play with friends too? Create your own group!",
     "browseGroups": "Browse groups",
     "createGroup": "Create a group"
   },

@@ -279,6 +279,7 @@ export function TournamentTabs({
             groups={groupCardData}
             currentUserId={currentUserId}
             topPublicGroups={topPublicGroups}
+            hasOfficialGroup={!!officialCard}
           />
 
           {/* Match filter */}

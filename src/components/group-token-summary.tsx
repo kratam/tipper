@@ -40,6 +40,7 @@ interface GroupTokenSummaryProps {
   groups: GroupCardItem[];
   currentUserId: string;
   topPublicGroups?: PublicGroupSuggestion[];
+  hasOfficialGroup?: boolean;
 }
 
 function ProfitDisplay({ profit }: { profit: number }) {
@@ -58,17 +59,26 @@ export function GroupTokenSummary({
   groups,
   currentUserId,
   topPublicGroups = [],
+  hasOfficialGroup = false,
 }: GroupTokenSummaryProps) {
   const t = useTranslations("tournaments");
   const [selectedGroup, setSelectedGroup] = useState<PublicGroupSuggestion | null>(null);
 
   if (groups.length === 0) {
+    const emptyHeadline = hasOfficialGroup
+      ? topPublicGroups && topPublicGroups.length > 0
+        ? t("joinAnotherGroup")
+        : t("createOwnGroupHint")
+      : topPublicGroups && topPublicGroups.length > 0
+        ? t("noGroupYet")
+        : t("noPublicGroup");
+
     return (
       <>
         <div className="rounded-lg border border-border border-dashed bg-muted/30 p-4">
           {topPublicGroups && topPublicGroups.length > 0 ? (
             <div className="flex flex-col gap-4">
-              <p className="text-muted-foreground text-sm">{t("noGroupYet")}</p>
+              <p className="text-muted-foreground text-sm">{emptyHeadline}</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {topPublicGroups.map((group) => (
                   <GroupCard
@@ -89,7 +99,7 @@ export function GroupTokenSummary({
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              <p className="text-muted-foreground text-sm">{t("noPublicGroup")}</p>
+              <p className="text-muted-foreground text-sm">{emptyHeadline}</p>
               <Button variant="outline" size="sm" asChild className="gap-2 self-start">
                 <Link href="/groups/new">{t("createGroup")}</Link>
               </Button>

@@ -58,6 +58,8 @@
     "noGroupYet": "Még nem vagy tagja egyetlen csoportnak sem. Csatlakozz és versenyezz!",
     "noGroupYetShort": "Még nem vagy tagja csoportnak.",
     "noPublicGroup": "Még nincs aktív csoport ehhez a versenysorozathoz.",
+    "joinAnotherGroup": "Csatlakozz másik csoporthoz is, vagy hozz létre sajátot:",
+    "createOwnGroupHint": "Játszanál a barátaiddal is? Hozz létre saját csoportot!",
     "browseGroups": "Csoportok böngészése",
     "createGroup": "Csoport létrehozása"
   },
