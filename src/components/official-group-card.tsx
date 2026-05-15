@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown } from "lucide-react";
+import { CircleAlert, CircleCheck, Crown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ interface OfficialGroupCardProps {
   myRank: number | null;
   miniLeaderboard: MiniLeaderboardEntry[];
   currentUserId: string;
+  unbettedCount: number;
 }
 
 export function OfficialGroupCard({
@@ -35,8 +36,10 @@ export function OfficialGroupCard({
   myRank,
   miniLeaderboard,
   currentUserId,
+  unbettedCount,
 }: OfficialGroupCardProps) {
   const t = useTranslations("groups");
+  const tTournaments = useTranslations("tournaments");
 
   return (
     <Card className="ring-2 ring-amber-500/50">
@@ -66,6 +69,17 @@ export function OfficialGroupCard({
             {t("myProfit")}: <span className="font-bold font-mono text-amber-500">{myProfit}</span>
           </span>
         </div>
+        {unbettedCount > 0 ? (
+          <div className="flex items-center gap-1.5 text-amber-600 text-xs dark:text-amber-400">
+            <CircleAlert className="size-3.5" />
+            {tTournaments("unbettedMatches", { count: unbettedCount })}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-emerald-600 text-xs dark:text-emerald-400">
+            <CircleCheck className="size-3.5" />
+            {tTournaments("allBetsPlaced")}
+          </div>
+        )}
         {miniLeaderboard.length > 0 && (
           <div className="flex flex-col gap-1 border-border/40 border-t pt-2">
             {miniLeaderboard.map((row) => {

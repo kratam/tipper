@@ -159,8 +159,9 @@ export function TournamentTabs({
     return result;
   }, [groupBetInfosByMatch, officialCard?.groupId]);
 
-  // Per-group card data: merge leaderboard info with unbetted counts and balance
-  const groupCardData = useMemo(() => {
+  // Per-group card data: merge leaderboard info with unbetted counts and balance.
+  // The official group is rendered separately (OfficialGroupCard), so we filter it out here.
+  const { groupCardData, officialUnbettedCount } = useMemo(() => {
     const unbettedMap = new Map<string, number>();
     for (const match of liveMatches) {
       if (match.status !== "scheduled") continue;
@@ -172,11 +173,16 @@ export function TournamentTabs({
       }
     }
 
-    return groupLeaderboards.map((gl) => ({
-      ...gl,
-      unbettedCount: unbettedMap.get(gl.groupId) ?? 0,
-    }));
-  }, [liveMatches, sortedGroupInfosByMatch, groupLeaderboards]);
+    return {
+      groupCardData: groupLeaderboards
+        .filter((gl) => gl.groupId !== officialCard?.groupId)
+        .map((gl) => ({
+          ...gl,
+          unbettedCount: unbettedMap.get(gl.groupId) ?? 0,
+        })),
+      officialUnbettedCount: officialCard ? (unbettedMap.get(officialCard.groupId) ?? 0) : 0,
+    };
+  }, [liveMatches, sortedGroupInfosByMatch, groupLeaderboards, officialCard]);
 
   // Group matches by day
   const dayGroups = useMemo(() => {
@@ -257,6 +263,7 @@ export function TournamentTabs({
             myRank={officialCard.myRank}
             miniLeaderboard={officialCard.miniLeaderboard}
             currentUserId={currentUserId}
+            unbettedCount={officialUnbettedCount}
           />
         </div>
       )}
