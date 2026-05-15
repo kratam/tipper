@@ -117,6 +117,23 @@ export function BetDialog({
                         : bet.result1x2Correct
                           ? "bg-emerald-500/10 text-emerald-500"
                           : "bg-destructive/10 text-destructive";
+                    const netProfit = bet.payout != null ? bet.payout - bet.stake : null;
+                    const netColor =
+                      netProfit == null
+                        ? "text-muted-foreground"
+                        : netProfit > 0
+                          ? "text-emerald-500"
+                          : netProfit < 0
+                            ? "text-destructive"
+                            : "text-muted-foreground";
+                    const netLabel =
+                      netProfit == null
+                        ? null
+                        : netProfit > 0
+                          ? `+${netProfit}`
+                          : netProfit < 0
+                            ? `${netProfit}`
+                            : "±0";
                     return (
                       <div
                         key={bet.id}
@@ -127,10 +144,13 @@ export function BetDialog({
                           <span className="font-bold font-mono text-sm">
                             {bet.predictedHome} - {bet.predictedAway}
                           </span>
+                          <span className="font-mono text-muted-foreground text-xs">
+                            {bet.stake}🪙
+                          </span>
                         </div>
-                        {bet.payout != null && (
-                          <Badge variant="outline" className="font-mono text-emerald-500">
-                            +{bet.payout}
+                        {netLabel != null && (
+                          <Badge variant="outline" className={`font-mono ${netColor}`}>
+                            {netLabel}
                           </Badge>
                         )}
                       </div>
