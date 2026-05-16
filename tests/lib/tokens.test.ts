@@ -200,6 +200,260 @@ describe("computeProjectedFromCumulativeBudget", () => {
   });
 });
 
+describe("computeProjectedFromCumulativeBudget — resolved bet payouts", () => {
+  // Model: a resolved bet contributes its `netPayout` (= bets.payout - bets.stake)
+  // to the lifetime budget on the bet's match date. Wins increase the cap,
+  // losses decrease it. Active bets (still unresolved) consume the slack.
+
+  it("a won bet on a past match increases the budget by netPayout", () => {
+    // 2 matches, initial=200, tokenPerMatch=100.
+    // Match1 won: stake=100, payout=120 → netPayout=+20.
+    // Target match2 (next day). No active bets.
+    // maxBudget(nap2) = 200 + 2·100 + 20 = 420.
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 200,
+        tokenPerMatch: 100,
+        targetDateNum: 20260502,
+        matchDates: [20260501, 20260502],
+        activeBets: [],
+        resolvedBetNets: [{ netPayout: 20, dateNum: 20260501 }],
+      }),
+    ).toBe(420);
+  });
+
+  it("a lost bet on a past match reduces the budget by the stake", () => {
+    // 2 matches, initial=200, tokenPerMatch=100.
+    // Match1 lost: stake=100, payout=0 → netPayout=-100.
+    // Target match2. maxBudget(nap2) = 200 + 2·100 - 100 = 300.
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 200,
+        tokenPerMatch: 100,
+        targetDateNum: 20260502,
+        matchDates: [20260501, 20260502],
+        activeBets: [],
+        resolvedBetNets: [{ netPayout: -100, dateNum: 20260501 }],
+      }),
+    ).toBe(300);
+  });
+
+  it("won-back-stake-exactly (odds 1.0) is budget-neutral", () => {
+    // Match1: stake=100, payout=100 → netPayout=0.
+    // Target match2. Identical to no resolved bet.
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 200,
+        tokenPerMatch: 100,
+        targetDateNum: 20260502,
+        matchDates: [20260501, 20260502],
+        activeBets: [],
+        resolvedBetNets: [{ netPayout: 0, dateNum: 20260501 }],
+      }),
+    ).toBe(400);
+  });
+
+  it("future-day bet caps earlier-day budget after winning a past match (the user's 3-match scenario)", () => {
+    // 3 matches, initial=0, tokenPerMatch=100. matchDates = nap1, nap2, nap3.
+    // Match1 won 1.2x: stake=100, payout=120 → netPayout=+20.
+    // Active bet on match3 (nap3): stake=320 (consumes the full nap3 cap).
+    // Target match2 (nap2). Expected projected = 0.
+    //
+    // Constraint dates ≥ nap2 → {nap2, nap3}
+    //   nap2: max = 0 + 2·100 + 20 = 220, active_by_nap2 = 0 → slack 220
+    //   nap3: max = 0 + 3·100 + 20 = 320, active_by_nap3 = 320 → slack 0
+    // min = 0
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 0,
+        tokenPerMatch: 100,
+        targetDateNum: 20260502,
+        matchDates: [20260501, 20260502, 20260503],
+        activeBets: [{ stake: 320, dateNum: 20260503 }],
+        resolvedBetNets: [{ netPayout: 20, dateNum: 20260501 }],
+      }),
+    ).toBe(0);
+  });
+
+  it("multiple resolved bets accumulate (one win + one loss)", () => {
+    // 3 matches, initial=0, tokenPerMatch=100.
+    // Match1 won (+50), Match2 lost (-100).
+    // Target match3. max(nap3) = 0 + 3·100 + 50 - 100 = 250.
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 0,
+        tokenPerMatch: 100,
+        targetDateNum: 20260503,
+        matchDates: [20260501, 20260502, 20260503],
+        activeBets: [],
+        resolvedBetNets: [
+          { netPayout: 50, dateNum: 20260501 },
+          { netPayout: -100, dateNum: 20260502 },
+        ],
+      }),
+    ).toBe(250);
+  });
+
+  it("only resolved bets up to the cutoff date count toward maxBudget", () => {
+    // Resolved bet on a date AFTER the target shouldn't count for the target's
+    // cutoff (it does count for its own cutoff if ≥ targetDate, but here we
+    // verify the per-cutoff filter).
+    // 3 matches, initial=200, tokenPerMatch=100.
+    // Resolved bet on match3 (+50). Target = match2.
+    // Constraint dates ≥ nap2 → {nap2, nap3}
+    //   nap2: max = 200 + 2·100 + 0 = 400 (resolved at nap3 NOT counted)
+    //   nap3: max = 200 + 3·100 + 50 = 550
+    // min = 400
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 200,
+        tokenPerMatch: 100,
+        targetDateNum: 20260502,
+        matchDates: [20260501, 20260502, 20260503],
+        activeBets: [],
+        resolvedBetNets: [{ netPayout: 50, dateNum: 20260503 }],
+      }),
+    ).toBe(400);
+  });
+
+  it("bonus payouts pass through (bonusGoalDiff/bonusExactScore are baked into payout)", () => {
+    // The caller computes netPayout = payout - stake, where payout already
+    // includes any group bonuses. This test pins that the function adds
+    // whatever netPayout it receives without further interpretation.
+    // 2 matches, initial=0, tokenPerMatch=100.
+    // Match1: stake=50, payout = round(50 × 2.5 × 1.0) + 5 (goalDiff) + 10 (exact) = 140.
+    // netPayout = 140 - 50 = +90.
+    // Target match2. max(nap2) = 0 + 2·100 + 90 = 290.
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 0,
+        tokenPerMatch: 100,
+        targetDateNum: 20260502,
+        matchDates: [20260501, 20260502],
+        activeBets: [],
+        resolvedBetNets: [{ netPayout: 90, dateNum: 20260501 }],
+      }),
+    ).toBe(290);
+  });
+
+  it("is backward compatible: resolvedBetNets parameter is optional", () => {
+    // Omitting resolvedBetNets must behave identically to the legacy formula.
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 200,
+        tokenPerMatch: 100,
+        targetDateNum: 20260502,
+        matchDates: [20260501, 20260502],
+        activeBets: [],
+      }),
+    ).toBe(400);
+  });
+
+  it("complex: mixed resolved + active future bet across 4 days", () => {
+    // 4 matches, initial=100, tokenPerMatch=50.
+    // matchDates: nap1..nap4.
+    // Match1 (nap1) won: netPayout=+30.
+    // Match2 (nap2) lost: netPayout=-40.
+    // Active bet on match4 (nap4): stake=80.
+    // Target match3 (nap3).
+    //
+    // Constraint dates ≥ nap3 → {nap3, nap4}
+    //   nap3: max = 100 + 3·50 + 30 - 40 = 240, active_by_nap3 = 0 → 240
+    //   nap4: max = 100 + 4·50 + 30 - 40 = 290, active_by_nap4 = 80 → 210
+    // min = 210
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 100,
+        tokenPerMatch: 50,
+        targetDateNum: 20260503,
+        matchDates: [20260501, 20260502, 20260503, 20260504],
+        activeBets: [{ stake: 80, dateNum: 20260504 }],
+        resolvedBetNets: [
+          { netPayout: 30, dateNum: 20260501 },
+          { netPayout: -40, dateNum: 20260502 },
+        ],
+      }),
+    ).toBe(210);
+  });
+
+  it("two same-day matches: one resolved, one scheduled active", () => {
+    // 2 matches both on nap1, initial=0, tokenPerMatch=100.
+    // matchDates = [nap1, nap1]. lifetime by nap1 = 0 + 2·100 = 200.
+    // Match1a won: netPayout=+50.
+    // Match1b scheduled, no active bet yet.
+    // Target match1b (nap1).
+    //
+    // Constraint date: nap1.
+    //   nap1: max = 0 + 2·100 + 50 = 250, active_by_nap1 = 0 → 250
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 0,
+        tokenPerMatch: 100,
+        targetDateNum: 20260501,
+        matchDates: [20260501, 20260501],
+        activeBets: [],
+        resolvedBetNets: [{ netPayout: 50, dateNum: 20260501 }],
+      }),
+    ).toBe(250);
+  });
+
+  it("biggest jackpot: huge win unlocks a large future bet", () => {
+    // 2 matches, initial=0, tokenPerMatch=100.
+    // Match1 stake=100 won 10x: netPayout = +900.
+    // Target match2 (nap2). max(nap2) = 0 + 200 + 900 = 1100.
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 0,
+        tokenPerMatch: 100,
+        targetDateNum: 20260502,
+        matchDates: [20260501, 20260502],
+        activeBets: [],
+        resolvedBetNets: [{ netPayout: 900, dateNum: 20260501 }],
+      }),
+    ).toBe(1100);
+  });
+
+  it("loss on past + active bet on same day combine correctly", () => {
+    // 3 matches, initial=200, tokenPerMatch=100.
+    // Match1 lost (nap1): netPayout=-100.
+    // Active bet on match2 (nap2): stake=150.
+    // Target match3 (nap3).
+    //
+    // Constraint dates ≥ nap3 → {nap3}
+    //   nap3: max = 200 + 3·100 - 100 = 400, active_by_nap3 = 150 → 250
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 200,
+        tokenPerMatch: 100,
+        targetDateNum: 20260503,
+        matchDates: [20260501, 20260502, 20260503],
+        activeBets: [{ stake: 150, dateNum: 20260502 }],
+        resolvedBetNets: [{ netPayout: -100, dateNum: 20260501 }],
+      }),
+    ).toBe(250);
+  });
+
+  it("regression: existing-bet modification with prior wins (effective budget)", () => {
+    // User has an existing bet of stake=200 on match2 (nap2), match1 already won (+50).
+    // 2 matches, initial=200, tokenPerMatch=100.
+    // The query passes the OLD stake in activeBets, the form adds it back.
+    //
+    // Constraint dates ≥ nap2 → {nap2}
+    //   nap2: max = 200 + 2·100 + 50 = 450, active_by_nap2 = 200 → 250
+    // projected = 250 (so effective budget for modifying the bet = 250 + 200 = 450)
+    expect(
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 200,
+        tokenPerMatch: 100,
+        targetDateNum: 20260502,
+        matchDates: [20260501, 20260502],
+        activeBets: [{ stake: 200, dateNum: 20260502 }],
+        resolvedBetNets: [{ netPayout: 50, dateNum: 20260501 }],
+      }),
+    ).toBe(250);
+  });
+});
+
 describe("getEffectiveBudgetForBet", () => {
   it("returns projected for new bet (existingStake=0)", () => {
     expect(getEffectiveBudgetForBet(500, 0)).toBe(500);

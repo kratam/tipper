@@ -19,21 +19,52 @@ export interface CumulativeBudgetInput {
   targetDateNum: number;
   /** Date numbers (YYYYMMDD) of every non-cancelled tournament match. */
   matchDates: number[];
-  /** Active bets (the user's existing stakes) joined with each bet's match date. */
+  /**
+   * Stakes for bets that are still UNRESOLVED (match.status='scheduled', or
+   * 'finished' but scoring hasn't run yet — i.e. bets.payout IS NULL on a
+   * non-cancelled match). Each bet's stake reduces the slack at every cutoff
+   * D' ≥ bet.dateNum.
+   */
   activeBets: { stake: number; dateNum: number }[];
+  /**
+   * Net ledger effect of RESOLVED bets (wins, losses, refunds). Defined as
+   * `payout - stake` for finished bets and 0 for cancelled bets (refund
+   * exactly offsets the stake). Each resolved bet's net contributes to the
+   * lifetime budget at every cutoff D' ≥ bet.dateNum — wins raise the cap,
+   * losses lower it.
+   */
+  resolvedBetNets?: { netPayout: number; dateNum: number }[];
 }
 
 /**
  * Maximum new stake the user may place on the target match.
  *
  * For every cutoff D' ≥ targetDate, we require:
- *   sum(stakes where bet.dateNum ≤ D') ≤ initialTokens + tokenPerMatch × |{ matches with date ≤ D' }|
- * The slack at the most-constrained D' is the projected budget. Bets that
- * already exist on the target match should NOT be passed in if you want the
- * "new bet" view; pass them in if you're computing the post-bet state.
+ *   sum(active stakes where bet.dateNum ≤ D')
+ *     ≤ initialTokens
+ *       + tokenPerMatch × |{ matches with date ≤ D' }|
+ *       + sum(netPayout for resolved bets where bet.dateNum ≤ D')
+ * The slack at the most-constrained D' is the projected budget.
+ *
+ * Resolved bets (wins/losses/refunds) are baked into the lifetime cap because
+ * a resolved bet's stake is no longer "locked" — its outcome has been written
+ * to the ledger, freeing the stake (and adding any winnings or bonuses) for
+ * reuse on future matches. Cancelled bets have netPayout=0 (refund nets out
+ * the stake) and produce no distribution row, so they don't affect the cap.
+ *
+ * Bets that already exist on the target match should NOT be passed in if you
+ * want the "new bet" view; pass them in if you're computing the post-bet
+ * state.
  */
 export function computeProjectedFromCumulativeBudget(input: CumulativeBudgetInput): number {
-  const { initialTokens, tokenPerMatch, targetDateNum, matchDates, activeBets } = input;
+  const {
+    initialTokens,
+    tokenPerMatch,
+    targetDateNum,
+    matchDates,
+    activeBets,
+    resolvedBetNets = [],
+  } = input;
 
   const constraintDateSet = new Set<number>([targetDateNum]);
   for (const d of matchDates) {
@@ -43,7 +74,10 @@ export function computeProjectedFromCumulativeBudget(input: CumulativeBudgetInpu
   let minAvailable = Number.POSITIVE_INFINITY;
   for (const d of constraintDateSet) {
     const matchesByD = matchDates.filter((md) => md <= d).length;
-    const maxBudget = initialTokens + matchesByD * tokenPerMatch;
+    const resolvedByD = resolvedBetNets
+      .filter((r) => r.dateNum <= d)
+      .reduce((sum, r) => sum + r.netPayout, 0);
+    const maxBudget = initialTokens + matchesByD * tokenPerMatch + resolvedByD;
     const betsThroughD = activeBets
       .filter((b) => b.dateNum <= d)
       .reduce((sum, b) => sum + b.stake, 0);

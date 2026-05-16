@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, inArray, notInArray, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, notInArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { bets, groupMembers, groups, matches, tokenLedger, tournaments } from "@/db/schema";
 import { computeProjectedFromCumulativeBudget, dateToDateNum } from "@/lib/tokens";
@@ -63,24 +63,28 @@ export async function getTokenBalance(userId: string, groupId: string): Promise<
  * Calculate projected balance — i.e. the maximum new stake the user may place
  * on the target match.
  *
- * Model: a user's lifetime budget at any point in time is
- *   initialTokens + tokenPerMatch × (matches whose date has arrived).
- * Active bets reduce that budget. A bet on a future match implicitly borrows
- * against tokens that haven't been distributed yet, so the constraint is:
+ * Lifetime budget at any cutoff date D' is
+ *   initialTokens
+ *   + tokenPerMatch × (matches whose date ≤ D')
+ *   + Σ (payout - stake) for resolved bets on matches with date ≤ D'
+ * UNRESOLVED active bets reduce the slack at every cutoff ≥ their date. So
+ * the constraint is:
  *
  *   for every cutoff date D' ≥ targetDay:
- *     sum(stakes for active bets on matches with date ≤ D')
- *       ≤ initialTokens + tokenPerMatch × (matches with date ≤ D')
+ *     sum(stakes for ACTIVE bets on matches with date ≤ D')
+ *       ≤ lifetime budget at D'
  *
- * The projected balance is the smallest slack across all such D'. This
- * prevents a user from placing a future-day bet that exceeds the cumulative
- * budget available by that day, while still allowing them to "earmark"
- * upcoming distributions for a future-day stake.
+ * The projected balance is the smallest slack across all such D'. This lets
+ * users re-bet won-back stakes plus net winnings (incl. bonusGoalDiff /
+ * bonusExactScore, since both are baked into bets.payout by scoring) while
+ * still preventing future-day bets that would exceed the cumulative budget.
+ * See [[../lib/tokens.ts#computeProjectedFromCumulativeBudget]].
  *
  * actual / pending in the return value preserve the legacy meaning used by
  * the bet-form tooltip:
  *   actual  = real ledger sum minus the effect of bets on matches after the
- *             target day (so the tooltip shows what's "really there" today).
+ *             target day. Since `actual` is SUM(token_ledger.amount), it
+ *             already includes any resolved wins.
  *   pending = count of matches on or before the target day that haven't
  *             been distributed yet.
  */
@@ -108,12 +112,31 @@ export async function getProjectedBalance(
       and(eq(matches.tournamentId, group.tournamentId), sql`${matches.status} <> 'cancelled'`),
     );
 
-  // Active-bet stakes joined to their match dates.
+  // Active bets: unresolved (payout IS NULL) on a non-cancelled match. These
+  // still lock up their stake. Cancelled-match bets are excluded because they
+  // were already refunded (net effect = 0) and their match is not in the
+  // budget (tournamentMatches excludes cancelled).
   const activeBetRows = await db
     .select({ stake: bets.stake, scheduledAt: matches.scheduledAt })
     .from(bets)
     .innerJoin(matches, eq(bets.matchId, matches.id))
-    .where(and(eq(bets.userId, userId), eq(bets.groupId, groupId)));
+    .where(
+      and(
+        eq(bets.userId, userId),
+        eq(bets.groupId, groupId),
+        isNull(bets.payout),
+        sql`${matches.status} <> 'cancelled'`,
+      ),
+    );
+
+  // Resolved bets: scoring has run (bets.payout IS NOT NULL). The net ledger
+  // effect on the lifetime budget is `payout - stake` — wins/bonuses raise
+  // the cap, losses (payout=0) lower it by the stake.
+  const resolvedBetRows = await db
+    .select({ stake: bets.stake, payout: bets.payout, scheduledAt: matches.scheduledAt })
+    .from(bets)
+    .innerJoin(matches, eq(bets.matchId, matches.id))
+    .where(and(eq(bets.userId, userId), eq(bets.groupId, groupId), isNotNull(bets.payout)));
 
   // Already-distributed matchIds for this user (drives the tooltip's pending count).
   const distributionRows = await db
@@ -139,9 +162,16 @@ export async function getProjectedBalance(
       stake: b.stake,
       dateNum: dateToDateNum(b.scheduledAt),
     })),
+    resolvedBetNets: resolvedBetRows.map((b) => ({
+      netPayout: (b.payout ?? 0) - b.stake,
+      dateNum: dateToDateNum(b.scheduledAt),
+    })),
   });
 
-  // Tooltip values (legacy semantics)
+  // Tooltip values (legacy semantics). `actual` is the full ledger SUM, which
+  // already reflects resolved wins/losses — so the tooltip stays correct
+  // without changes. We still subtract future active-bet stakes so the
+  // "actual balance" line shows what's really available today.
   const actual = await getTokenBalance(userId, groupId);
   const futureBetsNet = activeBetRows
     .filter((b) => dateToDateNum(b.scheduledAt) > targetDateNum)
@@ -237,7 +267,7 @@ export async function getBatchProjectedBalances(
     distributedByGroup.get(r.groupId)?.add(r.matchId);
   }
 
-  // Query 3: active bets joined with their match dates per group
+  // Query 3a: active bets (unresolved, non-cancelled match) joined with dates
   const activeBetRows = await db
     .select({
       groupId: bets.groupId,
@@ -247,7 +277,26 @@ export async function getBatchProjectedBalances(
     })
     .from(bets)
     .innerJoin(matches, eq(bets.matchId, matches.id))
-    .where(and(eq(bets.userId, userId), inArray(bets.groupId, groupIds)));
+    .where(
+      and(
+        eq(bets.userId, userId),
+        inArray(bets.groupId, groupIds),
+        isNull(bets.payout),
+        sql`${matches.status} <> 'cancelled'`,
+      ),
+    );
+
+  // Query 3b: resolved bets (scoring done) — their net effect feeds maxBudget
+  const resolvedBetRows = await db
+    .select({
+      groupId: bets.groupId,
+      stake: bets.stake,
+      payout: bets.payout,
+      scheduledAt: matches.scheduledAt,
+    })
+    .from(bets)
+    .innerJoin(matches, eq(bets.matchId, matches.id))
+    .where(and(eq(bets.userId, userId), inArray(bets.groupId, groupIds), isNotNull(bets.payout)));
 
   // Eligible matches for budget (non-cancelled tournament matches we're computing for)
   const budgetMatches = allMatches.filter((m) => m.status !== "cancelled");
@@ -260,6 +309,18 @@ export async function getBatchProjectedBalances(
     const existing = activeBetsByGroup.get(r.groupId);
     if (existing) existing.push(entry);
     else activeBetsByGroup.set(r.groupId, [entry]);
+  }
+
+  // Index resolved bet net payouts by group
+  const resolvedNetsByGroup = new Map<string, Array<{ netPayout: number; dateNum: number }>>();
+  for (const r of resolvedBetRows) {
+    const entry = {
+      netPayout: (r.payout ?? 0) - r.stake,
+      dateNum: dateToDateNum(r.scheduledAt),
+    };
+    const existing = resolvedNetsByGroup.get(r.groupId);
+    if (existing) existing.push(entry);
+    else resolvedNetsByGroup.set(r.groupId, [entry]);
   }
 
   const result: Record<
@@ -275,6 +336,7 @@ export async function getBatchProjectedBalances(
       const actual = actualByGroup.get(group.id) ?? 0;
       const distributed = distributedByGroup.get(group.id) ?? new Set<string>();
       const activeBets = activeBetsByGroup.get(group.id) ?? [];
+      const resolvedBetNets = resolvedNetsByGroup.get(group.id) ?? [];
 
       const projected = computeProjectedFromCumulativeBudget({
         initialTokens: group.initialTokens,
@@ -282,6 +344,7 @@ export async function getBatchProjectedBalances(
         targetDateNum,
         matchDates,
         activeBets,
+        resolvedBetNets,
       });
 
       const futureBetsNet = activeBets

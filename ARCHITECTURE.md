@@ -104,13 +104,30 @@ Migráció generálás: `npm run db:generate` (interaktív, lokálisan).
 
 ### Vetített egyenleg (projected balance)
 
-Nap-szintű, egy nap összes meccsére ugyanaz:
-```
-projected = actual + pending_meccsek × tokenPerMatch
-```
-Ahol `pending` = meccsek ahol `DATE(scheduledAt) <= DATE(targetMatch.scheduledAt)` és még nincs distribution ledger bejegyzés.
+A maximális új stake amit a user a célmeccsre tehet. **Cumulative budget modell**: minden cutoff dátumra `D' ≥ célmeccs.dátum` a lifetime keret:
 
-Előre tippelés: bármikor lehet, a keret a meccs napjáig esedékes összes kiosztást tartalmazza.
+```
+maxBudget(D') = initialTokens
+              + tokenPerMatch × { nem-cancelled meccsek date ≤ D' }
+              + Σ (bets.payout − bets.stake) RESOLVED tétekre date ≤ D'
+```
+
+ahol **RESOLVED** = `bets.payout IS NOT NULL` (a scoring lefutott). A `payout` mező már tartalmazza a `bonusGoalDiff` és `bonusExactScore` bónuszt is.
+
+Aktív tétek (még `payout IS NULL`, nem-cancelled meccs) csökkentik a slacket:
+
+```
+slack(D')  = maxBudget(D') − Σ stake ACTIVE tétekre date ≤ D'
+projected = min slack(D') minden constraint dátumra
+```
+
+Ezáltal:
+- A **nyeremények** (stake refund + net payout + bónuszok) újra feltehetők.
+- **Elvesztett tét** nem rakható fel újra (a netPayout = −stake csökkenti a kapot).
+- **Future-day bet** lefoglalhatja a múltbeli nyereményt és a jövőbeli kiosztásokat is, de így megnöveli a kötelezettséget a korábbi napokra → korlátozza azokat is.
+- A **scoring cron** lefutása előtt (`finished` meccs, `payout IS NULL`) a tét még active-ként van kezelve — nem szabadítható fel addig amíg az eredmény nem dőlt el.
+
+Implementáció: [src/lib/tokens.ts](src/lib/tokens.ts) `computeProjectedFromCumulativeBudget`, query layer: [src/queries/groups.ts](src/queries/groups.ts) `getProjectedBalance` / `getBatchProjectedBalances`.
 
 ### Odds boost
 
