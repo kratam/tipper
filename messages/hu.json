@@ -99,6 +99,7 @@
     "cancelSuccess": "{home} vs {away}",
     "cancelSuccessDesc": "{group}",
     "projectedBalance": "Tippelhető",
+    "balanceDetails": "Egyenleg részletei",
     "actualBalance": "Egyenleged",
     "pendingTokens": "Még kapsz",
     "currentStake": "Jelenlegi tét",

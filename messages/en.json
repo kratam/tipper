@@ -99,6 +99,7 @@
     "cancelSuccess": "{home} vs {away}",
     "cancelSuccessDesc": "{group}",
     "projectedBalance": "Available to bet",
+    "balanceDetails": "Balance details",
     "actualBalance": "Your balance",
     "pendingTokens": "Upcoming",
     "currentStake": "Current stake",

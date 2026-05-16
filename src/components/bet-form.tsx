@@ -3,7 +3,7 @@
 import { Info, Loader2, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { type ReactNode, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { cancelBet, placeBet } from "@/actions/bets";
 import { FormattedDate } from "@/components/formatted-date";
@@ -58,6 +58,32 @@ function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number
         <Plus className="size-3" />
       </button>
     </div>
+  );
+}
+
+function BalanceInfoTooltip({ label, children }: { label: string; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <TooltipProvider>
+      <Tooltip open={open} onOpenChange={setOpen}>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              setOpen((v) => !v);
+            }}
+            className="inline-flex cursor-pointer"
+            aria-label={label}
+          >
+            <Info className="size-3.5 text-muted-foreground/50" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="font-mono text-xs">
+          {children}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -281,41 +307,34 @@ export function BetForm({
                     {t("projectedBalance")}: {effectiveBalance}
                   </span>
                   {(group.pendingDistributions > 0 || group.existingBet) && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="size-3.5 text-muted-foreground/50" />
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="font-mono text-xs">
-                          <div className="flex flex-col gap-0.5">
-                            <div className="flex justify-between gap-4">
-                              <span>{t("actualBalance")}:</span>
-                              <span>{group.balance}</span>
-                            </div>
-                            {group.pendingDistributions > 0 && (
-                              <div className="flex justify-between gap-4">
-                                <span>{t("pendingTokens")}:</span>
-                                <span>
-                                  +{group.pendingDistributions * group.tokenPerMatch} (
-                                  {group.pendingDistributions} × {group.tokenPerMatch})
-                                </span>
-                              </div>
-                            )}
-                            {group.existingBet && (
-                              <div className="flex justify-between gap-4">
-                                <span>{t("currentStake")}:</span>
-                                <span>+{group.existingBet.stake}</span>
-                              </div>
-                            )}
-                            <div className="my-0.5 border-primary-foreground/20 border-t" />
-                            <div className="flex justify-between gap-4 font-bold">
-                              <span>{t("projectedBalance")}:</span>
-                              <span>{effectiveBalance}</span>
-                            </div>
+                    <BalanceInfoTooltip label={t("balanceDetails")}>
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex justify-between gap-4">
+                          <span>{t("actualBalance")}:</span>
+                          <span>{group.balance}</span>
+                        </div>
+                        {group.pendingDistributions > 0 && (
+                          <div className="flex justify-between gap-4">
+                            <span>{t("pendingTokens")}:</span>
+                            <span>
+                              +{group.pendingDistributions * group.tokenPerMatch} (
+                              {group.pendingDistributions} × {group.tokenPerMatch})
+                            </span>
                           </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                        )}
+                        {group.existingBet && (
+                          <div className="flex justify-between gap-4">
+                            <span>{t("currentStake")}:</span>
+                            <span>+{group.existingBet.stake}</span>
+                          </div>
+                        )}
+                        <div className="my-0.5 border-primary-foreground/20 border-t" />
+                        <div className="flex justify-between gap-4 font-bold">
+                          <span>{t("projectedBalance")}:</span>
+                          <span>{effectiveBalance}</span>
+                        </div>
+                      </div>
+                    </BalanceInfoTooltip>
                   )}
                 </div>
               </div>
