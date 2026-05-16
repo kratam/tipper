@@ -145,6 +145,8 @@
     "noBetsYet": "Még nincs befejezett meccs",
     "prediction": "Tipp",
     "payout": "Nye.",
+    "expandAll": "Mindent kinyit",
+    "collapseAll": "Mindent becsuk",
     "publicGroups": "Nyilvános csoportok",
     "publicGroupsSubtitle": "Csatlakozz bármelyikhez egyetlen kattintással",
     "joinGroup": "Csatlakozás",

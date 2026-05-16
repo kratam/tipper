@@ -145,6 +145,8 @@
     "noBetsYet": "No finished matches yet",
     "prediction": "Prediction",
     "payout": "Pay",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
     "publicGroups": "Public Groups",
     "publicGroupsSubtitle": "Join any group with a single click",
     "joinGroup": "Join Group",
