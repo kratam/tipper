@@ -143,6 +143,7 @@
     "results": "Eredmények",
     "betCount": "{count}/{total} tippelt",
     "noBetsYet": "Még nincs befejezett meccs",
+    "noBetsForPlayer": "Még nem tippelt lezárult meccsre",
     "prediction": "Tipp",
     "payout": "Nye.",
     "expandAll": "Mindent kinyit",

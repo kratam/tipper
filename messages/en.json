@@ -143,6 +143,7 @@
     "results": "Results",
     "betCount": "{count}/{total} bet",
     "noBetsYet": "No finished matches yet",
+    "noBetsForPlayer": "No bets on finished matches yet",
     "prediction": "Prediction",
     "payout": "Pay",
     "expandAll": "Expand all",

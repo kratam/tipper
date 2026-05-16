@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { deleteGroup, leaveGroup, removeMember, updateGroupSettings } from "@/actions/groups";
+import { GroupLeaderboardContent } from "@/components/group-leaderboard-content";
 import { GroupResultsContent } from "@/components/group-results-content";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -99,7 +100,6 @@ export function GroupDetailTabs({
   groupBets,
 }: GroupDetailTabsProps) {
   const t = useTranslations("groups");
-  const tLeaderboard = useTranslations("leaderboard");
   const tc = useTranslations("common");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -176,50 +176,12 @@ export function GroupDetailTabs({
 
       {/* Leaderboard */}
       <TabsContent value="leaderboard" className="mt-4 flex flex-col gap-4">
-        {/* Leaderboard table */}
-        <Card>
-          <CardContent className="p-0">
-            <div className="flex flex-col">
-              {/* Header */}
-              <div className="flex items-center gap-4 border-border border-b px-4 py-3 font-medium text-muted-foreground text-xs">
-                <span className="w-10">{tLeaderboard("rank")}</span>
-                <span className="flex-1">{tLeaderboard("player")}</span>
-                <span className="w-20 text-right font-mono">{tLeaderboard("profit")}</span>
-              </div>
-              {/* Rows */}
-              {liveLeaderboard.map((row) => {
-                const isCurrentUser = row.userId === currentUserId;
-                return (
-                  <div
-                    key={row.userId}
-                    className={`flex items-center gap-4 px-4 py-3 ${
-                      isCurrentUser ? "bg-amber-500/5 ring-1 ring-amber-500/20 ring-inset" : ""
-                    }`}
-                  >
-                    <span className="w-10 font-bold font-mono text-sm">#{row.rank}</span>
-                    <div className="flex flex-1 items-center gap-2">
-                      <Avatar className="size-6">
-                        <AvatarImage src={row.userAvatarUrl ?? undefined} />
-                        <AvatarFallback className="text-xs">
-                          {row.userName
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">{row.userName}</span>
-                    </div>
-                    <span className="w-20 text-right font-bold font-mono text-amber-500 text-sm">
-                      {row.profit}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+        <GroupLeaderboardContent
+          leaderboard={liveLeaderboard}
+          finishedMatches={finishedMatches}
+          bets={groupBets}
+          currentUserId={currentUserId}
+        />
 
         {/* Leave group button (non-owners, non-official only) */}
         {!isOwner && !isOfficial && (
