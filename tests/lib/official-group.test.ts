@@ -17,8 +17,12 @@ describe("isReservedOfficialSlug", () => {
   it("returns false for empty string", () => {
     expect(isReservedOfficialSlug("")).toBe(false);
   });
-  it("RESERVED_OFFICIAL_SLUGS contains both languages", () => {
+  it("returns true for 'ranglista'", () => {
+    expect(isReservedOfficialSlug("ranglista")).toBe(true);
+  });
+  it("RESERVED_OFFICIAL_SLUGS contains all reserved values", () => {
     expect(RESERVED_OFFICIAL_SLUGS).toContain("hivatalos");
     expect(RESERVED_OFFICIAL_SLUGS).toContain("official");
+    expect(RESERVED_OFFICIAL_SLUGS).toContain("ranglista");
   });
 });
