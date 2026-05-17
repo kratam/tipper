@@ -166,28 +166,35 @@ export function TournamentTabs({
     return result;
   }, [groupBetInfosByMatch, officialCard?.groupId]);
 
-  // Per-group card data: merge leaderboard info with unbetted counts and balance.
+  // Per-group card data: merge leaderboard info with next-3-days bet progress and balance.
   // The official group is rendered separately (OfficialGroupRibbon), so we filter it out here.
-  const { groupCardData, officialUnbettedCount } = useMemo(() => {
-    const unbettedMap = new Map<string, number>();
+  // "next 3 days" = rolling 72h window from now (matches getUpcomingBetSummary semantics).
+  const { groupCardData, officialNext3Days } = useMemo(() => {
+    const cutoff = Date.now() + 3 * 24 * 60 * 60 * 1000;
+    const next3DaysMap = new Map<string, { total: number; withBet: number }>();
     for (const match of liveMatches) {
       if (match.status !== "scheduled") continue;
+      if (new Date(match.scheduledAt).getTime() >= cutoff) continue;
       const groupInfos = sortedGroupInfosByMatch[match.id] ?? [];
       for (const gi of groupInfos) {
-        if (!gi.existingBet) {
-          unbettedMap.set(gi.groupId, (unbettedMap.get(gi.groupId) ?? 0) + 1);
-        }
+        const entry = next3DaysMap.get(gi.groupId) ?? { total: 0, withBet: 0 };
+        entry.total++;
+        if (gi.existingBet) entry.withBet++;
+        next3DaysMap.set(gi.groupId, entry);
       }
     }
 
+    const emptyProgress = { total: 0, withBet: 0 };
     return {
       groupCardData: groupLeaderboards
         .filter((gl) => gl.groupId !== officialCard?.groupId)
         .map((gl) => ({
           ...gl,
-          unbettedCount: unbettedMap.get(gl.groupId) ?? 0,
+          next3Days: next3DaysMap.get(gl.groupId) ?? emptyProgress,
         })),
-      officialUnbettedCount: officialCard ? (unbettedMap.get(officialCard.groupId) ?? 0) : 0,
+      officialNext3Days: officialCard
+        ? (next3DaysMap.get(officialCard.groupId) ?? emptyProgress)
+        : emptyProgress,
     };
   }, [liveMatches, sortedGroupInfosByMatch, groupLeaderboards, officialCard]);
 
@@ -272,7 +279,7 @@ export function TournamentTabs({
             myRank={officialCard.myRank}
             miniLeaderboard={officialCard.miniLeaderboard}
             currentUserId={currentUserId}
-            unbettedCount={officialUnbettedCount}
+            next3Days={officialNext3Days}
           />
         )}
 

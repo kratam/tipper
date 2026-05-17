@@ -16,6 +16,11 @@ interface MiniLeaderboardEntry {
   profit: number;
 }
 
+interface Next3DaysProgress {
+  total: number;
+  withBet: number;
+}
+
 interface OfficialGroupRibbonProps {
   groupName: string;
   groupSlug: string;
@@ -27,7 +32,7 @@ interface OfficialGroupRibbonProps {
   myRank: number | null;
   miniLeaderboard: MiniLeaderboardEntry[];
   currentUserId: string;
-  unbettedCount: number;
+  next3Days: Next3DaysProgress;
 }
 
 export function OfficialGroupRibbon({
@@ -41,7 +46,7 @@ export function OfficialGroupRibbon({
   myRank,
   miniLeaderboard,
   currentUserId,
-  unbettedCount,
+  next3Days,
 }: OfficialGroupRibbonProps) {
   const t = useTranslations("groups");
   const tTournaments = useTranslations("tournaments");
@@ -84,15 +89,26 @@ export function OfficialGroupRibbon({
           <span className="text-muted-foreground"> · </span>
           <span className="font-bold text-amber-500">{myProfit}</span>
         </span>
-        {unbettedCount > 0 ? (
-          <span className="flex items-center gap-1.5 text-amber-600 text-xs dark:text-amber-400">
-            <CircleAlert className="size-3.5" />
-            {tTournaments("unbettedMatches", { count: unbettedCount })}
+        {next3Days.total === 0 ? (
+          <span className="flex items-center gap-1.5 text-muted-foreground text-xs">
+            <CircleCheck className="size-3.5" />
+            {tTournaments("next3Days.none")}
           </span>
-        ) : (
+        ) : next3Days.withBet === next3Days.total ? (
           <span className="flex items-center gap-1.5 text-emerald-600 text-xs dark:text-emerald-400">
             <CircleCheck className="size-3.5" />
-            {tTournaments("allBetsPlaced")}
+            {tTournaments("next3Days.progress", {
+              total: next3Days.total,
+              withBet: next3Days.withBet,
+            })}
+          </span>
+        ) : (
+          <span className="flex items-center gap-1.5 text-amber-600 text-xs dark:text-amber-400">
+            <CircleAlert className="size-3.5" />
+            {tTournaments("next3Days.progress", {
+              total: next3Days.total,
+              withBet: next3Days.withBet,
+            })}
           </span>
         )}
         <span className="ml-auto flex items-center gap-2 text-muted-foreground">

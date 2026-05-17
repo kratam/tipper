@@ -25,6 +25,11 @@ interface MiniLeaderboardEntry {
   profit: number;
 }
 
+interface Next3DaysProgress {
+  total: number;
+  withBet: number;
+}
+
 interface GroupCardItem {
   groupId: string;
   groupName: string;
@@ -33,7 +38,7 @@ interface GroupCardItem {
   myProfit: number;
   myRank: number | null;
   miniLeaderboard: MiniLeaderboardEntry[];
-  unbettedCount: number;
+  next3Days: Next3DaysProgress;
 }
 
 interface GroupTokenSummaryProps {
@@ -132,7 +137,8 @@ export function GroupTokenSummary({
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {groups.map((g) => {
-        const hasWarning = g.unbettedCount > 0;
+        const hasMatches = g.next3Days.total > 0;
+        const allPlaced = hasMatches && g.next3Days.withBet === g.next3Days.total;
 
         return (
           <Link
@@ -201,17 +207,28 @@ export function GroupTokenSummary({
                 {t("profit")}: {g.myProfit > 0 ? `+${g.myProfit}` : g.myProfit}
               </span>
 
-              {hasWarning ? (
-                <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                  <CircleAlert className="size-3.5" />
-                  {t("unbettedMatches", { count: g.unbettedCount })}
+              {!hasMatches ? (
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <CircleCheck className="size-3.5" />
+                  {t("next3Days.none")}
                 </span>
-              ) : g.unbettedCount === 0 ? (
+              ) : allPlaced ? (
                 <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                   <CircleCheck className="size-3.5" />
-                  {t("allBetsPlaced")}
+                  {t("next3Days.progress", {
+                    total: g.next3Days.total,
+                    withBet: g.next3Days.withBet,
+                  })}
                 </span>
-              ) : null}
+              ) : (
+                <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                  <CircleAlert className="size-3.5" />
+                  {t("next3Days.progress", {
+                    total: g.next3Days.total,
+                    withBet: g.next3Days.withBet,
+                  })}
+                </span>
+              )}
             </div>
           </Link>
         );

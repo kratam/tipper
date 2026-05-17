@@ -44,8 +44,10 @@
     "betProgress": "{betCount}/{total} bets",
     "noTournaments": "No tournaments yet",
     "profit": "Profit",
-    "unbettedMatches": "{count} matches without bets",
-    "allBetsPlaced": "All bets placed",
+    "next3Days": {
+      "none": "no matches (next 3 days)",
+      "progress": "{total}/{withBet} bets (next 3 days)"
+    },
     "howToPlay": "How does it work?",
     "howToPlayTokens": "Tokens",
     "howToPlayTokensDesc": "You get tokens every match day. Join a group late? You'll still receive tokens for the days you missed — no catching up needed.",

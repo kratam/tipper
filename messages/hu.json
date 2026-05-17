@@ -44,8 +44,10 @@
     "betProgress": "{betCount}/{total} tipp",
     "noTournaments": "Nincsenek versenysorozatok",
     "profit": "Profit",
-    "unbettedMatches": "{count} meccsre nem tippeltél",
-    "allBetsPlaced": "Minden tipp leadva",
+    "next3Days": {
+      "none": "nincs meccs (köv. 3 nap)",
+      "progress": "{total}/{withBet} tipp (köv. 3 nap)"
+    },
     "howToPlay": "Hogyan működik?",
     "howToPlayTokens": "Tokenek",
     "howToPlayTokensDesc": "Minden meccs napján kapsz tokeneket. Ha csak most csatlakoztál egy csoporthoz, a korábbi tokeneket is megkapod — nem maradsz le semmiről.",
