@@ -61,7 +61,15 @@
     "joinAnotherGroup": "Csatlakozz másik csoporthoz is, vagy hozz létre sajátot:",
     "createOwnGroupHint": "Játszanál a barátaiddal is? Hozz létre saját csoportot!",
     "browseGroups": "Csoportok böngészése",
-    "createGroup": "Csoport létrehozása"
+    "createGroup": "Csoport létrehozása",
+    "officialRibbon": {
+      "expand": "Ranglista mutatása",
+      "collapse": "Ranglista elrejtése"
+    },
+    "podiumTab": {
+      "submitted": "Leadva",
+      "locked": "Lezárva"
+    }
   },
   "matches": {
     "scheduled": "Tervezett",
@@ -176,13 +184,12 @@
     "noUpcomingMatches": "Nincs meccs a következő 3 napban",
     "totalMissing": "Összesen {count} tipp hiányzik",
     "allBetsDone": "Minden tipp leadva a következő 3 napra",
-    "officialBadge": "Hivatalos",
     "viewDetails": "Részletek",
     "myRank": "Helyezésed",
     "myProfit": "Profitod",
-    "officialGroupNameReserved": "Ez a név fenntartva a hivatalos csoportoknak",
-    "cannotDeleteOfficial": "Hivatalos csoport nem törölhető",
-    "cannotLeaveOfficial": "Hivatalos csoportból nem lehet kilépni",
+    "officialGroupNameReserved": "Ez a név fenntartva a ranglistának",
+    "cannotDeleteOfficial": "A ranglista nem törölhető",
+    "cannotLeaveOfficial": "A ranglistából nem lehet kilépni",
     "archivedTournaments": "Archivált versenysorozatok"
   },
   "podium": {

@@ -61,7 +61,15 @@
     "joinAnotherGroup": "Join another group, or create your own:",
     "createOwnGroupHint": "Want to play with friends too? Create your own group!",
     "browseGroups": "Browse groups",
-    "createGroup": "Create a group"
+    "createGroup": "Create a group",
+    "officialRibbon": {
+      "expand": "Show leaderboard",
+      "collapse": "Hide leaderboard"
+    },
+    "podiumTab": {
+      "submitted": "Submitted",
+      "locked": "Locked"
+    }
   },
   "matches": {
     "scheduled": "Scheduled",
@@ -176,13 +184,12 @@
     "noUpcomingMatches": "No matches in the next 3 days",
     "totalMissing": "{count} bets missing in total",
     "allBetsDone": "All bets placed for the next 3 days",
-    "officialBadge": "Official",
     "viewDetails": "Details",
     "myRank": "Your rank",
     "myProfit": "Your profit",
-    "officialGroupNameReserved": "This name is reserved for official groups",
-    "cannotDeleteOfficial": "Official groups cannot be deleted",
-    "cannotLeaveOfficial": "Cannot leave the official group",
+    "officialGroupNameReserved": "This name is reserved for the leaderboard",
+    "cannotDeleteOfficial": "The leaderboard group cannot be deleted",
+    "cannotLeaveOfficial": "Cannot leave the leaderboard group",
     "archivedTournaments": "Archived tournaments"
   },
   "podium": {
