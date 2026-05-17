@@ -176,6 +176,8 @@ export default async function TournamentDetailPage({
           tournamentSlug: tournament.slug,
           oddsBoost: og.oddsBoost,
           tokenPerMatch: og.tokenPerMatch,
+          bonusGoalDiff: og.bonusGoalDiff,
+          bonusExactScore: og.bonusExactScore,
           myProfit: lb?.myProfit ?? 0,
           myRank: lb?.myRank ?? null,
           miniLeaderboard: lb?.miniLeaderboard ?? [],

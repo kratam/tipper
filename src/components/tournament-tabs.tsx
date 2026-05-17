@@ -76,6 +76,8 @@ interface OfficialCardData {
   tournamentSlug: string;
   oddsBoost: number;
   tokenPerMatch: number;
+  bonusGoalDiff: number;
+  bonusExactScore: number;
   myProfit: number;
   myRank: number | null;
   miniLeaderboard: MiniLeaderboardEntry[];
@@ -264,6 +266,8 @@ export function TournamentTabs({
             groupSlug={officialCard.groupSlug}
             tournamentSlug={officialCard.tournamentSlug}
             oddsBoost={officialCard.oddsBoost}
+            bonusGoalDiff={officialCard.bonusGoalDiff}
+            bonusExactScore={officialCard.bonusExactScore}
             myProfit={officialCard.myProfit}
             myRank={officialCard.myRank}
             miniLeaderboard={officialCard.miniLeaderboard}

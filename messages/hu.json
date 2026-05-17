@@ -133,6 +133,8 @@
     "tokenPerMatch": "Token/meccs",
     "bonusGoalDiff": "Gólkülönbség bónusz",
     "bonusExactScore": "Pontos eredmény bónusz",
+    "goalDiff": "Gólkülönbség",
+    "exactScore": "Pontos eredmény",
     "bonusPodiumMention": "Dobogós említés bónusz",
     "bonusPodiumExact": "Pontos helyezés bónusz",
     "oddsBoost": "Odds szorzó",

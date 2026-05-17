@@ -21,6 +21,8 @@ interface OfficialGroupRibbonProps {
   groupSlug: string;
   tournamentSlug: string;
   oddsBoost: number;
+  bonusGoalDiff: number;
+  bonusExactScore: number;
   myProfit: number;
   myRank: number | null;
   miniLeaderboard: MiniLeaderboardEntry[];
@@ -33,6 +35,8 @@ export function OfficialGroupRibbon({
   groupSlug,
   tournamentSlug,
   oddsBoost,
+  bonusGoalDiff,
+  bonusExactScore,
   myProfit,
   myRank,
   miniLeaderboard,
@@ -105,10 +109,17 @@ export function OfficialGroupRibbon({
 
       {open && (
         <div className="flex flex-col gap-3 border-amber-500/20 border-t bg-amber-500/5 px-4 py-3">
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             <span className="font-bold">{groupName}</span>
             <span className="text-muted-foreground">
               · {t("oddsBoost")}: <span className="font-mono text-amber-500">×{oddsBoost}</span>
+            </span>
+            <span className="text-muted-foreground">
+              · {t("goalDiff")}: <span className="font-mono text-amber-500">+{bonusGoalDiff}</span>
+            </span>
+            <span className="text-muted-foreground">
+              · {t("exactScore")}:{" "}
+              <span className="font-mono text-amber-500">+{bonusExactScore}</span>
             </span>
           </div>
           {miniLeaderboard.length > 0 && (
