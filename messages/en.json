@@ -103,6 +103,11 @@
     "actualBalance": "Your balance",
     "pendingTokens": "Upcoming",
     "currentStake": "Current stake",
+    "initialTokens": "Initial tokens",
+    "matchTokens": "Match tokens",
+    "winnings": "Winnings",
+    "losses": "Lost tokens",
+    "lockedStakes": "Locked active stakes",
     "max": "MAX"
   },
   "groups": {

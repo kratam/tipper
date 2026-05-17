@@ -27,6 +27,11 @@ interface GroupBetInfo {
   projectedBalance: number;
   pendingDistributions: number;
   tokenPerMatch: number;
+  initialTokens: number;
+  eligibleMatchCount: number;
+  winnings: number;
+  losses: number;
+  otherActiveStakes: number;
   oddsBoost: number;
   existingBet: {
     id: string;

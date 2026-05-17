@@ -120,6 +120,11 @@ export default async function TournamentDetailPage({
       projectedBalance: number;
       pendingDistributions: number;
       tokenPerMatch: number;
+      initialTokens: number;
+      eligibleMatchCount: number;
+      winnings: number;
+      losses: number;
+      otherActiveStakes: number;
       oddsBoost: number;
       existingBet: {
         id: string;
@@ -142,6 +147,11 @@ export default async function TournamentDetailPage({
         projectedBalance: bal?.projected ?? 0,
         pendingDistributions: bal?.pending ?? 0,
         tokenPerMatch: bal?.tokenPerMatch ?? gm.group.tokenPerMatch,
+        initialTokens: bal?.initialTokens ?? gm.group.initialTokens,
+        eligibleMatchCount: bal?.eligibleMatchCount ?? 0,
+        winnings: bal?.winnings ?? 0,
+        losses: bal?.losses ?? 0,
+        otherActiveStakes: bal?.otherActiveStakes ?? 0,
         oddsBoost: gm.group.oddsBoost,
         existingBet: existingBet
           ? {

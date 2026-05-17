@@ -103,6 +103,11 @@
     "actualBalance": "Egyenleged",
     "pendingTokens": "Még kapsz",
     "currentStake": "Jelenlegi tét",
+    "initialTokens": "Kezdeti tokenek",
+    "matchTokens": "Meccstokenek",
+    "winnings": "Nyeremények",
+    "losses": "Elvesztett tokenek",
+    "lockedStakes": "Lekötött aktív tétek",
     "max": "MAX"
   },
   "groups": {

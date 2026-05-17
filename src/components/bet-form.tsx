@@ -19,6 +19,11 @@ interface GroupBetInfo {
   projectedBalance: number;
   pendingDistributions: number;
   tokenPerMatch: number;
+  initialTokens: number;
+  eligibleMatchCount: number;
+  winnings: number;
+  losses: number;
+  otherActiveStakes: number;
   oddsBoost: number;
   existingBet: {
     id: string;
@@ -306,36 +311,37 @@ export function BetForm({
                   <span className="font-mono text-muted-foreground text-xs">
                     {t("projectedBalance")}: {effectiveBalance}
                   </span>
-                  {(group.pendingDistributions > 0 || group.existingBet) && (
-                    <BalanceInfoTooltip label={t("balanceDetails")}>
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex justify-between gap-4">
-                          <span>{t("actualBalance")}:</span>
-                          <span>{group.balance}</span>
-                        </div>
-                        {group.pendingDistributions > 0 && (
-                          <div className="flex justify-between gap-4">
-                            <span>{t("pendingTokens")}:</span>
-                            <span>
-                              +{group.pendingDistributions * group.tokenPerMatch} (
-                              {group.pendingDistributions} × {group.tokenPerMatch})
-                            </span>
-                          </div>
-                        )}
-                        {group.existingBet && (
-                          <div className="flex justify-between gap-4">
-                            <span>{t("currentStake")}:</span>
-                            <span>+{group.existingBet.stake}</span>
-                          </div>
-                        )}
-                        <div className="my-0.5 border-primary-foreground/20 border-t" />
-                        <div className="flex justify-between gap-4 font-bold">
-                          <span>{t("projectedBalance")}:</span>
-                          <span>{effectiveBalance}</span>
-                        </div>
+                  <BalanceInfoTooltip label={t("balanceDetails")}>
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex justify-between gap-4">
+                        <span>{t("initialTokens")}:</span>
+                        <span>+{group.initialTokens}</span>
                       </div>
-                    </BalanceInfoTooltip>
-                  )}
+                      <div className="flex justify-between gap-4">
+                        <span>
+                          {t("matchTokens")} ({group.eligibleMatchCount} × {group.tokenPerMatch}):
+                        </span>
+                        <span>+{group.eligibleMatchCount * group.tokenPerMatch}</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span>{t("winnings")}:</span>
+                        <span>+{group.winnings}</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span>{t("losses")}:</span>
+                        <span>{group.losses}</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span>{t("lockedStakes")}:</span>
+                        <span>{group.otherActiveStakes === 0 ? 0 : -group.otherActiveStakes}</span>
+                      </div>
+                      <div className="my-0.5 border-primary-foreground/20 border-t" />
+                      <div className="flex justify-between gap-4 font-bold">
+                        <span>{t("projectedBalance")}:</span>
+                        <span>{effectiveBalance}</span>
+                      </div>
+                    </div>
+                  </BalanceInfoTooltip>
                 </div>
               </div>
 
