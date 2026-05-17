@@ -220,7 +220,7 @@ export default async function TournamentDetailPage({
   }));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         {tournament.logoUrl && (
           <TournamentLogo src={tournament.logoUrl} alt={tournament.name} size={40} />

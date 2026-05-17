@@ -257,8 +257,8 @@ export function TournamentTabs({
 
   return (
     <>
-      {officialCard && (
-        <div className="mb-4">
+      <div className="flex flex-col gap-3">
+        {officialCard && (
           <OfficialGroupRibbon
             groupName={officialCard.groupName}
             groupSlug={officialCard.groupSlug}
@@ -270,118 +270,118 @@ export function TournamentTabs({
             currentUserId={currentUserId}
             unbettedCount={officialUnbettedCount}
           />
-        </div>
-      )}
+        )}
 
-      {filter !== "podium" && (
-        <GroupTokenSummary
-          groups={groupCardData}
-          currentUserId={currentUserId}
-          topPublicGroups={topPublicGroups}
-          hasOfficialGroup={!!officialCard}
-        />
-      )}
-
-      {/* Unified filter row: upcoming / played / all / podium */}
-      <div className="my-4 flex gap-1 rounded-lg bg-muted p-1">
-        <button
-          type="button"
-          onClick={() => setFilter("upcoming")}
-          className={`flex-1 rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
-            filter === "upcoming"
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          {tMatches("upcoming")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setFilter("played")}
-          className={`flex-1 rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
-            filter === "played"
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          {tMatches("played")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setFilter("all")}
-          className={`flex-1 rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
-            filter === "all"
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          {tMatches("all")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setFilter("podium")}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
-            filter === "podium"
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <span>{t("podium")}</span>
-          {existingPodiumBet ? (
-            <Check
-              className="size-3.5 text-emerald-600 dark:text-emerald-400"
-              aria-label={t("podiumTab.submitted")}
-            />
-          ) : isLocked ? (
-            <Lock className="size-3.5 text-muted-foreground" aria-label={t("podiumTab.locked")} />
-          ) : null}
-        </button>
-      </div>
-
-      {filter === "podium" ? (
-        <div className="flex flex-col gap-4">
-          <PodiumForm
-            tournamentId={tournamentId}
-            teams={teams}
-            existingBet={existingPodiumBet}
-            isLocked={isLocked}
+        {filter !== "podium" && (
+          <GroupTokenSummary
+            groups={groupCardData}
+            currentUserId={currentUserId}
+            topPublicGroups={topPublicGroups}
+            hasOfficialGroup={!!officialCard}
           />
+        )}
+
+        {/* Unified filter row: upcoming / played / all / podium */}
+        <div className="flex gap-1 rounded-lg bg-muted p-1">
+          <button
+            type="button"
+            onClick={() => setFilter("upcoming")}
+            className={`flex-1 rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
+              filter === "upcoming"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {tMatches("upcoming")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilter("played")}
+            className={`flex-1 rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
+              filter === "played"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {tMatches("played")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilter("all")}
+            className={`flex-1 rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
+              filter === "all"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {tMatches("all")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilter("podium")}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
+              filter === "podium"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span>{t("podium")}</span>
+            {existingPodiumBet ? (
+              <Check
+                className="size-3.5 text-emerald-600 dark:text-emerald-400"
+                aria-label={t("podiumTab.submitted")}
+              />
+            ) : isLocked ? (
+              <Lock className="size-3.5 text-muted-foreground" aria-label={t("podiumTab.locked")} />
+            ) : null}
+          </button>
         </div>
-      ) : filteredDays.length === 0 ? (
-        <p className="py-8 text-center text-muted-foreground">{tMatches("noMatches")}</p>
-      ) : (
-        <Accordion type="multiple" defaultValue={initialOpen} className="flex flex-col gap-2">
-          {filteredDays.map((day) => (
-            <AccordionItem key={day.dateKey} value={day.dateKey} className="border-none">
-              <AccordionTrigger className="rounded-lg bg-muted px-4 py-2.5 hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm">{day.label}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {t("betProgress", {
-                      betCount: day.matches.filter((m) =>
-                        sortedGroupInfosByMatch[m.id]?.some((g) => g.existingBet),
-                      ).length,
-                      total: day.matches.length,
-                    })}
-                  </span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pt-2 pb-2">
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {day.matches.map((match) => (
-                    <MatchCard
-                      key={match.id}
-                      match={match}
-                      timezone={timezone}
-                      onClick={() => handleMatchClick(match)}
-                    />
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      )}
+
+        {filter === "podium" ? (
+          <div className="flex flex-col gap-4">
+            <PodiumForm
+              tournamentId={tournamentId}
+              teams={teams}
+              existingBet={existingPodiumBet}
+              isLocked={isLocked}
+            />
+          </div>
+        ) : filteredDays.length === 0 ? (
+          <p className="py-8 text-center text-muted-foreground">{tMatches("noMatches")}</p>
+        ) : (
+          <Accordion type="multiple" defaultValue={initialOpen} className="flex flex-col gap-2">
+            {filteredDays.map((day) => (
+              <AccordionItem key={day.dateKey} value={day.dateKey} className="border-none">
+                <AccordionTrigger className="rounded-lg bg-muted px-4 py-2.5 hover:no-underline">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm">{day.label}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {t("betProgress", {
+                        betCount: day.matches.filter((m) =>
+                          sortedGroupInfosByMatch[m.id]?.some((g) => g.existingBet),
+                        ).length,
+                        total: day.matches.length,
+                      })}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-2">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {day.matches.map((match) => (
+                      <MatchCard
+                        key={match.id}
+                        match={match}
+                        timezone={timezone}
+                        onClick={() => handleMatchClick(match)}
+                      />
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        )}
+      </div>
 
       <BetDialog
         match={selectedMatch}
