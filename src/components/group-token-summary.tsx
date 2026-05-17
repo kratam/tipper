@@ -65,46 +65,54 @@ export function GroupTokenSummary({
   const [selectedGroup, setSelectedGroup] = useState<PublicGroupSuggestion | null>(null);
 
   if (groups.length === 0) {
-    const emptyHeadline = hasOfficialGroup
-      ? topPublicGroups && topPublicGroups.length > 0
-        ? t("joinAnotherGroup")
-        : t("createOwnGroupHint")
-      : topPublicGroups && topPublicGroups.length > 0
-        ? t("noGroupYet")
+    // Suppressed for now per request — show only the public-group suggestions block
+    // when there are recommendations. The "Csoport létrehozása" prompt below is
+    // commented out and can be restored when we want to nudge users toward creating
+    // their own group again.
+    if (!topPublicGroups || topPublicGroups.length === 0) {
+      /*
+      const emptyHeadline = hasOfficialGroup
+        ? t("createOwnGroupHint")
         : t("noPublicGroup");
+      return (
+        <div className="rounded-lg border border-border border-dashed bg-muted/30 p-4">
+          <div className="flex flex-col gap-3">
+            <p className="text-muted-foreground text-sm">{emptyHeadline}</p>
+            <Button variant="outline" size="sm" asChild className="gap-2 self-start">
+              <Link href="/groups/new">{t("createGroup")}</Link>
+            </Button>
+          </div>
+        </div>
+      );
+      */
+      return null;
+    }
+
+    const emptyHeadline = hasOfficialGroup ? t("joinAnotherGroup") : t("noGroupYet");
 
     return (
       <>
         <div className="rounded-lg border border-border border-dashed bg-muted/30 p-4">
-          {topPublicGroups && topPublicGroups.length > 0 ? (
-            <div className="flex flex-col gap-4">
-              <p className="text-muted-foreground text-sm">{emptyHeadline}</p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {topPublicGroups.map((group) => (
-                  <GroupCard
-                    key={group.id}
-                    group={group}
-                    memberCount={group.memberCount}
-                    variant="public"
-                    onClick={() => setSelectedGroup(group)}
-                  />
-                ))}
-              </div>
-              <Button variant="outline" size="sm" asChild className="gap-2 self-start">
-                <Link href="/groups">
-                  <Users className="size-4" />
-                  {t("browseGroups")}
-                </Link>
-              </Button>
+          <div className="flex flex-col gap-4">
+            <p className="text-muted-foreground text-sm">{emptyHeadline}</p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {topPublicGroups.map((group) => (
+                <GroupCard
+                  key={group.id}
+                  group={group}
+                  memberCount={group.memberCount}
+                  variant="public"
+                  onClick={() => setSelectedGroup(group)}
+                />
+              ))}
             </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              <p className="text-muted-foreground text-sm">{emptyHeadline}</p>
-              <Button variant="outline" size="sm" asChild className="gap-2 self-start">
-                <Link href="/groups/new">{t("createGroup")}</Link>
-              </Button>
-            </div>
-          )}
+            <Button variant="outline" size="sm" asChild className="gap-2 self-start">
+              <Link href="/groups">
+                <Users className="size-4" />
+                {t("browseGroups")}
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {selectedGroup && (

@@ -95,7 +95,7 @@ export function OfficialGroupRibbon({
           <Link
             href={`/tournaments/${tournamentSlug}/groups/${groupSlug}`}
             onClick={(e) => e.stopPropagation()}
-            className="hidden text-xs hover:text-foreground sm:inline"
+            className="hidden font-medium text-amber-600 text-sm hover:text-amber-700 hover:underline sm:inline dark:text-amber-400 dark:hover:text-amber-300"
           >
             {t("viewDetails")} →
           </Link>

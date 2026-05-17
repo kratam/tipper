@@ -55,4 +55,33 @@ describe("pickMiniLeaderboard", () => {
     const result = pickMiniLeaderboard([], "a");
     expect(result).toEqual([]);
   });
+
+  describe("with size=5", () => {
+    const longBoard: LeaderboardEntry[] = [
+      makeEntry(1, "a", 500),
+      makeEntry(2, "b", 400),
+      makeEntry(3, "c", 300),
+      makeEntry(4, "d", 200),
+      makeEntry(5, "e", 100),
+      makeEntry(6, "f", 50),
+      makeEntry(7, "g", 0),
+      makeEntry(8, "h", -50),
+    ];
+
+    it("returns top 5 when current user is in top 5", () => {
+      const result = pickMiniLeaderboard(longBoard, "c", 5);
+      expect(result.map((r) => r.userId)).toEqual(["a", "b", "c", "d", "e"]);
+    });
+
+    it("returns [top 3, ahead, me] when current user is 8th", () => {
+      const result = pickMiniLeaderboard(longBoard, "h", 5);
+      expect(result.map((r) => r.userId)).toEqual(["a", "b", "c", "g", "h"]);
+    });
+
+    it("returns all entries when leaderboard has fewer than 5", () => {
+      const small = longBoard.slice(0, 4);
+      const result = pickMiniLeaderboard(small, "d", 5);
+      expect(result.map((r) => r.userId)).toEqual(["a", "b", "c", "d"]);
+    });
+  });
 });

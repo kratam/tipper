@@ -82,7 +82,7 @@ export default async function TournamentDetailPage({
     Promise.all(
       relevantGroups.map(async (gm) => {
         const leaderboard = await getGroupLeaderboard(gm.group.id);
-        const mini = pickMiniLeaderboard(leaderboard, user.id);
+        const mini = pickMiniLeaderboard(leaderboard, user.id, gm.group.isOfficial ? 5 : 3);
         const myEntry = leaderboard.find((e) => e.userId === user.id);
         return {
           groupId: gm.group.id,
