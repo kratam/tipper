@@ -124,7 +124,11 @@ export function OfficialGroupRibbon({
       </button>
 
       {open && (
-        <div className="flex flex-col gap-3 border-amber-500/20 border-t bg-amber-500/5 px-4 py-3">
+        <Link
+          href={`/tournaments/${tournamentSlug}/groups/${groupSlug}`}
+          aria-label={t("viewDetails")}
+          className="flex flex-col gap-3 border-amber-500/20 border-t bg-amber-500/5 px-4 py-3 transition-colors hover:bg-amber-500/10"
+        >
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             <span className="font-bold">{groupName}</span>
             <span className="text-muted-foreground">
@@ -168,7 +172,12 @@ export function OfficialGroupRibbon({
               })}
             </div>
           )}
-        </div>
+          <div className="flex justify-end">
+            <span className="font-medium text-amber-600 text-sm hover:underline dark:text-amber-400">
+              {t("viewDetails")} →
+            </span>
+          </div>
+        </Link>
       )}
     </div>
   );
