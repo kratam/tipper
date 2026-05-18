@@ -51,9 +51,11 @@ export default async function GroupDetailPage({
           groupName={group.name}
           days={upcomingDays}
         />
-        <div className="flex justify-end">
-          <InviteCodeBadge inviteCode={group.inviteCode} />
-        </div>
+        {!group.isOfficial && (
+          <div className="flex justify-end">
+            <InviteCodeBadge inviteCode={group.inviteCode} />
+          </div>
+        )}
       </div>
 
       <GroupDetailTabs
