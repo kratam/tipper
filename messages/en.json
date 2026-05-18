@@ -186,7 +186,7 @@
     "missingBets": "{count} missing",
     "allDone": "Done",
     "noUpcomingMatches": "No matches in the next 3 days",
-    "totalMissing": "{count} bets missing in total",
+    "totalMissing": "{count} bets missing",
     "allBetsDone": "All bets placed for the next 3 days",
     "viewDetails": "Details",
     "myRank": "Your rank",

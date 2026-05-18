@@ -186,7 +186,7 @@
     "missingBets": "{count} tipp hiányzik",
     "allDone": "Kész",
     "noUpcomingMatches": "Nincs meccs a következő 3 napban",
-    "totalMissing": "Összesen {count} tipp hiányzik",
+    "totalMissing": "{count} tipp hiányzik",
     "allBetsDone": "Minden tipp leadva a következő 3 napra",
     "viewDetails": "Részletek",
     "myRank": "Helyezésed",

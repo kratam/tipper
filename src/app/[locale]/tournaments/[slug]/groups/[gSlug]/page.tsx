@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { GroupDetailTabs } from "@/components/group-detail-tabs";
+import { GroupPageHeader } from "@/components/group-page-header";
 import { InviteCodeBadge } from "@/components/invite-code-badge";
-import { TournamentBetCard } from "@/components/tournament-bet-card";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { getGroupBetsForFinishedMatches } from "@/queries/bets";
@@ -43,17 +43,17 @@ export default async function GroupDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="font-bold font-mono text-2xl tracking-tight">{group.name}</h1>
-          <InviteCodeBadge inviteCode={group.inviteCode} />
-        </div>
-        <TournamentBetCard
+      <div className="flex flex-col gap-2">
+        <GroupPageHeader
           tournamentName={group.tournament.name}
           tournamentSlug={group.tournament.slug}
           tournamentLogoUrl={group.tournament.logoUrl}
+          groupName={group.name}
           days={upcomingDays}
         />
+        <div className="flex justify-end">
+          <InviteCodeBadge inviteCode={group.inviteCode} />
+        </div>
       </div>
 
       <GroupDetailTabs
