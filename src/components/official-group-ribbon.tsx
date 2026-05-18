@@ -172,11 +172,6 @@ export function OfficialGroupRibbon({
               })}
             </div>
           )}
-          <div className="flex justify-end">
-            <span className="font-medium text-amber-600 text-sm hover:underline dark:text-amber-400">
-              {t("viewDetails")} →
-            </span>
-          </div>
         </Link>
       )}
     </div>
