@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { bets, matches } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { type GroupBetsForMatch, getGroupBetsForStartedMatch } from "@/queries/bets";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
 
 // ── Types ──
@@ -83,4 +84,11 @@ export async function getLiveLeaderboard(groupId: string): Promise<LiveLeaderboa
   if (!user) return [];
 
   return getGroupLeaderboard(groupId);
+}
+
+export async function getMatchGroupBets(matchId: string): Promise<GroupBetsForMatch[]> {
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  return getGroupBetsForStartedMatch(user.id, matchId);
 }

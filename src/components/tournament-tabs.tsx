@@ -410,6 +410,7 @@ export function TournamentTabs({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         topPublicGroups={topPublicGroups}
+        currentUserId={currentUserId}
       />
     </>
   );
