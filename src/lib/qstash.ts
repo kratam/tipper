@@ -6,9 +6,20 @@ function getQStashClient(): Client {
   return new Client({ token });
 }
 
-function getCallbackBaseUrl(): string {
+/**
+ * QStash callback URL. Must be a stable host: the deployment-specific
+ * `VERCEL_URL` (e.g. `tipper-xxx.vercel.app`) becomes stale on the next deploy
+ * and Vercel deployment protection returns 401 to external callers on it,
+ * so QStash deliveries silently fail. Production must hit the project's
+ * stable production domain; preview/local fall back to the deployment URL.
+ */
+export function getCallbackBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.VERCEL_ENV === "production" && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  return "http://localhost:3000";
 }
 
 /**

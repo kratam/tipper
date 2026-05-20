@@ -209,6 +209,14 @@ Upstash QStash message queue a célzott API hívásokhoz. Free tier: 500 msg/nap
 - `scheduleMatchFinishCheck(delaySeconds)` — POST ütemezés `/api/cron/match-finish`-re
 - Env: `QSTASH_TOKEN`
 
+**Callback URL prioritás** (`getCallbackBaseUrl`):
+1. `NEXT_PUBLIC_APP_URL` — explicit override
+2. `VERCEL_PROJECT_PRODUCTION_URL` — csak ha `VERCEL_ENV=production` (stabil prod domain, pl. `tippcasino.vercel.app`)
+3. `VERCEL_URL` — preview deploy (deployment-specifikus URL)
+4. `http://localhost:3000` — lokál
+
+A deployment-specifikus `VERCEL_URL`-t prod-ban **nem szabad** használni: új deploy után stale (404), és a Vercel deployment protection 401-et adhat rá, így a QStash hívások némán failed lesznek.
+
 ## Schedule override
 
 Ha az API placeholder dátumokat ad (minden meccs egy napra):
