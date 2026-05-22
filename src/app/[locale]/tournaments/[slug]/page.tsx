@@ -177,7 +177,6 @@ export default async function TournamentDetailPage({
           groupSlug: og.slug,
           tournamentSlug: tournament.slug,
           oddsBoost: og.oddsBoost,
-          lossPercentage: og.lossPercentage,
           tokenPerMatch: og.tokenPerMatch,
           bonusGoalDiff: og.bonusGoalDiff,
           bonusExactScore: og.bonusExactScore,

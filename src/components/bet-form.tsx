@@ -25,6 +25,7 @@ interface GroupBetInfo {
   losses: number;
   otherActiveStakes: number;
   oddsBoost: number;
+  // lossPercentage is not needed here: bet-form is pre-bet UI only and never renders payout.
   existingBet: {
     id: string;
     predictedHome: number;

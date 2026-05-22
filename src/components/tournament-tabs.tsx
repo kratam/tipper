@@ -76,7 +76,6 @@ interface OfficialCardData {
   groupSlug: string;
   tournamentSlug: string;
   oddsBoost: number;
-  lossPercentage: number;
   tokenPerMatch: number;
   bonusGoalDiff: number;
   bonusExactScore: number;

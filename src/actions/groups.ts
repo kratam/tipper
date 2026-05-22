@@ -178,8 +178,8 @@ export async function updateGroupSettings(groupId: string, settings: GroupSettin
   const { isPublic, description, ...gameSettings } = settings;
 
   if (
-    settings.lossPercentage != null &&
-    (settings.lossPercentage < 0 || settings.lossPercentage > 100)
+    gameSettings.lossPercentage != null &&
+    (gameSettings.lossPercentage < 0 || gameSettings.lossPercentage > 100)
   ) {
     throw new Error("lossPercentage must be between 0 and 100");
   }
