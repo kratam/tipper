@@ -110,26 +110,26 @@ function isTodayOrTomorrow(dateStr: string, timeZone: string): boolean {
 }
 
 function StakePill({ bet, isFinished }: { bet: UserBet; isFinished: boolean }) {
-  const isWin = bet.result1x2Correct === true;
-  const isLoss = bet.result1x2Correct === false;
+  const net = isFinished && bet.payout != null ? bet.payout - bet.stake : null;
 
-  const pillStyle = isWin
-    ? "bg-emerald-500/10 text-emerald-600"
-    : isLoss
-      ? "bg-destructive/8 text-destructive"
-      : "bg-muted text-muted-foreground";
+  const pillStyle =
+    net === null
+      ? "bg-muted text-muted-foreground"
+      : net > 0
+        ? "bg-emerald-500/10 text-emerald-600"
+        : net < 0
+          ? "bg-destructive/8 text-destructive"
+          : "bg-muted text-muted-foreground";
 
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] ${pillStyle}`}
     >
       <span className="font-medium">{bet.groupName}</span>
-      {isFinished && isWin && bet.payout != null ? (
+      {net !== null ? (
         <span className="font-bold">
-          {bet.stake}→+{bet.payout}
+          {bet.stake}→{net > 0 ? `+${net}` : net < 0 ? `${net}` : "±0"}
         </span>
-      ) : isFinished && isLoss ? (
-        <span className="line-through">{bet.stake}</span>
       ) : (
         <span>{bet.stake}</span>
       )}
