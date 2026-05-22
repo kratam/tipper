@@ -22,6 +22,7 @@ interface CreateGroupInput {
   bonusPodiumMention?: number;
   bonusPodiumExact?: number;
   oddsBoost?: number;
+  lossPercentage?: number;
 }
 
 export async function createGroup(input: CreateGroupInput) {
@@ -30,6 +31,10 @@ export async function createGroup(input: CreateGroupInput) {
 
   if (!input.name || input.name.trim().length < 2) {
     throw new Error("Group name must be at least 2 characters");
+  }
+
+  if (input.lossPercentage != null && (input.lossPercentage < 0 || input.lossPercentage > 100)) {
+    throw new Error("lossPercentage must be between 0 and 100");
   }
 
   const tournament = await db.query.tournaments.findFirst({
@@ -58,6 +63,7 @@ export async function createGroup(input: CreateGroupInput) {
       ...(input.bonusPodiumMention != null && { bonusPodiumMention: input.bonusPodiumMention }),
       ...(input.bonusPodiumExact != null && { bonusPodiumExact: input.bonusPodiumExact }),
       ...(input.oddsBoost != null && { oddsBoost: input.oddsBoost }),
+      ...(input.lossPercentage != null && { lossPercentage: input.lossPercentage }),
       ...(input.isPublic != null && { isPublic: input.isPublic }),
       ...(input.description != null && { description: input.description }),
     })
@@ -152,6 +158,7 @@ interface GroupSettings {
   bonusPodiumMention?: number;
   bonusPodiumExact?: number;
   oddsBoost?: number;
+  lossPercentage?: number;
 }
 
 export async function updateGroupSettings(groupId: string, settings: GroupSettings) {
@@ -169,6 +176,14 @@ export async function updateGroupSettings(groupId: string, settings: GroupSettin
   // isPublic and description can always be changed
   // Game rules can only be changed when tournament is upcoming
   const { isPublic, description, ...gameSettings } = settings;
+
+  if (
+    settings.lossPercentage != null &&
+    (settings.lossPercentage < 0 || settings.lossPercentage > 100)
+  ) {
+    throw new Error("lossPercentage must be between 0 and 100");
+  }
+
   const alwaysUpdatable: Record<string, unknown> = {};
   if (isPublic != null) alwaysUpdatable.isPublic = isPublic;
   if (description !== undefined) alwaysUpdatable.description = description;
