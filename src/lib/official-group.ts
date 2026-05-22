@@ -70,6 +70,7 @@ export async function createOfficialGroup(tournamentId: string) {
       bonusPodiumMention: 20,
       bonusPodiumExact: 20,
       oddsBoost: 1.1,
+      lossPercentage: 90,
       isPublic: true,
       isOfficial: true,
     })
