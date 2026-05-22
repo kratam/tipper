@@ -88,6 +88,7 @@ export default async function GroupDetailPage({
           bonusPodiumMention: group.bonusPodiumMention,
           bonusPodiumExact: group.bonusPodiumExact,
           oddsBoost: group.oddsBoost,
+          lossPercentage: group.lossPercentage,
         }}
         finishedMatches={finishedMatches.map((m) => ({
           id: m.id,

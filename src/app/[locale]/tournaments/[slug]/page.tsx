@@ -126,6 +126,7 @@ export default async function TournamentDetailPage({
       losses: number;
       otherActiveStakes: number;
       oddsBoost: number;
+      lossPercentage: number;
       existingBet: {
         id: string;
         predictedHome: number;
@@ -153,6 +154,7 @@ export default async function TournamentDetailPage({
         losses: bal?.losses ?? 0,
         otherActiveStakes: bal?.otherActiveStakes ?? 0,
         oddsBoost: gm.group.oddsBoost,
+        lossPercentage: gm.group.lossPercentage,
         existingBet: existingBet
           ? {
               id: existingBet.id,
@@ -175,6 +177,7 @@ export default async function TournamentDetailPage({
           groupSlug: og.slug,
           tournamentSlug: tournament.slug,
           oddsBoost: og.oddsBoost,
+          lossPercentage: og.lossPercentage,
           tokenPerMatch: og.tokenPerMatch,
           bonusGoalDiff: og.bonusGoalDiff,
           bonusExactScore: og.bonusExactScore,

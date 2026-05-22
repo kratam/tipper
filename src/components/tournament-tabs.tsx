@@ -30,6 +30,7 @@ interface GroupBetInfo {
   losses: number;
   otherActiveStakes: number;
   oddsBoost: number;
+  lossPercentage: number;
   existingBet: {
     id: string;
     predictedHome: number;
@@ -75,6 +76,7 @@ interface OfficialCardData {
   groupSlug: string;
   tournamentSlug: string;
   oddsBoost: number;
+  lossPercentage: number;
   tokenPerMatch: number;
   bonusGoalDiff: number;
   bonusExactScore: number;

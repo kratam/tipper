@@ -37,6 +37,7 @@ interface GroupBetInfo {
   losses: number;
   otherActiveStakes: number;
   oddsBoost: number;
+  lossPercentage: number;
   existingBet: {
     id: string;
     predictedHome: number;

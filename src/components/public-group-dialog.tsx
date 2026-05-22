@@ -23,6 +23,7 @@ interface PublicGroupDialogProps {
     bonusExactScore: number;
     bonusPodiumMention: number;
     oddsBoost: number;
+    lossPercentage: number;
     tournament: {
       name: string;
       status: string;
@@ -126,6 +127,7 @@ export function PublicGroupDialog({
                 <RuleBox label={t("bonusGoalDiff")} value={`+${group.bonusGoalDiff}`} />
                 <RuleBox label={t("bonusExactScore")} value={`+${group.bonusExactScore}`} />
                 <RuleBox label={t("oddsBoostLabel")} value={`${group.oddsBoost}x`} />
+                <RuleBox label={t("lossPercentage")} value={`${group.lossPercentage}%`} />
                 <RuleBox label={t("podiumBonus")} value={`+${group.bonusPodiumMention}`} />
               </div>
             </div>

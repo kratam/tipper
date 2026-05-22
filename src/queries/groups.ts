@@ -491,6 +491,7 @@ export interface PublicGroupSuggestion {
   bonusExactScore: number;
   bonusPodiumMention: number;
   oddsBoost: number;
+  lossPercentage: number;
   tournament: {
     name: string;
     slug: string;
@@ -544,6 +545,7 @@ export async function getTopPublicGroupsForTournament(
       bonusExactScore: g.bonusExactScore,
       bonusPodiumMention: g.bonusPodiumMention,
       oddsBoost: g.oddsBoost,
+      lossPercentage: g.lossPercentage,
       tournament: {
         name: g.tournament.name,
         slug: g.tournament.slug,

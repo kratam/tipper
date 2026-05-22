@@ -17,6 +17,7 @@ interface PublicGroup {
   bonusExactScore: number;
   bonusPodiumMention: number;
   oddsBoost: number;
+  lossPercentage: number;
   tournament: {
     name: string;
     slug: string;
