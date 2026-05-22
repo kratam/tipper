@@ -42,6 +42,7 @@ interface GroupSettings {
   bonusPodiumMention: number;
   bonusPodiumExact: number;
   oddsBoost: number;
+  lossPercentage: number;
 }
 
 interface FinishedMatch {
@@ -307,6 +308,16 @@ export function GroupDetailTabs({
                         allowDecimal
                         min={1.0}
                         max={3.0}
+                        className="font-mono"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label className="text-xs">{t("lossPercentage")}</Label>
+                      <NumericInput
+                        value={settings.lossPercentage}
+                        onChange={(val) => setSettings({ ...settings, lossPercentage: val })}
+                        min={0}
+                        max={100}
                         className="font-mono"
                       />
                     </div>
