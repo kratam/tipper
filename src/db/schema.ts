@@ -125,6 +125,7 @@ export const groups = pgTable(
     bonusPodiumMention: integer("bonus_podium_mention").default(20).notNull(),
     bonusPodiumExact: integer("bonus_podium_exact").default(20).notNull(),
     oddsBoost: real("odds_boost").default(1.0).notNull(),
+    // DB default for new rows; rows created before migration 0014 were backfilled to 100.
     lossPercentage: integer("loss_percentage").default(90).notNull(),
     isPublic: boolean("is_public").default(false).notNull(),
     description: text("description"),
