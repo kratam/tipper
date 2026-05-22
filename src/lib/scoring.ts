@@ -13,7 +13,12 @@ interface BetPayoutInput {
   actualAway: number;
   stake: number;
   oddsAtBet: number | null;
-  groupSettings: { bonusGoalDiff: number; bonusExactScore: number; oddsBoost: number };
+  groupSettings: {
+    bonusGoalDiff: number;
+    bonusExactScore: number;
+    oddsBoost: number;
+    lossPercentage: number;
+  };
 }
 
 interface BetPayoutResult {
@@ -23,13 +28,17 @@ interface BetPayoutResult {
   exactScoreCorrect: boolean;
 }
 
+function partialRefund(stake: number, lossPercentage: number): number {
+  return Math.round((stake * (100 - lossPercentage)) / 100);
+}
+
 export function calculateBetPayout(input: BetPayoutInput): BetPayoutResult {
   const { predictedHome, predictedAway, actualHome, actualAway, stake, oddsAtBet, groupSettings } =
     input;
 
   if (oddsAtBet === null) {
     return {
-      payout: 0,
+      payout: partialRefund(stake, groupSettings.lossPercentage),
       result1x2Correct: false,
       goalDiffCorrect: false,
       exactScoreCorrect: false,
@@ -42,7 +51,7 @@ export function calculateBetPayout(input: BetPayoutInput): BetPayoutResult {
 
   if (!result1x2Correct) {
     return {
-      payout: 0,
+      payout: partialRefund(stake, groupSettings.lossPercentage),
       result1x2Correct: false,
       goalDiffCorrect: false,
       exactScoreCorrect: false,
