@@ -143,6 +143,8 @@
     "bonusPodiumMention": "Dobogós említés bónusz",
     "bonusPodiumExact": "Pontos helyezés bónusz",
     "oddsBoost": "Odds szorzó",
+    "lossPercentage": "Vesztési %",
+    "lossPercentageDescription": "Bukáskor a tét hány %-át veszíti el a játékos. 100% = teljes veszteség (klasszikus), 90% = 10%-ot visszakap.",
     "initialTokens": "Indulótőke",
     "noGroups": "Még nincs csoportod",
     "tournament": "Versenysorozat",

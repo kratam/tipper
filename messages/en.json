@@ -143,6 +143,8 @@
     "bonusPodiumMention": "Podium mention bonus",
     "bonusPodiumExact": "Exact placement bonus",
     "oddsBoost": "Odds boost",
+    "lossPercentage": "Loss %",
+    "lossPercentageDescription": "On loss, what percentage of the stake the player loses. 100% = full loss (classic), 90% = 10% refunded.",
     "initialTokens": "Starting tokens",
     "noGroups": "You have no groups yet",
     "tournament": "Tournament",
