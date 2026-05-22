@@ -29,7 +29,8 @@ interface BetPayoutResult {
 }
 
 function partialRefund(stake: number, lossPercentage: number): number {
-  return Math.round((stake * (100 - lossPercentage)) / 100);
+  const clamped = Math.max(0, Math.min(100, lossPercentage));
+  return Math.round((stake * (100 - clamped)) / 100);
 }
 
 export function calculateBetPayout(input: BetPayoutInput): BetPayoutResult {

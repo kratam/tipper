@@ -183,8 +183,34 @@ describe("calculateBetPayout", () => {
       oddsAtBet: 2.5,
       groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0, lossPercentage: 90 },
     });
-    // round(33 * 10 / 100) = round(3.3) = 3
+    // 100 - 90 = 10; round(33 * 10 / 100) = round(3.3) = 3
     expect(result.payout).toBe(3);
+  });
+
+  it("partial refund: clamps out-of-range lossPercentage to [0, 100]", () => {
+    const lossBeyond100 = calculateBetPayout({
+      predictedHome: 3,
+      predictedAway: 1,
+      actualHome: 0,
+      actualAway: 2,
+      stake: 100,
+      oddsAtBet: 2.5,
+      // 150 clamps to 100 → full loss, payout = 0 (not negative)
+      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0, lossPercentage: 150 },
+    });
+    expect(lossBeyond100.payout).toBe(0);
+
+    const lossBelow0 = calculateBetPayout({
+      predictedHome: 3,
+      predictedAway: 1,
+      actualHome: 0,
+      actualAway: 2,
+      stake: 100,
+      oddsAtBet: 2.5,
+      // -10 clamps to 0 → full refund, payout = stake (not greater than stake)
+      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0, lossPercentage: -10 },
+    });
+    expect(lossBelow0.payout).toBe(100);
   });
 
   it("partial refund: lossPercentage=0 returns full stake on loss (full refund)", () => {
