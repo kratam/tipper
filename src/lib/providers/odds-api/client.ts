@@ -25,9 +25,10 @@ export interface OddsApiOddsResponse {
 export function createOddsApiClient() {
   const apiKey = process.env.ODDS_API_KEY;
   if (!apiKey) throw new Error("ODDS_API_KEY is not set");
+  const key = apiKey; // narrowed to string; stable inside the closure
 
   async function getJson<T>(path: string, params: Record<string, string>): Promise<T> {
-    const qs = new URLSearchParams({ apiKey, ...params }).toString();
+    const qs = new URLSearchParams({ apiKey: key, ...params }).toString();
     const res = await fetch(`${BASE}${path}?${qs}`);
     if (!res.ok) throw new Error(`odds-api ${path} HTTP ${res.status}`);
     return res.json() as Promise<T>;
