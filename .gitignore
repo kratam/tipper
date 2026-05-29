@@ -45,3 +45,6 @@ next-env.d.ts
 # playwright mcp test artifacts (root-only screenshots)
 .playwright-mcp/
 /*.png
+
+# eredmenyek.com probe logs (lokális megbízhatósági mérés)
+/logs/
