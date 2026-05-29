@@ -38,6 +38,11 @@ export interface MatchProvider {
   fetchTournamentLogo?(cfg: ProviderTournamentConfig): Promise<string | null>;
 }
 
+/**
+ * Subset of the `tournaments` row after the provider-abstraction migration.
+ * The provider/providerSport/providerLeagueSlug columns are added in the
+ * schema-migration task and are not yet present in the live schema.
+ */
 export interface ProviderColumns {
   provider: ProviderId;
   apiLeagueId: number | null;
