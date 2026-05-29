@@ -171,7 +171,7 @@ export function PodiumForm({ tournamentId, teams, existingBet, isLocked }: Podiu
     <Card>
       <CardContent className="flex flex-col gap-4 px-4 py-4">
         {/* Podium */}
-        <div className="flex items-end justify-center gap-1 sm:gap-1.5">
+        <div className="mx-auto flex w-full max-w-xs items-end justify-center gap-2">
           {podiumConfig.map((cfg) => {
             const selectedTeamId = selections[cfg.medal];
             const team = teams.find((t) => t.id === selectedTeamId);
@@ -179,11 +179,8 @@ export function PodiumForm({ tournamentId, teams, existingBet, isLocked }: Podiu
 
             const podiumColumn = (
               <div
-                className={cn(
-                  "flex flex-col items-center",
-                  cfg.order,
-                  cfg.medal === "gold" ? "w-[32%]" : cfg.medal === "silver" ? "w-[28%]" : "w-[26%]",
-                )}
+                key={cfg.medal}
+                className={cn("flex min-w-0 flex-1 basis-0 flex-col items-center", cfg.order)}
               >
                 <div className="mb-1 text-lg sm:text-2xl">{cfg.emoji}</div>
                 <div
@@ -224,7 +221,7 @@ export function PodiumForm({ tournamentId, teams, existingBet, isLocked }: Podiu
             );
 
             if (isLocked) {
-              return <div key={cfg.medal}>{podiumColumn}</div>;
+              return podiumColumn;
             }
 
             return (
