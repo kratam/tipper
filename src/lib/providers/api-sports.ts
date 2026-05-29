@@ -57,7 +57,7 @@ function assertApiSports(
 
 export const apiSportsProvider: MatchProvider = {
   id: "api-sports",
-  async fetchFixtures(cfg) {
+  async fetchFixtures(cfg, _locales) {
     assertApiSports(cfg);
     return (await fetchGames(cfg.leagueId, cfg.season)).map(normalizeApiGame);
   },

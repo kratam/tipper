@@ -32,6 +32,19 @@ describe("normalizeApiGame", () => {
     expect(g.status).toBe("scheduled");
     expect(g.homeScore).toBeNull();
   });
+  it("uses raw live scores for in-progress games", () => {
+    const g = normalizeApiGame({
+      ...baseGame,
+      status: { short: "1P" },
+      scores: { home: 2, away: 1 },
+    });
+    expect(g.status).toBe("live");
+    expect(g.homeScore).toBe(2);
+  });
+  it("maps CANC to cancelled", () => {
+    const g = normalizeApiGame({ ...baseGame, status: { short: "CANC" } });
+    expect(g.status).toBe("cancelled");
+  });
 });
 
 describe("normalizeApiOdds", () => {
