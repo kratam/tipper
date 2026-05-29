@@ -96,6 +96,12 @@ export async function getGroupBetsForFinishedMatches(groupId: string) {
     .then((allBets) => allBets.filter((bet) => bet.match.status === "finished"));
 }
 
+/**
+ * Each bet's `match` team rows are passed through the display mapper for
+ * consistency with other read-paths, even though the current tournament-page
+ * caller reads only scoring fields. This keeps future UIs that surface the
+ * bet's match teams already localized and flag-correct.
+ */
 export async function getUserBetsForTournament(
   userId: string,
   tournamentId: string,

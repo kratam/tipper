@@ -15,6 +15,12 @@ describe("withTeamDisplay", () => {
     expect(result.logoUrl).toBe("https://flagcdn.com/w80/hu.png");
   });
 
+  it("localizes the country name and fills the flag for the en locale", () => {
+    const result = withTeamDisplay({ name: "Hungary", logoUrl: null }, "en", true);
+    expect(result.name).toBe("Hungary");
+    expect(result.logoUrl).toBe("https://flagcdn.com/w80/hu.png");
+  });
+
   it("preserves an existing logoUrl and only localizes the name", () => {
     const team = { name: "Hungary", logoUrl: "https://example.com/hun.png" };
     const result = withTeamDisplay(team, "hu", true);
