@@ -429,8 +429,8 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                     <span className="font-mono text-muted-foreground text-xs">
                       {tournament.provider === "odds-api" ? (
                         <>
-                          {t("sport")}: {tournament.providerSport} | {t("leagueSlug")}:{" "}
-                          {tournament.providerLeagueSlug} | {tournament.timezone}
+                          {t("sport")}: {tournament.providerSport ?? "—"} | {t("leagueSlug")}:{" "}
+                          {tournament.providerLeagueSlug ?? "—"} | {tournament.timezone}
                         </>
                       ) : (
                         <>

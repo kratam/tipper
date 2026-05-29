@@ -78,6 +78,16 @@ export async function createTournament(input: CreateTournamentInput) {
   if (!user) throw new Error("Not authenticated");
   if (!user.isAdmin) throw new Error("Unauthorized");
 
+  if (input.provider === "api-sports" && (input.apiLeagueId == null || input.apiSeason == null)) {
+    throw new Error("api-sports tournament requires apiLeagueId and apiSeason");
+  }
+  if (
+    input.provider === "odds-api" &&
+    (!input.providerSport?.trim() || !input.providerLeagueSlug?.trim())
+  ) {
+    throw new Error("odds-api tournament requires providerSport and providerLeagueSlug");
+  }
+
   const slug = slugify(input.name);
   const logoUrl =
     input.provider === "api-sports" && input.apiLeagueId != null
