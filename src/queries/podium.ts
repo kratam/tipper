@@ -4,7 +4,7 @@ import { getLocale } from "next-intl/server";
 import { db } from "@/db";
 import { matches, podiumBets, teams } from "@/db/schema";
 import type { Locale } from "@/lib/providers/types";
-import { withTeamDisplay } from "@/queries/team-display";
+import { isPlaceholderTeam, withTeamDisplay } from "@/queries/team-display";
 
 export async function getPodiumBet(userId: string, tournamentId: string) {
   return db.query.podiumBets.findFirst({
@@ -29,5 +29,9 @@ export async function getTournamentTeams(tournamentId: string, useFlagFallback: 
     .where(eq(matches.tournamentId, tournamentId))
     .orderBy(teams.name);
 
-  return rows.map((row) => withTeamDisplay(row, locale, useFlagFallback));
+  // Knockout brackets are seeded with placeholder "teams" (`1D`, `W73`,
+  // `3A/3B/...`) that aren't real participants — never offer them as podium picks.
+  return rows
+    .filter((row) => !isPlaceholderTeam(row.name))
+    .map((row) => withTeamDisplay(row, locale, useFlagFallback));
 }
