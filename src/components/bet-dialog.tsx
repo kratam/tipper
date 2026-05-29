@@ -94,6 +94,9 @@ export function BetDialog({
     match.homeScore !== null &&
     match.awayScore !== null;
 
+  // BetForm már mutatja a zászlókat a kártyában, ezért a fejléc zászlói ott feleslegesek.
+  const showBetForm = match.participantsKnown && !matchStarted && groups.length > 0;
+
   const odds = match.odds
     ? {
         homeOdds: match.odds.homeOdds,
@@ -120,7 +123,9 @@ export function BetDialog({
           <DialogHeader>
             <DialogTitle className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
               <div className="flex min-w-0 items-center gap-2">
-                <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
+                {!showBetForm && (
+                  <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
+                )}
                 <span className="truncate font-semibold text-sm">{match.homeTeam.name}</span>
               </div>
               <div className="flex flex-col items-center gap-0.5">
@@ -149,7 +154,9 @@ export function BetDialog({
                 <span className="truncate text-right font-semibold text-sm">
                   {match.awayTeam.name}
                 </span>
-                <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
+                {!showBetForm && (
+                  <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
+                )}
               </div>
             </DialogTitle>
             <DialogDescription className="sr-only">
