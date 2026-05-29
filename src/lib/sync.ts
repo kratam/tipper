@@ -10,14 +10,8 @@ import {
   tokenLedger,
   tournaments,
 } from "@/db/schema";
-import {
-  extract3WayOdds,
-  fetchGames,
-  fetchLeagueLogoUrl,
-  fetchOdds,
-  mapApiStatus,
-  parseRegulationScore,
-} from "@/lib/api-sports";
+import { fetchLeagueLogoUrl } from "@/lib/api-sports";
+import { getProvider } from "@/lib/providers";
 import { hasApiScheduleImproved, isScheduleBroken } from "@/lib/schedule-override";
 import { calculateBetPayout } from "@/lib/scoring";
 import { getRelevantOdds } from "@/lib/tokens";
@@ -35,27 +29,30 @@ export type Tournament = {
 
 /** Sync fixtures (games) from API, score finished matches, refund cancelled. */
 export async function syncFixtures(tournament: Tournament): Promise<Map<number, string>> {
-  const games = await fetchGames(tournament.apiLeagueId, tournament.apiSeason);
+  const games = await getProvider("api-sports").fetchFixtures(
+    { provider: "api-sports", leagueId: tournament.apiLeagueId, season: tournament.apiSeason },
+    ["hu", "en"],
+  );
   const apiGameDates = new Map<number, string>();
 
   for (const game of games) {
     const homeTeamId = await upsertTeam(
-      game.teams.home.id,
-      game.teams.home.name,
-      game.teams.home.logo,
+      Number(game.home.externalId),
+      game.home.name,
+      game.home.logoUrl ?? "",
     );
     const awayTeamId = await upsertTeam(
-      game.teams.away.id,
-      game.teams.away.name,
-      game.teams.away.logo,
+      Number(game.away.externalId),
+      game.away.name,
+      game.away.logoUrl ?? "",
     );
 
-    const newStatus = mapApiStatus(game.status.short);
-    apiGameDates.set(game.id, game.date);
-    const regulationScore = parseRegulationScore(game.periods);
+    const apiGameId = Number(game.externalId);
+    const newStatus = game.status;
+    apiGameDates.set(apiGameId, game.scheduledAt.toISOString());
 
     const existingMatch = await db.query.matches.findFirst({
-      where: eq(matches.apiGameId, game.id),
+      where: eq(matches.apiGameId, apiGameId),
     });
 
     if (existingMatch) {
@@ -70,10 +67,10 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<number, 
           status: newStatus,
           homeTeamId,
           awayTeamId,
-          homeScore: newStatus === "finished" ? regulationScore.home : game.scores.home,
-          awayScore: newStatus === "finished" ? regulationScore.away : game.scores.away,
-          scheduledAt: new Date(game.date),
-          round: new Date(game.date).toISOString().split("T")[0],
+          homeScore: newStatus === "finished" ? (game.homeScore ?? 0) : game.homeScore,
+          awayScore: newStatus === "finished" ? (game.awayScore ?? 0) : game.awayScore,
+          scheduledAt: game.scheduledAt,
+          round: game.scheduledAt.toISOString().split("T")[0],
           updatedAt: new Date(),
         })
         .where(eq(matches.id, existingMatch.id));
@@ -83,7 +80,7 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<number, 
       }
 
       if (!wasFinished && newStatus === "finished") {
-        await scoreMatch(existingMatch.id, regulationScore.home, regulationScore.away);
+        await scoreMatch(existingMatch.id, game.homeScore ?? 0, game.awayScore ?? 0);
       }
 
       if (!wasCancelled && newStatus === "cancelled") {
@@ -92,14 +89,14 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<number, 
     } else {
       await db.insert(matches).values({
         tournamentId: tournament.id,
-        apiGameId: game.id,
+        apiGameId,
         homeTeamId,
         awayTeamId,
-        homeScore: newStatus === "finished" ? regulationScore.home : game.scores.home,
-        awayScore: newStatus === "finished" ? regulationScore.away : game.scores.away,
+        homeScore: newStatus === "finished" ? (game.homeScore ?? 0) : game.homeScore,
+        awayScore: newStatus === "finished" ? (game.awayScore ?? 0) : game.awayScore,
         status: newStatus,
-        scheduledAt: new Date(game.date),
-        round: new Date(game.date).toISOString().split("T")[0],
+        scheduledAt: game.scheduledAt,
+        round: game.scheduledAt.toISOString().split("T")[0],
       });
     }
   }
@@ -109,22 +106,23 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<number, 
 
 /** Sync odds from API, fill NULL oddsAtBet on existing bets. */
 export async function syncOdds(tournament: Tournament): Promise<void> {
-  const oddsGames = await fetchOdds(tournament.apiLeagueId, tournament.apiSeason);
+  const oddsList = await getProvider("api-sports").fetchOdds({
+    provider: "api-sports",
+    leagueId: tournament.apiLeagueId,
+    season: tournament.apiSeason,
+  });
 
-  for (const oddsGame of oddsGames) {
-    const threeWay = extract3WayOdds(oddsGame);
-    if (!threeWay) continue;
-
+  for (const o of oddsList) {
     const match = await db.query.matches.findFirst({
-      where: and(eq(matches.apiGameId, oddsGame.game.id), eq(matches.status, "scheduled")),
+      where: and(eq(matches.apiGameId, Number(o.externalGameId)), eq(matches.status, "scheduled")),
     });
     if (!match) continue;
 
     await db.insert(matchOdds).values({
       matchId: match.id,
-      homeOdds: threeWay.homeOdds,
-      drawOdds: threeWay.drawOdds,
-      awayOdds: threeWay.awayOdds,
+      homeOdds: o.homeOdds,
+      drawOdds: o.drawOdds,
+      awayOdds: o.awayOdds,
     });
 
     const betsWithoutOdds = await db.query.bets.findMany({
@@ -132,7 +130,7 @@ export async function syncOdds(tournament: Tournament): Promise<void> {
     });
 
     for (const bet of betsWithoutOdds) {
-      const relevantOdds = getRelevantOdds(bet.predictedHome, bet.predictedAway, threeWay);
+      const relevantOdds = getRelevantOdds(bet.predictedHome, bet.predictedAway, o);
       await db
         .update(bets)
         .set({ oddsAtBet: String(relevantOdds), updatedAt: new Date() })
