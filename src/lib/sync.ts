@@ -67,8 +67,8 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<number, 
           status: newStatus,
           homeTeamId,
           awayTeamId,
-          homeScore: newStatus === "finished" ? (game.homeScore ?? 0) : game.homeScore,
-          awayScore: newStatus === "finished" ? (game.awayScore ?? 0) : game.awayScore,
+          homeScore: game.homeScore,
+          awayScore: game.awayScore,
           scheduledAt: game.scheduledAt,
           round: game.scheduledAt.toISOString().split("T")[0],
           updatedAt: new Date(),
@@ -92,8 +92,8 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<number, 
         apiGameId,
         homeTeamId,
         awayTeamId,
-        homeScore: newStatus === "finished" ? (game.homeScore ?? 0) : game.homeScore,
-        awayScore: newStatus === "finished" ? (game.awayScore ?? 0) : game.awayScore,
+        homeScore: game.homeScore,
+        awayScore: game.awayScore,
         status: newStatus,
         scheduledAt: game.scheduledAt,
         round: game.scheduledAt.toISOString().split("T")[0],
@@ -112,17 +112,20 @@ export async function syncOdds(tournament: Tournament): Promise<void> {
     season: tournament.apiSeason,
   });
 
-  for (const o of oddsList) {
+  for (const odds of oddsList) {
     const match = await db.query.matches.findFirst({
-      where: and(eq(matches.apiGameId, Number(o.externalGameId)), eq(matches.status, "scheduled")),
+      where: and(
+        eq(matches.apiGameId, Number(odds.externalGameId)),
+        eq(matches.status, "scheduled"),
+      ),
     });
     if (!match) continue;
 
     await db.insert(matchOdds).values({
       matchId: match.id,
-      homeOdds: o.homeOdds,
-      drawOdds: o.drawOdds,
-      awayOdds: o.awayOdds,
+      homeOdds: odds.homeOdds,
+      drawOdds: odds.drawOdds,
+      awayOdds: odds.awayOdds,
     });
 
     const betsWithoutOdds = await db.query.bets.findMany({
@@ -130,7 +133,7 @@ export async function syncOdds(tournament: Tournament): Promise<void> {
     });
 
     for (const bet of betsWithoutOdds) {
-      const relevantOdds = getRelevantOdds(bet.predictedHome, bet.predictedAway, o);
+      const relevantOdds = getRelevantOdds(bet.predictedHome, bet.predictedAway, odds);
       await db
         .update(bets)
         .set({ oddsAtBet: String(relevantOdds), updatedAt: new Date() })
