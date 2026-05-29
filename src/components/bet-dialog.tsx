@@ -272,7 +272,9 @@ export function BetDialog({
             </DialogDescription>
           </DialogHeader>
 
-          {matchStarted ? (
+          {!match.participantsKnown ? (
+            <p className="text-center text-muted-foreground text-sm">{t("participantsUnknown")}</p>
+          ) : matchStarted ? (
             <div className="flex flex-col gap-3">
               {(match.status === "finished" || match.status === "live") &&
                 match.homeScore !== null &&

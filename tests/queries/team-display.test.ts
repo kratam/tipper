@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { withMatchTeamDisplay, withTeamDisplay } from "@/queries/team-display";
+import {
+  isPlaceholderTeam,
+  matchParticipantsKnown,
+  withMatchTeamDisplay,
+  withTeamDisplay,
+} from "@/queries/team-display";
 
 describe("withTeamDisplay", () => {
   it("returns the team unchanged when useFlagFallback=false", () => {
@@ -48,5 +53,36 @@ describe("withMatchTeamDisplay", () => {
     expect(result.homeTeam.logoUrl).toBe("https://flagcdn.com/w80/hu.png");
     expect(result.awayTeam.name).toBe("Németország");
     expect(result.awayTeam.logoUrl).toBe("https://flagcdn.com/w80/de.png");
+  });
+});
+
+describe("isPlaceholderTeam", () => {
+  it("flags group-position seeds", () => {
+    expect(isPlaceholderTeam("1A")).toBe(true);
+    expect(isPlaceholderTeam("2B")).toBe(true);
+    expect(isPlaceholderTeam("2L")).toBe(true);
+  });
+  it("flags match winners and runners-up", () => {
+    expect(isPlaceholderTeam("W73")).toBe(true);
+    expect(isPlaceholderTeam("W102")).toBe(true);
+    expect(isPlaceholderTeam("RU101")).toBe(true);
+  });
+  it("flags best-third combinations", () => {
+    expect(isPlaceholderTeam("3A/3B/3C/3D/3F")).toBe(true);
+  });
+  it("does not flag real country or club names", () => {
+    expect(isPlaceholderTeam("Scotland")).toBe(false);
+    expect(isPlaceholderTeam("Korea Republic")).toBe(false);
+    expect(isPlaceholderTeam("Bosnia and Herzegovina")).toBe(false);
+    expect(isPlaceholderTeam("IR Iran")).toBe(false);
+    expect(isPlaceholderTeam("USA")).toBe(false);
+  });
+});
+
+describe("matchParticipantsKnown", () => {
+  it("is true only when both teams are real", () => {
+    expect(matchParticipantsKnown("Mexico", "South Africa")).toBe(true);
+    expect(matchParticipantsKnown("1A", "2B")).toBe(false);
+    expect(matchParticipantsKnown("Mexico", "W73")).toBe(false);
   });
 });

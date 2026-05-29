@@ -8,6 +8,7 @@ import { ensureOfficialMembership } from "@/lib/official-group";
 import { canAffordBetStake, getRelevantOdds } from "@/lib/tokens";
 import { getProjectedBalance } from "@/queries/groups";
 import { getLatestOdds } from "@/queries/matches";
+import { matchParticipantsKnown } from "@/queries/team-display";
 
 interface PlaceBetInput {
   matchId: string;
@@ -47,12 +48,16 @@ export async function placeBet(input: PlaceBetInput): Promise<ActionResult> {
   // Verify match is scheduled and hasn't started
   const matchRow = await db.query.matches.findFirst({
     where: eq(matches.id, matchId),
+    with: { homeTeam: true, awayTeam: true },
   });
   if (!matchRow) return { success: false, error: "Match not found" };
   if (matchRow.status !== "scheduled")
     return { success: false, error: "Match already started or finished" };
   if (matchRow.scheduledAt <= new Date())
     return { success: false, error: "Match has already started" };
+  // Undetermined knockout placeholders (e.g. "1A", "W73") are not bettable.
+  if (!matchParticipantsKnown(matchRow.homeTeam.name, matchRow.awayTeam.name))
+    return { success: false, error: "Match participants are not yet determined" };
 
   // Get latest odds
   const latestOdds = await getLatestOdds(matchId);

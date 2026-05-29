@@ -80,6 +80,7 @@
     "yourBet": "A tipped",
     "noBet": "Még nem tippeltél",
     "betLocked": "A tippelés lezárult",
+    "participantsUnknown": "A csapatok még nem ismertek",
     "loadingBets": "Tippek betöltése…",
     "youLabel": "Te",
     "noBetInGroup": "Nem tippeltél",

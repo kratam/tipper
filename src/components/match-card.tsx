@@ -35,6 +35,8 @@ export interface MatchCardData {
   round: string;
   odds: MatchOdds | null;
   userBets: UserBet[];
+  /** False for undetermined knockout placeholders (e.g. "1A", "W73") — betting is locked. */
+  participantsKnown: boolean;
 }
 
 function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
@@ -202,7 +204,8 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
   const isFinished = match.status === "finished";
   const isLive = match.status === "live";
   const isScheduled = match.status === "scheduled";
-  const hasNoBet = isScheduled && match.userBets.length === 0;
+  const participantsUnknown = !match.participantsKnown;
+  const hasNoBet = isScheduled && match.userBets.length === 0 && !participantsUnknown;
   const isUrgent = hasNoBet && isTodayOrTomorrow(match.scheduledAt, timezone);
   const localTime = useLocalTime(match.scheduledAt, timezone);
 
@@ -304,6 +307,12 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
         {/* ── Sor 3: Tipp ── */}
         {match.userBets.length > 0 ? (
           <BetSection bets={match.userBets} isFinished={isFinished} />
+        ) : participantsUnknown ? (
+          <div className="col-span-full mt-1 flex justify-center border-border border-t pt-1.5">
+            <span className="text-muted-foreground/50 text-xs italic">
+              {t("participantsUnknown")}
+            </span>
+          </div>
         ) : (
           isScheduled && (
             <div

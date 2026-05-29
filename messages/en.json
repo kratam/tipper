@@ -80,6 +80,7 @@
     "yourBet": "Your bet",
     "noBet": "No bet yet",
     "betLocked": "Betting is closed",
+    "participantsUnknown": "Teams not yet determined",
     "loadingBets": "Loading bets…",
     "youLabel": "You",
     "noBetInGroup": "No bet",

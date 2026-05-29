@@ -16,6 +16,7 @@ import {
 import { getGroupLeaderboard } from "@/queries/leaderboard";
 import { getMatchesForTournament } from "@/queries/matches";
 import { getPodiumBet, getTournamentTeams } from "@/queries/podium";
+import { matchParticipantsKnown } from "@/queries/team-display";
 import { getTournamentBySlug } from "@/queries/tournaments";
 
 export default async function TournamentDetailPage({
@@ -203,6 +204,7 @@ export default async function TournamentDetailPage({
     status: m.status,
     scheduledAt: m.scheduledAt.toISOString(),
     round: m.round,
+    participantsKnown: matchParticipantsKnown(m.homeTeam.name, m.awayTeam.name),
     odds: m.odds[0]
       ? {
           homeOdds: m.odds[0].homeOdds,
