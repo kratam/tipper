@@ -1,7 +1,11 @@
 import { apiSportsProvider } from "@/lib/providers/api-sports";
+import { oddsApiProvider } from "@/lib/providers/odds-api";
 import type { MatchProvider, ProviderId } from "@/lib/providers/types";
 
-const registry: Partial<Record<ProviderId, MatchProvider>> = { "api-sports": apiSportsProvider };
+const registry: Record<ProviderId, MatchProvider> = {
+  "api-sports": apiSportsProvider,
+  "odds-api": oddsApiProvider,
+};
 
 export function getProvider(id: ProviderId): MatchProvider {
   const provider = registry[id];
