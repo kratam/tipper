@@ -29,7 +29,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { useRouter } from "@/i18n/navigation";
+import type { ProviderId } from "@/lib/providers/types";
 
 const SUPPORTED_LEAGUES = [
   { id: 111, name: "IIHF World Championship" },
@@ -62,6 +64,10 @@ interface TournamentInfo {
   status: string;
   apiLeagueId: number | null;
   apiSeason: number | null;
+  provider: ProviderId;
+  providerSport: string | null;
+  providerLeagueSlug: string | null;
+  useFlagFallback: boolean;
   logoUrl: string | null;
   timezone: string;
   podiumLockDate: Date;
@@ -79,8 +85,12 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
   const [isPending, startTransition] = useTransition();
 
   const [name, setName] = useState("");
+  const [provider, setProvider] = useState<ProviderId>("api-sports");
   const [leagueId, setLeagueId] = useState("");
   const [season, setSeason] = useState("");
+  const [sport, setSport] = useState("");
+  const [leagueSlug, setLeagueSlug] = useState("");
+  const [useFlagFallback, setUseFlagFallback] = useState(false);
   const [podiumLockDate, setPodiumLockDate] = useState("");
   const [timezone, setTimezone] = useState("Europe/Budapest");
 
@@ -105,14 +115,20 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
 
   function handleCreateTournament(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !leagueId || !season || !podiumLockDate) return;
+    if (!name.trim() || !podiumLockDate) return;
+    if (provider === "api-sports" && (!leagueId || !season)) return;
+    if (provider === "odds-api" && (!sport.trim() || !leagueSlug.trim())) return;
 
     startTransition(async () => {
       try {
         await createTournament({
           name: name.trim(),
-          apiLeagueId: Number(leagueId),
-          apiSeason: Number(season),
+          provider,
+          apiLeagueId: provider === "api-sports" ? Number(leagueId) : null,
+          apiSeason: provider === "api-sports" ? Number(season) : null,
+          providerSport: provider === "odds-api" ? sport.trim() : null,
+          providerLeagueSlug: provider === "odds-api" ? leagueSlug.trim() : null,
+          useFlagFallback,
           podiumLockDate: new Date(podiumLockDate),
           timezone,
         });
@@ -120,6 +136,10 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
         setName("");
         setLeagueId("");
         setSeason("");
+        setSport("");
+        setLeagueSlug("");
+        setUseFlagFallback(false);
+        setProvider("api-sports");
         setPodiumLockDate("");
         setTimezone("Europe/Budapest");
         router.refresh();
@@ -265,32 +285,72 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                 <Input value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
               <div className="flex flex-col gap-1">
-                <Label className="text-xs">{t("leagueId")}</Label>
-                <Select value={leagueId} onValueChange={setLeagueId} required>
+                <Label className="text-xs">{t("provider")}</Label>
+                <Select
+                  value={provider}
+                  onValueChange={(value) => setProvider(value as ProviderId)}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder={t("selectLeague")} />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {SUPPORTED_LEAGUES.map((league) => (
-                      <SelectItem key={league.id} value={String(league.id)}>
-                        {league.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="api-sports">{t("providerApiSports")}</SelectItem>
+                    <SelectItem value="odds-api">{t("providerOddsApi")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex flex-col gap-1">
-                <Label className="text-xs">{t("season")}</Label>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={season}
-                  onChange={(e) => setSeason(e.target.value.replace(/[^0-9]/g, ""))}
-                  required
-                  className="font-mono"
-                />
-              </div>
+              {provider === "api-sports" && (
+                <>
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-xs">{t("leagueId")}</Label>
+                    <Select value={leagueId} onValueChange={setLeagueId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectLeague")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SUPPORTED_LEAGUES.map((league) => (
+                          <SelectItem key={league.id} value={String(league.id)}>
+                            {league.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-xs">{t("season")}</Label>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={season}
+                      onChange={(e) => setSeason(e.target.value.replace(/[^0-9]/g, ""))}
+                      className="font-mono"
+                    />
+                  </div>
+                </>
+              )}
+              {provider === "odds-api" && (
+                <>
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-xs">{t("sport")}</Label>
+                    <Input
+                      value={sport}
+                      onChange={(e) => setSport(e.target.value)}
+                      placeholder="football"
+                      className="font-mono"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-xs">{t("leagueSlug")}</Label>
+                    <Input
+                      value={leagueSlug}
+                      onChange={(e) => setLeagueSlug(e.target.value)}
+                      placeholder="international-world-cup"
+                      className="font-mono"
+                    />
+                  </div>
+                </>
+              )}
               <div className="flex flex-col gap-1">
                 <Label className="text-xs">{t("podiumLockDate")}</Label>
                 <Input
@@ -316,6 +376,16 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="create-flag-fallback"
+                checked={useFlagFallback}
+                onCheckedChange={setUseFlagFallback}
+              />
+              <Label htmlFor="create-flag-fallback" className="text-xs">
+                {t("useFlagFallback")}
+              </Label>
             </div>
             <Button type="submit" disabled={isPending} className="w-fit">
               {t("createTournament")}
@@ -357,8 +427,18 @@ export function AdminPanel({ tournaments }: AdminPanelProps) {
                       </button>
                     </div>
                     <span className="font-mono text-muted-foreground text-xs">
-                      {t("leagueId")}: {tournament.apiLeagueId} | {t("season")}:{" "}
-                      {tournament.apiSeason} | {tournament.timezone}
+                      {tournament.provider === "odds-api" ? (
+                        <>
+                          {t("sport")}: {tournament.providerSport} | {t("leagueSlug")}:{" "}
+                          {tournament.providerLeagueSlug} | {tournament.timezone}
+                        </>
+                      ) : (
+                        <>
+                          {t("leagueId")}: {tournament.apiLeagueId} | {t("season")}:{" "}
+                          {tournament.apiSeason} | {tournament.timezone}
+                        </>
+                      )}
+                      {tournament.useFlagFallback && <> | {t("useFlagFallback")}</>}
                       <button
                         type="button"
                         className="ml-1 text-muted-foreground hover:text-foreground"
