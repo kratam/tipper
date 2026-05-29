@@ -6,6 +6,7 @@ import { groupMembers, groups, podiumBets, tokenLedger, tournaments } from "@/db
 import { fetchLeagueLogoUrl } from "@/lib/api-sports";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { createOfficialGroup } from "@/lib/official-group";
+import type { ProviderId } from "@/lib/providers/types";
 import { calculatePodiumPoints } from "@/lib/scoring";
 import { backfillTournamentLogos, distributeTokensForTournament, syncTournament } from "@/lib/sync";
 import { slugify } from "@/lib/utils";
@@ -62,8 +63,12 @@ export async function triggerSync() {
 
 interface CreateTournamentInput {
   name: string;
-  apiLeagueId: number;
-  apiSeason: number;
+  provider: ProviderId;
+  apiLeagueId: number | null;
+  apiSeason: number | null;
+  providerSport: string | null;
+  providerLeagueSlug: string | null;
+  useFlagFallback: boolean;
   podiumLockDate: Date;
   timezone: string;
 }
@@ -74,15 +79,22 @@ export async function createTournament(input: CreateTournamentInput) {
   if (!user.isAdmin) throw new Error("Unauthorized");
 
   const slug = slugify(input.name);
-  const logoUrl = await fetchLeagueLogoUrl(input.apiLeagueId);
+  const logoUrl =
+    input.provider === "api-sports" && input.apiLeagueId != null
+      ? await fetchLeagueLogoUrl(input.apiLeagueId)
+      : null;
 
   const [tournament] = await db
     .insert(tournaments)
     .values({
       name: input.name,
       slug,
+      provider: input.provider,
       apiLeagueId: input.apiLeagueId,
       apiSeason: input.apiSeason,
+      providerSport: input.providerSport,
+      providerLeagueSlug: input.providerLeagueSlug,
+      useFlagFallback: input.useFlagFallback,
       podiumLockDate: input.podiumLockDate,
       timezone: input.timezone,
       logoUrl,
