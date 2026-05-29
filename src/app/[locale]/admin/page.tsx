@@ -32,7 +32,7 @@ export default async function AdminPage() {
       timezone: tour.timezone,
       podiumLockDate: tour.podiumLockDate,
       isArchived: tour.isArchived,
-      teams: await getTournamentTeams(tour.id),
+      teams: await getTournamentTeams(tour.id, tour.useFlagFallback),
     })),
   );
 

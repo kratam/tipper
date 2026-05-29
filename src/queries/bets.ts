@@ -1,7 +1,10 @@
 import "server-only";
 import { and, eq, inArray } from "drizzle-orm";
+import { getLocale } from "next-intl/server";
 import { db } from "@/db";
 import { bets, groupMembers } from "@/db/schema";
+import type { Locale } from "@/lib/providers/types";
+import { withMatchTeamDisplay } from "@/queries/team-display";
 
 export async function getUserBetsForMatch(userId: string, matchId: string) {
   return db.query.bets.findMany({
@@ -93,20 +96,29 @@ export async function getGroupBetsForFinishedMatches(groupId: string) {
     .then((allBets) => allBets.filter((bet) => bet.match.status === "finished"));
 }
 
-export async function getUserBetsForTournament(userId: string, tournamentId: string) {
-  return db.query.bets
-    .findMany({
-      where: eq(bets.userId, userId),
-      with: {
-        match: {
-          with: {
-            homeTeam: true,
-            awayTeam: true,
-            tournament: true,
-          },
+export async function getUserBetsForTournament(
+  userId: string,
+  tournamentId: string,
+  useFlagFallback: boolean,
+) {
+  const locale = (await getLocale()) as Locale;
+  const allBets = await db.query.bets.findMany({
+    where: eq(bets.userId, userId),
+    with: {
+      match: {
+        with: {
+          homeTeam: true,
+          awayTeam: true,
+          tournament: true,
         },
-        group: true,
       },
-    })
-    .then((allBets) => allBets.filter((bet) => bet.match.tournamentId === tournamentId));
+      group: true,
+    },
+  });
+  return allBets
+    .filter((bet) => bet.match.tournamentId === tournamentId)
+    .map((bet) => ({
+      ...bet,
+      match: withMatchTeamDisplay(bet.match, locale, useFlagFallback),
+    }));
 }

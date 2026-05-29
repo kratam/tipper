@@ -28,9 +28,16 @@ export default async function GroupDetailPage({
 
   const [leaderboard, finishedMatches, groupBetsRaw, upcomingDays] = await Promise.all([
     getGroupLeaderboard(group.id),
-    getFinishedMatchesForTournament(group.tournamentId),
+    getFinishedMatchesForTournament(group.tournamentId, group.tournament.useFlagFallback),
     getGroupBetsForFinishedMatches(group.id),
-    getUpcomingBetSummary(group.tournamentId, group.id, user.id, group.tournament.timezone, locale),
+    getUpcomingBetSummary(
+      group.tournamentId,
+      group.id,
+      user.id,
+      group.tournament.timezone,
+      locale,
+      group.tournament.useFlagFallback,
+    ),
   ]);
 
   const isOwner = group.ownerId === user.id;

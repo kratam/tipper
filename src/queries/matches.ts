@@ -1,10 +1,14 @@
 import "server-only";
 import { and, desc, eq, gte, lt } from "drizzle-orm";
+import { getLocale } from "next-intl/server";
 import { db } from "@/db";
 import { bets, matches, matchOdds } from "@/db/schema";
+import type { Locale } from "@/lib/providers/types";
+import { withMatchTeamDisplay } from "@/queries/team-display";
 
-export async function getMatchesForTournament(tournamentId: string) {
-  return db.query.matches.findMany({
+export async function getMatchesForTournament(tournamentId: string, useFlagFallback: boolean) {
+  const locale = (await getLocale()) as Locale;
+  const rows = await db.query.matches.findMany({
     where: eq(matches.tournamentId, tournamentId),
     with: {
       homeTeam: true,
@@ -16,10 +20,12 @@ export async function getMatchesForTournament(tournamentId: string) {
     },
     orderBy: [matches.scheduledAt],
   });
+  return rows.map((row) => withMatchTeamDisplay(row, locale, useFlagFallback));
 }
 
 export async function getMatchById(matchId: string) {
-  return db.query.matches.findFirst({
+  const locale = (await getLocale()) as Locale;
+  const row = await db.query.matches.findFirst({
     where: eq(matches.id, matchId),
     with: {
       homeTeam: true,
@@ -31,10 +37,16 @@ export async function getMatchById(matchId: string) {
       },
     },
   });
+  if (!row) return row;
+  return withMatchTeamDisplay(row, locale, row.tournament.useFlagFallback);
 }
 
-export async function getFinishedMatchesForTournament(tournamentId: string) {
-  return db.query.matches.findMany({
+export async function getFinishedMatchesForTournament(
+  tournamentId: string,
+  useFlagFallback: boolean,
+) {
+  const locale = (await getLocale()) as Locale;
+  const rows = await db.query.matches.findMany({
     where: and(eq(matches.tournamentId, tournamentId), eq(matches.status, "finished")),
     with: {
       homeTeam: true,
@@ -46,6 +58,7 @@ export async function getFinishedMatchesForTournament(tournamentId: string) {
     },
     orderBy: [desc(matches.scheduledAt)],
   });
+  return rows.map((row) => withMatchTeamDisplay(row, locale, useFlagFallback));
 }
 
 export async function getLatestOdds(matchId: string) {
@@ -68,13 +81,14 @@ export async function getUpcomingBetSummary(
   userId: string,
   timezone: string,
   locale: string,
+  useFlagFallback: boolean,
   days = 3,
 ): Promise<UpcomingDaySummary[]> {
   const now = new Date();
   const endDate = new Date(now);
   endDate.setDate(endDate.getDate() + days);
 
-  const [upcomingMatches, userBets] = await Promise.all([
+  const [upcomingMatchesRaw, userBets] = await Promise.all([
     db.query.matches.findMany({
       where: and(
         eq(matches.tournamentId, tournamentId),
@@ -89,6 +103,10 @@ export async function getUpcomingBetSummary(
       where: and(eq(bets.userId, userId), eq(bets.groupId, groupId)),
     }),
   ]);
+
+  const upcomingMatches = upcomingMatchesRaw.map((row) =>
+    withMatchTeamDisplay(row, locale as Locale, useFlagFallback),
+  );
 
   const bettedMatchIds = new Set(userBets.map((b) => b.matchId));
 

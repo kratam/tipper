@@ -42,10 +42,10 @@ export default async function TournamentDetailPage({
 
   // Phase 2: all independent data in parallel
   const [matches, userBets, userGroupMemberships, tournamentTeams] = await Promise.all([
-    getMatchesForTournament(tournament.id),
-    getUserBetsForTournament(user.id, tournament.id),
+    getMatchesForTournament(tournament.id, tournament.useFlagFallback),
+    getUserBetsForTournament(user.id, tournament.id, tournament.useFlagFallback),
     getUserGroups(user.id),
-    getTournamentTeams(tournament.id),
+    getTournamentTeams(tournament.id, tournament.useFlagFallback),
   ]);
 
   const relevantGroups = userGroupMemberships.filter(
