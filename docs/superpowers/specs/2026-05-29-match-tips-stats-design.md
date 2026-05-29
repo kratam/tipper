@@ -22,7 +22,7 @@ A meccs-dialog tartalma csoportonként **két tabra** bomlik, plusz egy felső c
 
 ```
 Dialog
- ├─ Meccs fejléc + eredmény (változatlan)
+ ├─ Integrált fejléc: [logó] Hazai  eredmény/„vs"  Vendég [logó] + státusz
  └─ Csoportonként:
      ├─ [Csoport tabok]          ← CSAK ha >1 csoport; 1 csoportnál elmarad
      └─ [Tippek | Statisztika]   ← alap tab: Tippek
@@ -77,7 +77,9 @@ A sorok a meglévő [BetRow](../../../src/components/bet-dialog.tsx) komponenst 
 A teljes stat-készlet (csoportonként számolva):
 
 **1-X-2 megoszlás**
-- Vízszintes sávok **tét szerint** (mennyi token ment 1-re / X-re / 2-re), soronként a fő szám is.
+- **Két** vízszintes *stacked* sáv: az egyik a tippek száma (fő) szerint, a másik a tét
+  (token) szerint szegmentálva 1 / X / 2-re. A szegmensek arányosak (flexbox), alattuk
+  közös legend a pontos fő- és token-értékekkel.
 
 **Eredmény-tippek**
 - Leggyakoribb tipp (pl. `4-1`, és hányan tippelték).

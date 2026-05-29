@@ -113,8 +113,6 @@ export interface DistributionSlice {
   key: Outcome1x2;
   count: number;
   totalStake: number;
-  /** Share by staked tokens (0–100), falling back to count share when no tokens were staked. */
-  pct: number;
 }
 
 export interface MatchStats {
@@ -154,18 +152,9 @@ function buildDistribution(bets: readonly StatBet[]): DistributionSlice[] {
     }
   }
 
-  const grandStake = bets.reduce((sum, b) => sum + b.stake, 0);
-  const grandCount = bets.length;
-
-  const share = (slot: { count: number; totalStake: number }) => {
-    if (grandStake > 0) return round1((slot.totalStake / grandStake) * 100);
-    if (grandCount > 0) return round1((slot.count / grandCount) * 100);
-    return 0;
-  };
-
   return keys.map((key) => {
     const slot = totals.get(key) ?? { count: 0, totalStake: 0 };
-    return { key, count: slot.count, totalStake: slot.totalStake, pct: share(slot) };
+    return { key, count: slot.count, totalStake: slot.totalStake };
   });
 }
 

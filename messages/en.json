@@ -102,6 +102,8 @@
     "collapseList": "Collapse",
     "noBetsYet": "Nobody has tipped yet",
     "statDistribution": "1 – X – 2 split",
+    "statDistByCount": "By tip count",
+    "statDistByStake": "By stake",
     "statResultTips": "Score predictions",
     "statStake": "Stake",
     "statMostCommonTip": "Most common tip",

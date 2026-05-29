@@ -10,6 +10,7 @@ import { GroupBetsSection } from "@/components/group-bets-section";
 import { GroupCard } from "@/components/group-card";
 import type { MatchCardData } from "@/components/match-card";
 import { PublicGroupDialog } from "@/components/public-group-dialog";
+import { TeamLogo } from "@/components/team-logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -88,6 +89,10 @@ export function BetDialog({
   if (!match) return null;
 
   const isFinished = match.status === "finished";
+  const showScore =
+    (match.status === "finished" || match.status === "live") &&
+    match.homeScore !== null &&
+    match.awayScore !== null;
 
   const odds = match.odds
     ? {
@@ -113,19 +118,39 @@ export function BetDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {match.homeTeam.name} vs {match.awayTeam.name}
-              {match.status === "live" && (
-                <span className="flex items-center gap-1 font-medium text-red-500 text-xs">
-                  <Circle className="size-1.5 animate-pulse fill-red-500 text-red-500" />
-                  {t("live")}
+            <DialogTitle className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
+                <span className="truncate font-semibold text-sm">{match.homeTeam.name}</span>
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                {showScore ? (
+                  <span className="font-bold font-mono text-2xl tabular-nums tracking-wider">
+                    {match.homeScore} – {match.awayScore}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-muted-foreground/40 tracking-[0.15em]">
+                    {t("vs")}
+                  </span>
+                )}
+                {match.status === "live" && (
+                  <span className="flex items-center gap-1 font-medium text-[10px] text-red-500">
+                    <Circle className="size-1.5 animate-pulse fill-red-500 text-red-500" />
+                    {t("live")}
+                  </span>
+                )}
+                {match.status === "finished" && (
+                  <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                    {t("finished")}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex min-w-0 items-center justify-end gap-2">
+                <span className="truncate text-right font-semibold text-sm">
+                  {match.awayTeam.name}
                 </span>
-              )}
-              {match.status === "finished" && (
-                <Badge variant="outline" className="text-muted-foreground text-xs">
-                  {t("finished")}
-                </Badge>
-              )}
+                <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
+              </div>
             </DialogTitle>
             <DialogDescription className="sr-only">
               {match.homeTeam.name} vs {match.awayTeam.name}
@@ -136,14 +161,6 @@ export function BetDialog({
             <p className="text-center text-muted-foreground text-sm">{t("participantsUnknown")}</p>
           ) : matchStarted ? (
             <div className="flex flex-col gap-3">
-              {(match.status === "finished" || match.status === "live") &&
-                match.homeScore !== null &&
-                match.awayScore !== null && (
-                  <div className="text-center font-bold font-mono text-3xl tabular-nums tracking-wider">
-                    {match.homeScore} - {match.awayScore}
-                  </div>
-                )}
-
               {groupBetsData === undefined ? (
                 <p className="text-center text-muted-foreground text-sm">{t("loadingBets")}</p>
               ) : groupBetsData.length === 0 ? (

@@ -102,6 +102,8 @@
     "collapseList": "Összecsukás",
     "noBetsYet": "Még senki sem tippelt",
     "statDistribution": "1 – X – 2 megoszlás",
+    "statDistByCount": "Tippek száma",
+    "statDistByStake": "Tét",
     "statResultTips": "Eredmény-tippek",
     "statStake": "Tét",
     "statMostCommonTip": "Leggyakoribb tipp",

@@ -147,32 +147,19 @@ describe("sortLiveBets", () => {
 describe("computeMatchStats", () => {
   const finishedCtx = { homeScore: 5, awayScore: 1, isFinished: true };
 
-  it("computes the 1-X-2 distribution by stake share", () => {
+  it("aggregates the 1-X-2 distribution by count and stake in fixed order", () => {
     const bets = [
       makeBet({ betId: "a", predictedHome: 3, predictedAway: 1, stake: 600 }), // 1
+      makeBet({ betId: "d", predictedHome: 2, predictedAway: 0, stake: 100 }), // 1
       makeBet({ betId: "b", predictedHome: 2, predictedAway: 2, stake: 200 }), // X
       makeBet({ betId: "c", predictedHome: 0, predictedAway: 1, stake: 200 }), // 2
     ];
     const stats = computeMatchStats(bets, finishedCtx);
-    const byKey = Object.fromEntries(stats.distribution.map((d) => [d.key, d]));
-    expect(byKey["1"].count).toBe(1);
-    expect(byKey["1"].totalStake).toBe(600);
-    expect(byKey["1"].pct).toBe(60);
-    expect(byKey.X.pct).toBe(20);
-    expect(byKey["2"].pct).toBe(20);
     expect(stats.distribution.map((d) => d.key)).toEqual(["1", "X", "2"]);
-  });
-
-  it("falls back to count share when nobody staked tokens", () => {
-    const bets = [
-      makeBet({ betId: "a", predictedHome: 1, predictedAway: 0, stake: 0 }),
-      makeBet({ betId: "b", predictedHome: 0, predictedAway: 1, stake: 0 }),
-    ];
-    const byKey = Object.fromEntries(
-      computeMatchStats(bets, finishedCtx).distribution.map((d) => [d.key, d]),
-    );
-    expect(byKey["1"].pct).toBe(50);
-    expect(byKey["2"].pct).toBe(50);
+    const byKey = Object.fromEntries(stats.distribution.map((d) => [d.key, d]));
+    expect(byKey["1"]).toMatchObject({ count: 2, totalStake: 700 });
+    expect(byKey.X).toMatchObject({ count: 1, totalStake: 200 });
+    expect(byKey["2"]).toMatchObject({ count: 1, totalStake: 200 });
   });
 
   it("computes total, average, and biggest stake", () => {
@@ -236,6 +223,7 @@ describe("computeMatchStats", () => {
     expect(stats.biggestStakeBetId).toBeNull();
     expect(stats.mostCommonTip).toBeNull();
     expect(stats.avgTip).toBeNull();
-    expect(stats.distribution.map((d) => d.pct)).toEqual([0, 0, 0]);
+    expect(stats.distribution.map((d) => d.count)).toEqual([0, 0, 0]);
+    expect(stats.distribution.map((d) => d.totalStake)).toEqual([0, 0, 0]);
   });
 });

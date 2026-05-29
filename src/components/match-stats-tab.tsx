@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { TokenIcon } from "@/components/token-icon";
-import { computeMatchStats, type Outcome1x2 } from "@/lib/match-stats";
+import { computeMatchStats, type DistributionSlice, type Outcome1x2 } from "@/lib/match-stats";
 import type { GroupMemberBet } from "@/queries/bets";
 
 interface MatchStatsTabProps {
@@ -42,6 +42,37 @@ function KeyValue({ label, children }: { label: string; children: React.ReactNod
   );
 }
 
+/** A single horizontal bar split into 1/X/2 segments sized by `metric`. */
+function StackedBar({
+  slices,
+  metric,
+}: {
+  slices: DistributionSlice[];
+  metric: (slice: DistributionSlice) => number;
+}) {
+  const total = slices.reduce((sum, s) => sum + metric(s), 0);
+
+  if (total === 0) {
+    return <div className="h-5 rounded-md bg-muted" />;
+  }
+
+  return (
+    <div className="flex h-5 overflow-hidden rounded-md">
+      {slices.map((slice) => {
+        const value = metric(slice);
+        if (value === 0) return null;
+        return (
+          <div
+            key={slice.key}
+            className="h-full min-w-[3px]"
+            style={{ flex: value, backgroundColor: OUTCOME_COLOR[slice.key] }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 export function MatchStatsTab({ bets, homeScore, awayScore, isFinished }: MatchStatsTabProps) {
   const t = useTranslations("matches");
 
@@ -59,29 +90,35 @@ export function MatchStatsTab({ bets, homeScore, awayScore, isFinished }: MatchS
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 1-X-2 megoszlás */}
+      {/* 1-X-2 megoszlás: két stacked sáv (fő szerint és tét szerint) + legend */}
       <section>
         <StatLabel>{t("statDistribution")}</StatLabel>
-        <div className="flex flex-col gap-1.5">
+
+        <div className="mb-0.5 flex items-center gap-1 px-0.5 text-[10px] text-muted-foreground">
+          {t("statDistByCount")} · {t("statPlayers", { count: stats.betCount })}
+        </div>
+        <StackedBar slices={stats.distribution} metric={(s) => s.count} />
+
+        <div className="mt-2 mb-0.5 flex items-center gap-1 px-0.5 text-[10px] text-muted-foreground">
+          {t("statDistByStake")} · {formatTokens(stats.totalStake)}
+          <TokenIcon size={9} />
+        </div>
+        <StackedBar slices={stats.distribution} metric={(s) => s.totalStake} />
+
+        <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1">
           {stats.distribution.map((slice) => (
-            <div key={slice.key} className="flex items-center gap-2 text-[11px]">
+            <span
+              key={slice.key}
+              className="inline-flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground tabular-nums"
+            >
               <span
-                className="w-3.5 text-center font-bold"
-                style={{ color: OUTCOME_COLOR[slice.key] }}
-              >
-                {slice.key}
-              </span>
-              <div className="h-3.5 flex-1 overflow-hidden rounded bg-muted">
-                <div
-                  className="h-full rounded"
-                  style={{ width: `${slice.pct}%`, backgroundColor: OUTCOME_COLOR[slice.key] }}
-                />
-              </div>
-              <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[10px] text-muted-foreground tabular-nums">
-                {t("statPlayers", { count: slice.count })} · {formatTokens(slice.totalStake)}
-                <TokenIcon size={9} />
-              </span>
-            </div>
+                className="size-2 shrink-0 rounded-[2px]"
+                style={{ backgroundColor: OUTCOME_COLOR[slice.key] }}
+              />
+              <span className="font-semibold text-foreground">{slice.key}</span>·{" "}
+              {t("statPlayers", { count: slice.count })} · {formatTokens(slice.totalStake)}
+              <TokenIcon size={9} />
+            </span>
           ))}
         </div>
       </section>
