@@ -38,6 +38,7 @@ export function GroupBetsSection({
           currentUserId={currentUserId}
           isFinished={isFinished}
           youLabel={youLabel}
+          oddsBoost={group.oddsBoost}
         />
       </TabsContent>
       <TabsContent value="stats" className="pt-2">

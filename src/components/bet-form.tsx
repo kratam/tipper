@@ -1,6 +1,6 @@
 "use client";
 
-import { Info, Loader2, Minus, Plus } from "lucide-react";
+import { Info, Loader2, Lock, Minus, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ReactNode, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRouter } from "@/i18n/navigation";
+import { formatEffectiveOdds } from "@/lib/odds-display";
 
 interface GroupBetInfo {
   groupId: string;
@@ -31,6 +32,7 @@ interface GroupBetInfo {
     predictedHome: number;
     predictedAway: number;
     stake: number;
+    oddsAtBet: string | null;
   } | null;
   unbettedMatchCountOnDay: number;
 }
@@ -67,7 +69,15 @@ function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number
   );
 }
 
-function BalanceInfoTooltip({ label, children }: { label: string; children: ReactNode }) {
+function BalanceInfoTooltip({
+  label,
+  children,
+  contentClassName = "font-mono text-xs",
+}: {
+  label: string;
+  children: ReactNode;
+  contentClassName?: string;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <TooltipProvider>
@@ -85,7 +95,7 @@ function BalanceInfoTooltip({ label, children }: { label: string; children: Reac
             <Info className="size-3.5 text-muted-foreground/50" />
           </button>
         </TooltipTrigger>
-        <TooltipContent side="top" className="font-mono text-xs">
+        <TooltipContent side="top" className={contentClassName}>
           {children}
         </TooltipContent>
       </Tooltip>
@@ -274,26 +284,42 @@ export function BetForm({
         {/* Per-group stake + submit */}
         {groups.map((group) => {
           const effectiveBalance = group.projectedBalance + (group.existingBet?.stake ?? 0);
+          const selectedRawOdds = odds
+            ? predictedOutcome === "1"
+              ? odds.homeOdds
+              : predictedOutcome === "X"
+                ? odds.drawOdds
+                : odds.awayOdds
+            : null;
+          const currentOdds = formatEffectiveOdds(selectedRawOdds, group.oddsBoost);
+          const lockedOdds = formatEffectiveOdds(
+            group.existingBet?.oddsAtBet ?? null,
+            group.oddsBoost,
+          );
           return (
             <div key={group.groupId} className="border-border border-t px-5 py-4">
               <div className="mb-3 flex items-center justify-between">
-                <span className="font-medium text-sm">
+                <span className="flex items-center gap-1.5 font-medium text-sm">
                   {group.groupName}
-                  {odds && (
-                    <span className="ml-1 font-mono text-amber-500 text-xs">
-                      (
-                      {(
-                        Number(
-                          predictedOutcome === "1"
-                            ? odds.homeOdds
-                            : predictedOutcome === "X"
-                              ? odds.drawOdds
-                              : odds.awayOdds,
-                        ) * group.oddsBoost
-                      ).toFixed(2)}
-                      )
+                  {lockedOdds ? (
+                    <span className="flex items-center gap-1 font-mono text-xs">
+                      <Lock className="size-3 text-amber-500" />
+                      <span className="text-amber-500">{lockedOdds}</span>
+                      {currentOdds && (
+                        <span className="text-muted-foreground">
+                          · {t("currentOddsShort")} {currentOdds}
+                        </span>
+                      )}
+                      <BalanceInfoTooltip
+                        label={t("oddsInfoLabel")}
+                        contentClassName="max-w-56 text-xs"
+                      >
+                        {t("oddsInfo")}
+                      </BalanceInfoTooltip>
                     </span>
-                  )}
+                  ) : currentOdds ? (
+                    <span className="font-mono text-amber-500 text-xs">({currentOdds})</span>
+                  ) : null}
                 </span>
                 <div className="flex items-center gap-1">
                   <span className="font-mono text-muted-foreground text-xs">

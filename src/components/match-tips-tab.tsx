@@ -11,6 +11,7 @@ interface MatchTipsTabProps {
   currentUserId: string;
   isFinished: boolean;
   youLabel: string;
+  oddsBoost: number;
 }
 
 /** Number of rows shown before "show all" on a live match (no ranking yet). */
@@ -31,7 +32,13 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function MatchTipsTab({ bets, currentUserId, isFinished, youLabel }: MatchTipsTabProps) {
+export function MatchTipsTab({
+  bets,
+  currentUserId,
+  isFinished,
+  youLabel,
+  oddsBoost,
+}: MatchTipsTabProps) {
   const t = useTranslations("matches");
   const [expanded, setExpanded] = useState(false);
 
@@ -53,6 +60,7 @@ export function MatchTipsTab({ bets, currentUserId, isFinished, youLabel }: Matc
               isCurrentUser={bet.userId === currentUserId}
               isFinished={isFinished}
               youLabel={youLabel}
+              oddsBoost={oddsBoost}
               rankLabel={isFinished ? medalFor(bet.rank) : undefined}
             />
           ))}
@@ -91,6 +99,7 @@ export function MatchTipsTab({ bets, currentUserId, isFinished, youLabel }: Matc
             isCurrentUser={bet.userId === currentUserId}
             isFinished={false}
             youLabel={youLabel}
+            oddsBoost={oddsBoost}
           />
         ))}
         {sorted.length > visible.length && showAllButton}
@@ -113,6 +122,7 @@ export function MatchTipsTab({ bets, currentUserId, isFinished, youLabel }: Matc
             isCurrentUser={bet.userId === currentUserId}
             isFinished
             youLabel={youLabel}
+            oddsBoost={oddsBoost}
             rankLabel={medalFor(bet.rank)}
           />
         ))}
@@ -133,6 +143,7 @@ export function MatchTipsTab({ bets, currentUserId, isFinished, youLabel }: Matc
               isCurrentUser={bet.userId === currentUserId}
               isFinished
               youLabel={youLabel}
+              oddsBoost={oddsBoost}
               rankLabel={medalFor(bet.rank)}
             />
           ))}

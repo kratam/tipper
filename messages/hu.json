@@ -145,6 +145,9 @@
     "winnings": "Nyeremények",
     "losses": "Elvesztett tokenek",
     "lockedStakes": "Lekötött aktív tétek",
+    "currentOddsShort": "most",
+    "oddsInfoLabel": "Odds magyarázat",
+    "oddsInfo": "A lakatos érték az az odds, amin a tipped rögzült — ez határozza meg a nyereményed akkor is, ha az odds később változik. A „most” a jelenlegi piaci odds, amire módosításkor újra rögzülne.",
     "max": "MAX"
   },
   "groups": {
@@ -191,6 +194,7 @@
     "noBetsYet": "Még nincs befejezett meccs",
     "noBetsForPlayer": "Még nem tippelt lezárult meccsre",
     "prediction": "Tipp",
+    "odds": "Odds",
     "payout": "Nye.",
     "expandAll": "Mindent kinyit",
     "collapseAll": "Mindent becsuk",

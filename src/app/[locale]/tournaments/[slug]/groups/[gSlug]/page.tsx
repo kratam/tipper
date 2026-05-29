@@ -114,6 +114,7 @@ export default async function GroupDetailPage({
           predictedHome: b.predictedHome,
           predictedAway: b.predictedAway,
           stake: b.stake,
+          oddsAtBet: b.oddsAtBet,
           payout: b.payout,
           result1x2Correct: b.result1x2Correct,
           goalDiffCorrect: b.goalDiffCorrect,

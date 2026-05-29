@@ -133,6 +133,7 @@ export default async function TournamentDetailPage({
         predictedHome: number;
         predictedAway: number;
         stake: number;
+        oddsAtBet: string | null;
       } | null;
     }[]
   > = {};
@@ -162,6 +163,7 @@ export default async function TournamentDetailPage({
               predictedHome: existingBet.predictedHome,
               predictedAway: existingBet.predictedAway,
               stake: existingBet.stake,
+              oddsAtBet: existingBet.oddsAtBet,
             }
           : null,
       };

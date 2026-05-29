@@ -43,6 +43,7 @@ interface GroupBetInfo {
     predictedHome: number;
     predictedAway: number;
     stake: number;
+    oddsAtBet: string | null;
   } | null;
   unbettedMatchCountOnDay: number;
 }

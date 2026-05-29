@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { formatEffectiveOdds } from "@/lib/odds-display";
 
 interface FinishedMatch {
   id: string;
@@ -32,6 +33,7 @@ interface GroupBet {
   predictedHome: number;
   predictedAway: number;
   stake: number;
+  oddsAtBet: string | null;
   payout: number | null;
   result1x2Correct: boolean | null;
   goalDiffCorrect: boolean | null;
@@ -43,6 +45,7 @@ interface GroupResultsContentProps {
   bets: GroupBet[];
   currentUserId: string;
   memberCount: number;
+  oddsBoost: number;
 }
 
 function initials(name: string): string {
@@ -59,6 +62,7 @@ export function GroupResultsContent({
   bets,
   currentUserId,
   memberCount,
+  oddsBoost,
 }: GroupResultsContentProps) {
   const t = useTranslations("groups");
   const tBetting = useTranslations("betting");
@@ -145,6 +149,7 @@ export function GroupResultsContent({
                         <div className="flex items-center gap-2 px-3 pb-1 font-medium text-[11px] text-muted-foreground">
                           <span className="flex-1">{/* player column */}</span>
                           <span className="w-10 text-center">{t("prediction")}</span>
+                          <span className="w-10 text-right">{t("odds")}</span>
                           <span className="w-10 text-right">{tBetting("stake")}</span>
                           <span className="w-12 text-right">{t("payout")}</span>
                         </div>
@@ -154,6 +159,7 @@ export function GroupResultsContent({
                           const won = bet.result1x2Correct === true && bet.payout != null;
                           const netProfit =
                             won && bet.payout != null ? bet.payout - bet.stake : -bet.stake;
+                          const lockedOdds = formatEffectiveOdds(bet.oddsAtBet, oddsBoost);
 
                           return (
                             <div
@@ -187,6 +193,10 @@ export function GroupResultsContent({
                                 }`}
                               >
                                 {bet.predictedHome}-{bet.predictedAway}
+                              </span>
+                              {/* Odds */}
+                              <span className="w-10 text-right font-mono text-muted-foreground text-xs">
+                                {lockedOdds ?? "—"}
                               </span>
                               {/* Stake */}
                               <span className="w-10 text-right font-mono text-muted-foreground text-xs">

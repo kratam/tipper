@@ -24,6 +24,7 @@ export interface GroupMemberBet {
   predictedHome: number;
   predictedAway: number;
   stake: number;
+  oddsAtBet: string | null;
   result1x2Correct: boolean | null;
   payout: number | null;
 }
@@ -31,6 +32,7 @@ export interface GroupMemberBet {
 export interface GroupBetsForMatch {
   groupId: string;
   groupName: string;
+  oddsBoost: number;
   bets: GroupMemberBet[];
 }
 
@@ -69,6 +71,7 @@ export async function getGroupBetsForStartedMatch(
       predictedHome: bet.predictedHome,
       predictedAway: bet.predictedAway,
       stake: bet.stake,
+      oddsAtBet: bet.oddsAtBet,
       result1x2Correct: bet.result1x2Correct,
       payout: bet.payout,
     });
@@ -79,6 +82,7 @@ export async function getGroupBetsForStartedMatch(
     .map((m) => ({
       groupId: m.groupId,
       groupName: m.group.name,
+      oddsBoost: m.group.oddsBoost,
       bets: betsByGroup.get(m.groupId) ?? [],
     }))
     .filter((g) => g.bets.length > 0);

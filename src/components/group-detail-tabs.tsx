@@ -63,6 +63,7 @@ interface GroupBet {
   predictedHome: number;
   predictedAway: number;
   stake: number;
+  oddsAtBet: string | null;
   payout: number | null;
   result1x2Correct: boolean | null;
   goalDiffCorrect: boolean | null;
@@ -182,6 +183,7 @@ export function GroupDetailTabs({
           finishedMatches={finishedMatches}
           bets={groupBets}
           currentUserId={currentUserId}
+          oddsBoost={settings.oddsBoost}
         />
 
         {/* Leave group button (non-owners, non-official only) */}
@@ -206,6 +208,7 @@ export function GroupDetailTabs({
           bets={groupBets}
           currentUserId={currentUserId}
           memberCount={members.length}
+          oddsBoost={settings.oddsBoost}
         />
       </TabsContent>
 

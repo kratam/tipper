@@ -140,6 +140,11 @@ Pure függvények: `src/lib/scoring.ts` (tesztelve)
 
 1. Ha az 1X2 kimenetel **hibás** → payout = 0
 2. Ha **helyes**: `payout = round(stake × oddsAtBet × oddsBoost)`
+   - A tétre ható **effektív lekötött odds** = `oddsAtBet × oddsBoost` (= `payout / stake`).
+     Ezt jeleníti meg a UI a tippek mellett (`src/lib/odds-display.ts` → `formatEffectiveOdds`):
+     bet-form (lekötött 🔒 + jelenlegi), BetRow (`@odds`), és a csoport-oldal
+     Ranglista/Eredmények tabok Odds oszlopa. Tervdok:
+     `docs/superpowers/specs/2026-05-29-locked-odds-display-design.md`.
 3. **Gólkülönbség bónusz**: `+bonusGoalDiff` (default: 5) ha a gólkülönbség egyezik
 4. **Pontos eredmény bónusz**: `+bonusExactScore` (default: 10) ha pontos találat
 5. Bónuszok additívak (nem szorzódnak)

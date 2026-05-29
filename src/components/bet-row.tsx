@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { TokenIcon } from "@/components/token-icon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { formatEffectiveOdds } from "@/lib/odds-display";
 import type { GroupMemberBet } from "@/queries/bets";
 
 interface BetRowProps {
@@ -11,11 +12,21 @@ interface BetRowProps {
   isCurrentUser: boolean;
   isFinished: boolean;
   youLabel: string;
+  /** Group odds boost — used to show the effective locked odds (`oddsAtBet × boost`). */
+  oddsBoost: number;
   /** Optional rank cell shown on the left (medal emoji or position number). */
   rankLabel?: ReactNode;
 }
 
-export function BetRow({ bet, isCurrentUser, isFinished, youLabel, rankLabel }: BetRowProps) {
+export function BetRow({
+  bet,
+  isCurrentUser,
+  isFinished,
+  youLabel,
+  oddsBoost,
+  rankLabel,
+}: BetRowProps) {
+  const lockedOdds = formatEffectiveOdds(bet.oddsAtBet, oddsBoost);
   const isWin = isFinished && bet.result1x2Correct === true;
   const isLoss = isFinished && bet.result1x2Correct === false;
 
@@ -87,6 +98,11 @@ export function BetRow({ bet, isCurrentUser, isFinished, youLabel, rankLabel }: 
         <span className={`font-bold font-mono text-sm tabular-nums ${textColor}`}>
           {bet.predictedHome}-{bet.predictedAway}
         </span>
+        {lockedOdds && (
+          <span className="font-mono text-[11px] text-muted-foreground/70 tabular-nums">
+            @{lockedOdds}
+          </span>
+        )}
         <span className="inline-flex items-center gap-0.5 font-mono text-muted-foreground text-xs">
           {bet.stake}
           <TokenIcon size={10} />

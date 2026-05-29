@@ -145,6 +145,9 @@
     "winnings": "Winnings",
     "losses": "Lost tokens",
     "lockedStakes": "Locked active stakes",
+    "currentOddsShort": "now",
+    "oddsInfoLabel": "Odds explanation",
+    "oddsInfo": "The locked value is the odds your bet was placed at — it determines your winnings even if the odds change later. \"now\" is the current market odds your bet would re-lock at if you update it.",
     "max": "MAX"
   },
   "groups": {
@@ -191,6 +194,7 @@
     "noBetsYet": "No finished matches yet",
     "noBetsForPlayer": "No bets on finished matches yet",
     "prediction": "Prediction",
+    "odds": "Odds",
     "payout": "Pay",
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
