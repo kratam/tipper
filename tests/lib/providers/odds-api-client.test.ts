@@ -58,6 +58,32 @@ it("requests odds with the bookmakers param", async () => {
   expect(resp.bookmakers.TippmixPRO[0].name).toBe("ML");
 });
 
+it("requests multi-event odds with comma-separated eventIds", async () => {
+  vi.stubEnv("ODDS_API_KEY", "k");
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) => {
+      expect(url).toContain("/v3/odds/multi");
+      expect(url).toContain("eventIds=1%2C2%2C3");
+      expect(url).toContain("bookmakers=TippmixPRO%2CBet365");
+      return new Response(
+        JSON.stringify([
+          {
+            id: 1,
+            bookmakers: {
+              TippmixPRO: [{ name: "ML", odds: [{ home: "1.46", draw: "4.20", away: "6.75" }] }],
+            },
+          },
+        ]),
+        { status: 200 },
+      );
+    }),
+  );
+  const resp = await createOddsApiClient().fetchMultiEventOdds([1, 2, 3], ["TippmixPRO", "Bet365"]);
+  expect(resp[0].id).toBe(1);
+  expect(resp[0].bookmakers.TippmixPRO[0].name).toBe("ML");
+});
+
 it("throws when ODDS_API_KEY is missing", () => {
   expect(() => createOddsApiClient()).toThrow(/ODDS_API_KEY/);
 });

@@ -22,6 +22,12 @@ export interface OddsApiOddsResponse {
   >;
 }
 
+/** One entry of the `/odds/multi` array response: the same shape as `/odds` plus the event id. */
+export type OddsApiMultiOddsEntry = { id: number } & OddsApiOddsResponse;
+
+/** odds-api allows at most 10 event ids per `/odds/multi` request. */
+export const ODDS_API_MULTI_MAX = 10;
+
 export function createOddsApiClient() {
   const apiKey = process.env.ODDS_API_KEY;
   if (!apiKey) throw new Error("ODDS_API_KEY is not set");
@@ -42,6 +48,11 @@ export function createOddsApiClient() {
     fetchEventOdds: (eventId: number, bookmakers: string[]) =>
       getJson<OddsApiOddsResponse>("/odds", {
         eventId: String(eventId),
+        bookmakers: bookmakers.join(","),
+      }),
+    fetchMultiEventOdds: (eventIds: number[], bookmakers: string[]) =>
+      getJson<OddsApiMultiOddsEntry[]>("/odds/multi", {
+        eventIds: eventIds.join(","),
         bookmakers: bookmakers.join(","),
       }),
   };

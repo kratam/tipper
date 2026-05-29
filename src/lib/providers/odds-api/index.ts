@@ -1,4 +1,4 @@
-import { createOddsApiClient } from "@/lib/providers/odds-api/client";
+import { createOddsApiClient, ODDS_API_MULTI_MAX } from "@/lib/providers/odds-api/client";
 import {
   normalizeOddsApiEvent,
   ODDS_API_BOOKMAKERS,
@@ -28,12 +28,18 @@ export const oddsApiProvider: MatchProvider = {
     assertOddsApi(cfg);
     const client = createOddsApiClient();
     const events = await client.fetchEvents(cfg.sport, cfg.leagueSlug);
+    const pendingIds = events.filter((e) => e.status === "pending").map((e) => e.id);
+
+    // Batch via /odds/multi (max 10 ids per call) — the per-event /odds endpoint
+    // would blow past the odds-api rate limit on large tournaments (e.g. World Cup).
     const out: NormalizedOdds[] = [];
-    for (const e of events) {
-      if (e.status !== "pending") continue;
-      const resp = await client.fetchEventOdds(e.id, ODDS_API_BOOKMAKERS);
-      const odds = selectOddsApiOdds(String(e.id), resp);
-      if (odds) out.push(odds);
+    for (let i = 0; i < pendingIds.length; i += ODDS_API_MULTI_MAX) {
+      const batch = pendingIds.slice(i, i + ODDS_API_MULTI_MAX);
+      const entries = await client.fetchMultiEventOdds(batch, ODDS_API_BOOKMAKERS);
+      for (const entry of entries) {
+        const odds = selectOddsApiOdds(String(entry.id), entry);
+        if (odds) out.push(odds);
+      }
     }
     return out;
   },

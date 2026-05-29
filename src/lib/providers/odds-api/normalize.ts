@@ -29,12 +29,13 @@ export function selectOddsApiOdds(
   eventId: string,
   resp: OddsApiOddsResponse,
 ): NormalizedOdds | null {
+  const bookmakers = resp.bookmakers ?? {};
   const names = [
     ...ODDS_API_BOOKMAKERS,
-    ...Object.keys(resp.bookmakers).filter((n) => !ODDS_API_BOOKMAKERS.includes(n)),
+    ...Object.keys(bookmakers).filter((n) => !ODDS_API_BOOKMAKERS.includes(n)),
   ];
   for (const name of names) {
-    const ml = resp.bookmakers[name]?.find((m) => m.name === "ML");
+    const ml = bookmakers[name]?.find((m) => m.name === "ML");
     const odd = ml?.odds[0];
     if (odd?.home != null && odd.draw != null && odd.away != null) {
       return {

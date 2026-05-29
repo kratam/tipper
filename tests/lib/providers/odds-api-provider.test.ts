@@ -43,7 +43,7 @@ it("fetchFixtures normalizes events", async () => {
   expect(games[0].home.name).toBe("Hungary");
 });
 
-it("fetchOdds fetches per-event odds for pending events", async () => {
+it("fetchOdds batches pending events through /odds/multi (not per-event /odds)", async () => {
   vi.stubEnv("ODDS_API_KEY", "k");
   const calls: string[] = [];
   vi.stubGlobal(
@@ -76,12 +76,16 @@ it("fetchOdds fetches per-event odds for pending events", async () => {
           ]),
           { status: 200 },
         );
+      // /odds/multi returns an array, one entry per requested event (same shape as /odds + id).
       return new Response(
-        JSON.stringify({
-          bookmakers: {
-            TippmixPRO: [{ name: "ML", odds: [{ home: "1.46", draw: "4.20", away: "6.75" }] }],
+        JSON.stringify([
+          {
+            id: 1,
+            bookmakers: {
+              TippmixPRO: [{ name: "ML", odds: [{ home: "1.46", draw: "4.20", away: "6.75" }] }],
+            },
           },
-        }),
+        ]),
         { status: 200 },
       );
     }),
@@ -90,5 +94,9 @@ it("fetchOdds fetches per-event odds for pending events", async () => {
   expect(odds).toEqual([
     { externalGameId: "1", homeOdds: "1.46", drawOdds: "4.20", awayOdds: "6.75" },
   ]);
-  expect(calls.filter((u) => u.includes("/odds")).length).toBe(1); // csak a pending eseményre
+  const multiCalls = calls.filter((u) => u.includes("/odds/multi"));
+  expect(multiCalls.length).toBe(1); // one batch call, not one-per-event
+  expect(calls.some((u) => /\/odds\?/.test(u))).toBe(false); // never the per-event endpoint
+  expect(multiCalls[0]).toContain("eventIds=1"); // only the pending event, settled excluded
+  expect(multiCalls[0]).not.toContain("eventIds=1%2C2");
 });
