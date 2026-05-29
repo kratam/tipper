@@ -1,9 +1,9 @@
 "use client";
 
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { TeamLogo } from "@/components/team-logo";
 import {
   Accordion,
   AccordionContent,
@@ -49,19 +49,6 @@ interface GroupLeaderboardContentProps {
   finishedMatches: FinishedMatch[];
   bets: GroupBet[];
   currentUserId: string;
-}
-
-function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
-  if (logoUrl) {
-    return (
-      <Image src={logoUrl} alt={name} width={20} height={20} className="size-5 object-contain" />
-    );
-  }
-  return (
-    <span className="flex size-5 items-center justify-center rounded bg-muted font-bold font-mono text-[8px]">
-      {name.slice(0, 3).toUpperCase()}
-    </span>
-  );
 }
 
 function initials(name: string): string {
@@ -208,6 +195,7 @@ export function GroupLeaderboardContent({
                                 <TeamLogo
                                   name={match.homeTeam.name}
                                   logoUrl={match.homeTeam.logoUrl}
+                                  size={20}
                                 />
                                 <span className="font-bold font-mono text-xs tabular-nums">
                                   {match.homeScore}-{match.awayScore}
@@ -215,6 +203,7 @@ export function GroupLeaderboardContent({
                                 <TeamLogo
                                   name={match.awayTeam.name}
                                   logoUrl={match.awayTeam.logoUrl}
+                                  size={20}
                                 />
                               </div>
                               {/* Prediction */}

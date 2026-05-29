@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { placePodiumBet } from "@/actions/podium-bets";
 import { TeamPicker } from "@/components/podium-team-picker";
+import { isPlainFlag } from "@/components/team-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "@/i18n/navigation";
@@ -90,7 +91,11 @@ const podiumConfig: {
   },
 ];
 
-function TeamLogo({ team, size = "md" }: { team: TeamOption; size?: "sm" | "md" }) {
+/**
+ * Dobogós jelvény — szándékosan eltér a sima {@link TeamLogo}-tól: nagy, fehér
+ * korong + árnyék + reszponzív méret. A `ring` itt is elválasztja a korong élét.
+ */
+function PodiumBadge({ team, size = "md" }: { team: TeamOption; size?: "sm" | "md" }) {
   const sizeClass = size === "sm" ? "size-8" : "size-10 sm:size-12";
   const textSize = size === "sm" ? "text-[9px]" : "text-xs";
 
@@ -101,7 +106,11 @@ function TeamLogo({ team, size = "md" }: { team: TeamOption; size?: "sm" | "md" 
         alt={team.name}
         width={48}
         height={48}
-        className={cn(sizeClass, "rounded-full bg-white object-contain shadow-sm")}
+        className={cn(
+          sizeClass,
+          "rounded-full bg-white object-contain shadow-sm",
+          isPlainFlag(team.logoUrl) && "ring-1 ring-black/10 dark:ring-white/15",
+        )}
       />
     );
   }
@@ -204,7 +213,7 @@ export function PodiumForm({ tournamentId, teams, existingBet, isLocked }: Podiu
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-1">
-                      <TeamLogo team={team} size={cfg.medal === "gold" ? "md" : "sm"} />
+                      <PodiumBadge team={team} size={cfg.medal === "gold" ? "md" : "sm"} />
                       <span className={cn("font-bold text-[10px] sm:text-xs", cfg.textColor)}>
                         {team.name.length > 8 ? team.name.slice(0, 3).toUpperCase() : team.name}
                       </span>

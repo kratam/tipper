@@ -1,9 +1,9 @@
 "use client";
 
 import { Circle } from "lucide-react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { TeamLogo } from "@/components/team-logo";
 import { TokenIcon } from "@/components/token-icon";
 
 interface MatchOdds {
@@ -37,19 +37,6 @@ export interface MatchCardData {
   userBets: UserBet[];
   /** False for undetermined knockout placeholders (e.g. "1A", "W73") — betting is locked. */
   participantsKnown: boolean;
-}
-
-function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
-  if (logoUrl) {
-    return (
-      <Image src={logoUrl} alt={name} width={28} height={28} className="size-7 object-contain" />
-    );
-  }
-  return (
-    <span className="flex size-7 items-center justify-center rounded bg-muted font-bold font-mono text-[9px]">
-      {name.slice(0, 3).toUpperCase()}
-    </span>
-  );
 }
 
 /**

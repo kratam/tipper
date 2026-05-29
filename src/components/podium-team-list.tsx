@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { TeamLogo } from "@/components/team-logo";
 import { cn } from "@/lib/utils";
 
 interface TeamOption {
@@ -37,19 +37,7 @@ export function PodiumTeamList({ teams, selectedId, disabledIds, onSelect }: Pod
                 !isSelected && !isDisabled && "hover:bg-muted",
               )}
             >
-              {team.logoUrl ? (
-                <Image
-                  src={team.logoUrl}
-                  alt={team.name}
-                  width={28}
-                  height={28}
-                  className="size-7 rounded-full object-contain"
-                />
-              ) : (
-                <span className="flex size-7 items-center justify-center rounded-full bg-muted font-bold text-xs">
-                  {team.name.slice(0, 3).toUpperCase()}
-                </span>
-              )}
+              <TeamLogo name={team.name} logoUrl={team.logoUrl} size={28} shape="round" />
               <span className={cn("flex-1 text-sm", isSelected && "font-semibold")}>
                 {team.name}
               </span>

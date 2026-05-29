@@ -1,9 +1,9 @@
 "use client";
 
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { TeamLogo } from "@/components/team-logo";
 import {
   Accordion,
   AccordionContent,
@@ -43,19 +43,6 @@ interface GroupResultsContentProps {
   bets: GroupBet[];
   currentUserId: string;
   memberCount: number;
-}
-
-function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
-  if (logoUrl) {
-    return (
-      <Image src={logoUrl} alt={name} width={20} height={20} className="size-5 object-contain" />
-    );
-  }
-  return (
-    <span className="flex size-5 items-center justify-center rounded bg-muted font-bold font-mono text-[8px]">
-      {name.slice(0, 3).toUpperCase()}
-    </span>
-  );
 }
 
 function initials(name: string): string {
@@ -128,11 +115,19 @@ export function GroupResultsContent({
                 <AccordionItem key={match.id} value={match.id}>
                   <AccordionTrigger className="px-3 py-2.5 hover:no-underline">
                     <div className="flex flex-1 items-center gap-2">
-                      <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
+                      <TeamLogo
+                        name={match.homeTeam.name}
+                        logoUrl={match.homeTeam.logoUrl}
+                        size={20}
+                      />
                       <span className="font-bold font-mono text-sm tabular-nums">
                         {match.homeScore}-{match.awayScore}
                       </span>
-                      <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
+                      <TeamLogo
+                        name={match.awayTeam.name}
+                        logoUrl={match.awayTeam.logoUrl}
+                        size={20}
+                      />
                       <span className="ml-auto text-muted-foreground text-xs">
                         {t("betCount", {
                           count: matchBets.length,

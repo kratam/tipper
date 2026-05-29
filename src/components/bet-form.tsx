@@ -1,12 +1,12 @@
 "use client";
 
 import { Info, Loader2, Minus, Plus } from "lucide-react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { type ReactNode, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { cancelBet, placeBet } from "@/actions/bets";
 import { FormattedDate } from "@/components/formatted-date";
+import { TeamLogo } from "@/components/team-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -90,19 +90,6 @@ function BalanceInfoTooltip({ label, children }: { label: string; children: Reac
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  );
-}
-
-function TeamLogo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
-  if (logoUrl) {
-    return (
-      <Image src={logoUrl} alt={name} width={40} height={40} className="size-10 object-contain" />
-    );
-  }
-  return (
-    <span className="flex size-10 items-center justify-center rounded bg-muted font-bold font-mono text-xs">
-      {name.slice(0, 3).toUpperCase()}
-    </span>
   );
 }
 
@@ -237,11 +224,11 @@ export function BetForm({
           <div className="grid w-full max-w-xs grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-1.5">
             {/* Logos */}
             <div className="flex justify-center">
-              <TeamLogo name={homeTeam.name} logoUrl={homeTeam.logoUrl} />
+              <TeamLogo name={homeTeam.name} logoUrl={homeTeam.logoUrl} size={40} />
             </div>
             <div />
             <div className="flex justify-center">
-              <TeamLogo name={awayTeam.name} logoUrl={awayTeam.logoUrl} />
+              <TeamLogo name={awayTeam.name} logoUrl={awayTeam.logoUrl} size={40} />
             </div>
 
             {/* Names */}
