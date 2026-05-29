@@ -72,9 +72,9 @@ scripts/
 | Tábla | Kulcs mezők | Megjegyzés |
 |-------|-------------|------------|
 | `users` | googleId, email, name, displayName, avatarUrl, isAdmin | Neon Auth-ból szinkronizált |
-| `tournaments` | name, slug, apiLeagueId, apiSeason, status, podiumLockDate, gold/silver/bronzeTeamId, useScheduleOverrides, isArchived | Versenysorozat + dobogó eredmények. `isArchived` flag elrejti a listákból (csak `finished` archiválható). |
-| `teams` | apiTeamId (UNIQUE), name, logoUrl | api-sports.io-ból upsert |
-| `matches` | tournamentId, apiGameId (UNIQUE), home/awayTeamId, home/awayScore, status, scheduledAt, round | Index: (tournamentId, status) |
+| `tournaments` | name, slug, **provider**, apiLeagueId?, apiSeason?, **providerSport?**, **providerLeagueSlug?**, **useFlagFallback**, status, podiumLockDate, gold/silver/bronzeTeamId, useScheduleOverrides, isArchived | Versenysorozat + dobogó eredmények. `provider` diszkriminátor (`api-sports`/`odds-api`); a provider-specifikus oszlopok nullable-ek (api-sports: apiLeagueId+apiSeason; odds-api: providerSport+providerLeagueSlug). `useFlagFallback`: nemzeti csapatoknál zászló+lokalizált országnév a query-rétegben. `isArchived` elrejti a listákból (csak `finished` archiválható). |
+| `teams` | **provider**, **externalId**, name, logoUrl | UNIQUE(provider, externalId) — provider-namespace. A providertől kapott (angol) név tárolva; logoUrl odds-api-nál null. |
+| `matches` | tournamentId, **externalId**, home/awayTeamId, home/awayScore, status, scheduledAt, round | Index: (tournamentId, status); UNIQUE(tournamentId, externalId). `externalId` = a provider esemény-azonosítója (string). |
 | `match_odds` | matchId, homeOdds, drawOdds, awayOdds, fetchedAt | decimal(6,2), többszöri lekérdezés |
 | `groups` | name, slug, inviteCode, ownerId, tournamentId, tokenPerMatch(100), initialTokens(200), bonusGoalDiff(5), bonusExactScore(10), bonusPodiumMention(20), bonusPodiumExact(20), oddsBoost(1.0), isPublic, description | Csoport szabályok. Unique: (tournamentId, slug) — slug tournament-szintű |
 | `group_members` | groupId, userId | Unique: (groupId, userId) |
@@ -89,8 +89,7 @@ A `neon_auth` schema külön (Better Auth által kezelt): user, session, account
 
 Drizzle ORM migrációk a `drizzle/` könyvtárban. **Deploy előtt kézzel kell futtatni** — a Vercel build nem futtatja (`drizzle-kit migrate` timeoutol a Neon websocket-en Vercel US → Neon EU miatt).
 
-Migráció alkalmazás: Neon MCP `run_sql` tool-lal, vagy lokálisan `npm run db:migrate`.
-Migráció generálás: `npm run db:generate` (interaktív, lokálisan).
+Séma-változás **kizárólag** `npm run db:generate` → `npm run db:migrate` úton (lokálisan). Soha `drizzle-kit push`, kézi SQL a naplón kívül, vagy Neon MCP migráció — különben a `__drizzle_migrations` napló elcsúszik a tényleges sémától. A backfill UPDATE-ek a generált `.sql`-be kerülnek. Részletek: `CLAUDE.md` → Konvenciók.
 
 ## Token rendszer
 
@@ -233,9 +232,17 @@ Ha az API placeholder dátumokat ad (minden meccs egy napra):
 3. Auto-sync: ha nincs user a `users` táblában → `INSERT ... ON CONFLICT DO UPDATE`
 4. Server Components-ben nincs `cookies().set()` — közvetlen fetch a session endpoint-ra
 
-## API integráció
+## Provider-absztrakció
 
-**api-sports.io Hockey v1** — 7500 req/hó
+Versenysorozatonként konfigurálható adatforrás a `src/lib/providers/` rétegben. A `sync.ts` provider-agnosztikus: tornánként a `tournament.provider` alapján dispatch-el.
+
+- **Interfész:** `MatchProvider` (`types.ts`) — `fetchFixtures(cfg, locales)`, `fetchOdds(cfg)`, opcionális `fetchTournamentLogo(cfg)`. Normalizált alakok: `NormalizedGame` / `NormalizedOdds` / `NormalizedTeam`.
+- **Config-feloldás:** pure `toProviderConfig(tournamentRow)` a nullable provider-oszlopokból építi a diszkriminált `ProviderTournamentConfig`-ot; `getProvider(id)` registry (`index.ts`).
+- **`api-sports`** (`providers/api-sports.ts`): a meglévő `lib/api-sports.ts` klienst csomagolja; finished meccsnél regulation score, egyébként nyers/null.
+- **`odds-api`** (`providers/odds-api/`): odds-api.io kliens (`/events`, `/odds`, `/leagues`), státusz `pending→scheduled`/`live→live`/`settled→finished`, score csak settled-nél (`fulltime ?? top-level`), bookmaker-preferencia `TippmixPRO`→`Bet365`→bármely `ML` piac. Odds tornaszinten: pending eseményekre per-event `/odds`.
+- **Zászló-fallback** (`providers/team-country.ts` + `queries/team-display.ts`): ha a torna `useFlagFallback=true` és a csapatnév országra mappel (`i18n-iso-countries` + alias-map), a query-réteg lokalizált országnevet + flagcdn zászlót ad a tárolt név/logó helyett. `useFlagFallback=false` esetén no-op.
+
+### api-sports.io Hockey v1 — 7500 req/hó
 
 | Függvény | Endpoint | Visszatérés |
 |----------|----------|-------------|
@@ -245,11 +252,16 @@ Ha az API placeholder dátumokat ad (minden meccs egy napra):
 
 Segédfüggvények: `parseRegulationScore` (3 period), `mapApiStatus`, `extract3WayOdds`.
 
+### odds-api.io v3 — 5000 req/óra
+
+Base `https://api.odds-api.io/v3`, auth `?apiKey=`. World Cup slug `international-world-cup`. Kliens: `fetchEvents(sport, leagueSlug)`, `fetchEventOdds(eventId, bookmakers)` (a `bookmakers` paraméter KÖTELEZŐ), `fetchLeagues(sport)`.
+
 ## Env változók
 
 ```
 DATABASE_URL              — Neon connection string
 API_SPORTS_KEY            — api-sports.io kulcs
+ODDS_API_KEY              — odds-api.io kulcs (odds-api provider esetén szükséges)
 NEON_AUTH_BASE_URL        — https://ep-....neonauth.c-2.eu-central-1.aws.neon.tech/neondb/auth
 NEON_AUTH_COOKIE_SECRET   — 32+ karakter
 NEXT_PUBLIC_APP_URL       — http://localhost:3000 (lokál) / https://tippcasino.vercel.app (prod)
@@ -263,3 +275,6 @@ QSTASH_TOKEN              — Upstash QStash API token
 - **api-sports.io**: 7500 request/hó
 - **Neon Auth**: saját Google OAuth credentials (Neon Console-ban konfigurálva)
 - **Eredmény**: csak regulation time (3 period), overtime nem számít
+- **odds-api provider — nincs `cancelled` státusz**: az odds-api csak `pending`/`live`/`settled`-et küld, így törölt/halasztott mérkőzések **nem kapnak automatikus visszatérítést** odds-api tornán (kézi vagy későbbi finomítás). api-sports tornáknál a `CANC`/`POST` → refund változatlanul működik.
+- **odds-api provider — nincs liga-logó**: az odds-api nem ad logót, így odds-api torna logóját az adminban kézzel kell beállítani.
+- **odds-api odds-szinkron**: a `syncTournament` jelenleg külön kéri le az eseménylistát a fixtures és az odds lépéshez (dupla `/events` hívás); a `/odds/multi` batch dokumentált, de nem verifikált → későbbi optimalizáció, mielőtt élesedik.
