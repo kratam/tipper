@@ -239,7 +239,7 @@ Versenysorozatonként konfigurálható adatforrás a `src/lib/providers/` réteg
 - **Interfész:** `MatchProvider` (`types.ts`) — `fetchFixtures(cfg, locales)`, `fetchOdds(cfg)`, opcionális `fetchTournamentLogo(cfg)`. Normalizált alakok: `NormalizedGame` / `NormalizedOdds` / `NormalizedTeam`.
 - **Config-feloldás:** pure `toProviderConfig(tournamentRow)` a nullable provider-oszlopokból építi a diszkriminált `ProviderTournamentConfig`-ot; `getProvider(id)` registry (`index.ts`).
 - **`api-sports`** (`providers/api-sports.ts`): a meglévő `lib/api-sports.ts` klienst csomagolja; finished meccsnél regulation score, egyébként nyers/null.
-- **`odds-api`** (`providers/odds-api/`): odds-api.io kliens (`/events`, `/odds`, `/leagues`), státusz `pending→scheduled`/`live→live`/`settled→finished`, score csak settled-nél (`fulltime ?? top-level`), bookmaker-preferencia `TippmixPRO`→`Bet365`→bármely `ML` piac. Odds tornaszinten: pending eseményekre per-event `/odds`.
+- **`odds-api`** (`providers/odds-api/`): odds-api.io kliens (`/events`, `/odds/multi`, `/leagues`), státusz `pending→scheduled`/`live→live`/`settled→finished`, score csak settled-nél (`fulltime ?? top-level`), bookmaker-preferencia `TippmixPRO`→`Bet365`→bármely `ML` piac. Odds tornaszinten: a pending események ID-jait **10-es batchekben** kéri le a `/odds/multi`-n (a rate limit miatt — lásd lent).
 - **Zászló-fallback** (`providers/team-country.ts` + `queries/team-display.ts`): ha a torna `useFlagFallback=true` és a csapatnév országra mappel (`i18n-iso-countries` + alias-map), a query-réteg lokalizált országnevet + flagcdn zászlót ad a tárolt név/logó helyett. `useFlagFallback=false` esetén no-op.
 
 ### api-sports.io Hockey v1 — 7500 req/hó
@@ -252,9 +252,11 @@ Versenysorozatonként konfigurálható adatforrás a `src/lib/providers/` réteg
 
 Segédfüggvények: `parseRegulationScore` (3 period), `mapApiStatus`, `extract3WayOdds`.
 
-### odds-api.io v3 — 5000 req/óra
+### odds-api.io v3 — 100 req/óra (a jelenlegi kulcs csomagja)
 
-Base `https://api.odds-api.io/v3`, auth `?apiKey=`. World Cup slug `international-world-cup`. Kliens: `fetchEvents(sport, leagueSlug)`, `fetchEventOdds(eventId, bookmakers)` (a `bookmakers` paraméter KÖTELEZŐ), `fetchLeagues(sport)`.
+Base `https://api.odds-api.io/v3`, auth `?apiKey=`. World Cup slug `international-world-cup` (104 esemény). Kliens: `fetchEvents(sport, leagueSlug)`, `fetchMultiEventOdds(eventIds[], bookmakers)` → `/odds/multi?eventIds=<vesszős>` (max **10** eventId/hívás, tömb válasz, elemenként a `/odds` alakjával), `fetchEventOdds(eventId, bookmakers)` (egyes esemény, fallback), `fetchLeagues(sport)`. A `bookmakers` paraméter kötelező.
+
+**Rate limit (FONTOS):** a kulcs csomagja **100 kérés/óra** (nem 5000 — a kódnév-spec tévedett). Ezért az odds-szinkron `/odds/multi`-val batchel (104 esemény → ~11 hívás), nem eseményenként (ami 104 hívással túllépné a limitet → `HTTP 429`).
 
 ## Env változók
 
@@ -277,4 +279,4 @@ QSTASH_TOKEN              — Upstash QStash API token
 - **Eredmény**: csak regulation time (3 period), overtime nem számít
 - **odds-api provider — nincs `cancelled` státusz**: az odds-api csak `pending`/`live`/`settled`-et küld, így törölt/halasztott mérkőzések **nem kapnak automatikus visszatérítést** odds-api tornán (kézi vagy későbbi finomítás). api-sports tornáknál a `CANC`/`POST` → refund változatlanul működik.
 - **odds-api provider — nincs liga-logó**: az odds-api nem ad logót, így odds-api torna logóját az adminban kézzel kell beállítani.
-- **odds-api odds-szinkron**: a `syncTournament` jelenleg külön kéri le az eseménylistát a fixtures és az odds lépéshez (dupla `/events` hívás); a `/odds/multi` batch dokumentált, de nem verifikált → későbbi optimalizáció, mielőtt élesedik.
+- **odds-api odds-szinkron**: az odds `/odds/multi` batchben (10 eventId/hívás) megy a 100/órás limit miatt; egy teljes World Cup odds-sync ~11 odds-hívás + 2 `/events` (a `syncFixtures` és `syncOdds` külön kéri az eseménylistát) ≈ 13 kérés. A rolling órás ablakot a kézi „sync now" gyors ismétlése kimerítheti → `HTTP 429`; ilyenkor a fixtures már létrejött, az odds a következő (nem rate-limitelt) syncen feltöltődik.
