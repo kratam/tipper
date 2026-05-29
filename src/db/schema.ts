@@ -31,6 +31,8 @@ export const tokenTypeEnum = pgEnum("token_type", [
   "refund",
 ]);
 
+export const providerEnum = pgEnum("provider", ["api-sports", "odds-api"]);
+
 // Tables
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -47,8 +49,12 @@ export const tournaments = pgTable("tournaments", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   slug: text("slug").unique().notNull(),
-  apiLeagueId: integer("api_league_id").notNull(),
-  apiSeason: integer("api_season").notNull(),
+  provider: providerEnum("provider").default("api-sports").notNull(),
+  apiLeagueId: integer("api_league_id"),
+  apiSeason: integer("api_season"),
+  providerSport: text("provider_sport"),
+  providerLeagueSlug: text("provider_league_slug"),
+  useFlagFallback: boolean("use_flag_fallback").default(false).notNull(),
   logoUrl: text("logo_url"),
   timezone: text("timezone").default("UTC").notNull(),
   status: tournamentStatusEnum("status").default("upcoming").notNull(),
@@ -61,13 +67,18 @@ export const tournaments = pgTable("tournaments", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const teams = pgTable("teams", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  apiTeamId: integer("api_team_id").unique().notNull(),
-  name: text("name").notNull(),
-  logoUrl: text("logo_url"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const teams = pgTable(
+  "teams",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    provider: providerEnum("provider").default("api-sports").notNull(),
+    externalId: text("external_id").notNull(),
+    name: text("name").notNull(),
+    logoUrl: text("logo_url"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("teams_provider_external_idx").on(table.provider, table.externalId)],
+);
 
 export const matches = pgTable(
   "matches",
@@ -76,7 +87,7 @@ export const matches = pgTable(
     tournamentId: uuid("tournament_id")
       .references(() => tournaments.id)
       .notNull(),
-    apiGameId: integer("api_game_id").unique().notNull(),
+    externalId: text("external_id").notNull(),
     homeTeamId: uuid("home_team_id")
       .references(() => teams.id)
       .notNull(),
@@ -91,7 +102,10 @@ export const matches = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("matches_tournament_status_idx").on(table.tournamentId, table.status)],
+  (table) => [
+    index("matches_tournament_status_idx").on(table.tournamentId, table.status),
+    uniqueIndex("matches_tournament_external_idx").on(table.tournamentId, table.externalId),
+  ],
 );
 
 export const matchOdds = pgTable("match_odds", {
