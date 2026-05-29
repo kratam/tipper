@@ -95,7 +95,8 @@ export function BetDialog({
     match.homeScore !== null &&
     match.awayScore !== null;
 
-  // BetForm már mutatja a zászlókat a kártyában, ezért a fejléc zászlói ott feleslegesek.
+  // BetForm már mutatja a zászlókat + neveket + dátumot a kártyában, ezért a fejléc
+  // teljesen felesleges ilyenkor (a nevek belelógnának a jobb felső X-be is).
   const showBetForm = match.participantsKnown && !matchStarted && groups.length > 0;
 
   const odds = match.odds
@@ -122,44 +123,48 @@ export function BetDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-              <div className="flex min-w-0 items-center gap-2">
-                {!showBetForm && (
+            {showBetForm ? (
+              // A BetForm kártya már tartalmazza a zászlókat, neveket és dátumot,
+              // ezért a fejléc csak a kötelező (sr-only) címet adja.
+              <DialogTitle className="sr-only">
+                {match.homeTeam.name} – {match.awayTeam.name}
+              </DialogTitle>
+            ) : (
+              <DialogTitle className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                <div className="flex min-w-0 items-center gap-2">
                   <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
-                )}
-                <span className="truncate font-semibold text-sm">{match.homeTeam.name}</span>
-              </div>
-              <div className="flex flex-col items-center gap-0.5">
-                {showScore ? (
-                  <span className="font-bold font-mono text-2xl tabular-nums tracking-wider">
-                    {match.homeScore} – {match.awayScore}
+                  <span className="truncate font-semibold text-sm">{match.homeTeam.name}</span>
+                </div>
+                <div className="flex flex-col items-center gap-0.5">
+                  {showScore ? (
+                    <span className="font-bold font-mono text-2xl tabular-nums tracking-wider">
+                      {match.homeScore} – {match.awayScore}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground/40 tracking-[0.15em]">
+                      {t("vs")}
+                    </span>
+                  )}
+                  {match.status === "live" && (
+                    <span className="flex items-center gap-1 font-medium text-[10px] text-red-500">
+                      <Circle className="size-1.5 animate-pulse fill-red-500 text-red-500" />
+                      {t("live")}
+                    </span>
+                  )}
+                  {match.status === "finished" && (
+                    <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                      {t("finished")}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex min-w-0 items-center justify-end gap-2">
+                  <span className="truncate text-right font-semibold text-sm">
+                    {match.awayTeam.name}
                   </span>
-                ) : (
-                  <span className="text-[10px] text-muted-foreground/40 tracking-[0.15em]">
-                    {t("vs")}
-                  </span>
-                )}
-                {match.status === "live" && (
-                  <span className="flex items-center gap-1 font-medium text-[10px] text-red-500">
-                    <Circle className="size-1.5 animate-pulse fill-red-500 text-red-500" />
-                    {t("live")}
-                  </span>
-                )}
-                {match.status === "finished" && (
-                  <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                    {t("finished")}
-                  </Badge>
-                )}
-              </div>
-              <div className="flex min-w-0 items-center justify-end gap-2">
-                <span className="truncate text-right font-semibold text-sm">
-                  {match.awayTeam.name}
-                </span>
-                {!showBetForm && (
                   <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
-                )}
-              </div>
-            </DialogTitle>
+                </div>
+              </DialogTitle>
+            )}
             <DialogDescription className="sr-only">
               {match.homeTeam.name} vs {match.awayTeam.name}
             </DialogDescription>

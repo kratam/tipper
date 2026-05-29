@@ -298,65 +298,69 @@ export function BetForm({
           );
           return (
             <div key={group.groupId} className="border-border border-t px-5 py-4">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="flex items-center gap-1.5 font-medium text-sm">
-                  {group.groupName}
-                  {lockedOdds ? (
-                    <span className="flex items-center gap-1 font-mono text-xs">
+              <div className="mb-3 flex flex-col gap-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate font-medium text-sm">{group.groupName}</span>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <span className="font-mono text-muted-foreground text-xs">
+                      {t("projectedBalance")}: {effectiveBalance}
+                    </span>
+                    <BalanceInfoTooltip label={t("balanceDetails")}>
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex justify-between gap-4">
+                          <span>{t("initialTokens")}:</span>
+                          <span>+{group.initialTokens}</span>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                          <span>
+                            {t("matchTokens")} ({group.eligibleMatchCount} × {group.tokenPerMatch}):
+                          </span>
+                          <span>+{group.eligibleMatchCount * group.tokenPerMatch}</span>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                          <span>{t("winnings")}:</span>
+                          <span>+{group.winnings}</span>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                          <span>{t("losses")}:</span>
+                          <span>{group.losses}</span>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                          <span>{t("lockedStakes")}:</span>
+                          <span>
+                            {group.otherActiveStakes === 0 ? 0 : -group.otherActiveStakes}
+                          </span>
+                        </div>
+                        <div className="my-0.5 border-primary-foreground/20 border-t" />
+                        <div className="flex justify-between gap-4 font-bold">
+                          <span>{t("projectedBalance")}:</span>
+                          <span>{effectiveBalance}</span>
+                        </div>
+                      </div>
+                    </BalanceInfoTooltip>
+                  </div>
+                </div>
+                {lockedOdds ? (
+                  <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-mono text-xs">
+                    <span className="flex items-center gap-1">
                       <Lock className="size-3 text-amber-500" />
                       <span className="text-amber-500">{lockedOdds}</span>
-                      {currentOdds && (
-                        <span className="text-muted-foreground">
-                          · {t("currentOddsShort")} {currentOdds}
-                        </span>
-                      )}
-                      <BalanceInfoTooltip
-                        label={t("oddsInfoLabel")}
-                        contentClassName="max-w-56 text-xs"
-                      >
-                        {t("oddsInfo")}
-                      </BalanceInfoTooltip>
                     </span>
-                  ) : currentOdds ? (
-                    <span className="font-mono text-amber-500 text-xs">({currentOdds})</span>
-                  ) : null}
-                </span>
-                <div className="flex items-center gap-1">
-                  <span className="font-mono text-muted-foreground text-xs">
-                    {t("projectedBalance")}: {effectiveBalance}
+                    {currentOdds && (
+                      <span className="text-muted-foreground">
+                        · {t("currentOddsShort")} {currentOdds}
+                      </span>
+                    )}
+                    <BalanceInfoTooltip
+                      label={t("oddsInfoLabel")}
+                      contentClassName="max-w-56 text-xs"
+                    >
+                      {t("oddsInfo")}
+                    </BalanceInfoTooltip>
                   </span>
-                  <BalanceInfoTooltip label={t("balanceDetails")}>
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex justify-between gap-4">
-                        <span>{t("initialTokens")}:</span>
-                        <span>+{group.initialTokens}</span>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <span>
-                          {t("matchTokens")} ({group.eligibleMatchCount} × {group.tokenPerMatch}):
-                        </span>
-                        <span>+{group.eligibleMatchCount * group.tokenPerMatch}</span>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <span>{t("winnings")}:</span>
-                        <span>+{group.winnings}</span>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <span>{t("losses")}:</span>
-                        <span>{group.losses}</span>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <span>{t("lockedStakes")}:</span>
-                        <span>{group.otherActiveStakes === 0 ? 0 : -group.otherActiveStakes}</span>
-                      </div>
-                      <div className="my-0.5 border-primary-foreground/20 border-t" />
-                      <div className="flex justify-between gap-4 font-bold">
-                        <span>{t("projectedBalance")}:</span>
-                        <span>{effectiveBalance}</span>
-                      </div>
-                    </div>
-                  </BalanceInfoTooltip>
-                </div>
+                ) : currentOdds ? (
+                  <span className="font-mono text-amber-500 text-xs">({currentOdds})</span>
+                ) : null}
               </div>
 
               {/* Stake chips + custom input */}
