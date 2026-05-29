@@ -60,8 +60,8 @@ interface TournamentInfo {
   name: string;
   slug: string;
   status: string;
-  apiLeagueId: number;
-  apiSeason: number;
+  apiLeagueId: number | null;
+  apiSeason: number | null;
   logoUrl: string | null;
   timezone: string;
   podiumLockDate: Date;

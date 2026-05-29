@@ -10,8 +10,9 @@ import {
   tokenLedger,
   tournaments,
 } from "@/db/schema";
-import { fetchLeagueLogoUrl } from "@/lib/api-sports";
 import { getProvider } from "@/lib/providers";
+import type { ProviderId } from "@/lib/providers/types";
+import { toProviderConfig } from "@/lib/providers/types";
 import { hasApiScheduleImproved, isScheduleBroken } from "@/lib/schedule-override";
 import { calculateBetPayout } from "@/lib/scoring";
 import { getRelevantOdds } from "@/lib/tokens";
@@ -20,39 +21,41 @@ import { getRelevantOdds } from "@/lib/tokens";
 
 export type Tournament = {
   id: string;
-  apiLeagueId: number;
-  apiSeason: number;
+  provider: ProviderId;
+  apiLeagueId: number | null;
+  apiSeason: number | null;
+  providerSport: string | null;
+  providerLeagueSlug: string | null;
   useScheduleOverrides: boolean;
 };
 
 // ── Tournament sync ──
 
 /** Sync fixtures (games) from API, score finished matches, refund cancelled. */
-export async function syncFixtures(tournament: Tournament): Promise<Map<number, string>> {
-  const games = await getProvider("api-sports").fetchFixtures(
-    { provider: "api-sports", leagueId: tournament.apiLeagueId, season: tournament.apiSeason },
-    ["hu", "en"],
-  );
-  const apiGameDates = new Map<number, string>();
+export async function syncFixtures(tournament: Tournament): Promise<Map<string, string>> {
+  const cfg = toProviderConfig(tournament);
+  const games = await getProvider(cfg.provider).fetchFixtures(cfg, ["hu", "en"]);
+  const apiGameDates = new Map<string, string>();
 
   for (const game of games) {
     const homeTeamId = await upsertTeam(
-      Number(game.home.externalId),
+      cfg.provider,
+      game.home.externalId,
       game.home.name,
-      game.home.logoUrl ?? "",
+      game.home.logoUrl,
     );
     const awayTeamId = await upsertTeam(
-      Number(game.away.externalId),
+      cfg.provider,
+      game.away.externalId,
       game.away.name,
-      game.away.logoUrl ?? "",
+      game.away.logoUrl,
     );
 
-    const apiGameId = Number(game.externalId);
     const newStatus = game.status;
-    apiGameDates.set(apiGameId, game.scheduledAt.toISOString());
+    apiGameDates.set(game.externalId, game.scheduledAt.toISOString());
 
     const existingMatch = await db.query.matches.findFirst({
-      where: eq(matches.apiGameId, apiGameId),
+      where: and(eq(matches.tournamentId, tournament.id), eq(matches.externalId, game.externalId)),
     });
 
     if (existingMatch) {
@@ -89,7 +92,7 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<number, 
     } else {
       await db.insert(matches).values({
         tournamentId: tournament.id,
-        apiGameId,
+        externalId: game.externalId,
         homeTeamId,
         awayTeamId,
         homeScore: game.homeScore,
@@ -106,16 +109,14 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<number, 
 
 /** Sync odds from API, fill NULL oddsAtBet on existing bets. */
 export async function syncOdds(tournament: Tournament): Promise<void> {
-  const oddsList = await getProvider("api-sports").fetchOdds({
-    provider: "api-sports",
-    leagueId: tournament.apiLeagueId,
-    season: tournament.apiSeason,
-  });
+  const cfg = toProviderConfig(tournament);
+  const oddsList = await getProvider(cfg.provider).fetchOdds(cfg);
 
   for (const odds of oddsList) {
     const match = await db.query.matches.findFirst({
       where: and(
-        eq(matches.apiGameId, Number(odds.externalGameId)),
+        eq(matches.tournamentId, tournament.id),
+        eq(matches.externalId, odds.externalGameId),
         eq(matches.status, "scheduled"),
       ),
     });
@@ -156,13 +157,13 @@ export async function syncTournament(tournament: Tournament): Promise<void> {
 
 async function handleScheduleOverrides(
   tournament: { id: string; useScheduleOverrides: boolean },
-  apiGameDates: Map<number, string>,
+  apiGameDates: Map<string, string>,
 ): Promise<void> {
   const overrides = await db
     .select({
       matchId: matchScheduleOverrides.matchId,
       overrideScheduledAt: matchScheduleOverrides.scheduledAt,
-      apiGameId: matches.apiGameId,
+      externalId: matches.externalId,
     })
     .from(matchScheduleOverrides)
     .innerJoin(matches, eq(matchScheduleOverrides.matchId, matches.id))
@@ -191,7 +192,7 @@ async function handleScheduleOverrides(
   } else {
     const pairs: { apiDate: Date; overrideDate: Date }[] = [];
     for (const o of overrides) {
-      const apiDateStr = apiGameDates.get(o.apiGameId);
+      const apiDateStr = apiGameDates.get(o.externalId);
       if (apiDateStr) {
         pairs.push({ apiDate: new Date(apiDateStr), overrideDate: o.overrideScheduledAt });
       }
@@ -269,26 +270,31 @@ export async function distributeTokensForTournament(tournamentId: string): Promi
 // ── Logo backfill ──
 
 export async function backfillTournamentLogos(
-  tournamentList: { id: string; apiLeagueId: number; logoUrl: string | null }[],
+  tournamentList: (Tournament & { logoUrl: string | null })[],
 ): Promise<void> {
   for (const tournament of tournamentList) {
-    if (!tournament.logoUrl) {
-      const logoUrl = await fetchLeagueLogoUrl(tournament.apiLeagueId);
-      if (logoUrl) {
-        await db.update(tournaments).set({ logoUrl }).where(eq(tournaments.id, tournament.id));
-      }
-    }
+    if (tournament.logoUrl) continue;
+    const cfg = toProviderConfig(tournament);
+    const provider = getProvider(cfg.provider);
+    const logoUrl = provider.fetchTournamentLogo ? await provider.fetchTournamentLogo(cfg) : null;
+    if (logoUrl)
+      await db.update(tournaments).set({ logoUrl }).where(eq(tournaments.id, tournament.id));
   }
 }
 
 // ── Helpers ──
 
-async function upsertTeam(apiTeamId: number, name: string, logoUrl: string): Promise<string> {
+async function upsertTeam(
+  provider: ProviderId,
+  externalId: string,
+  name: string,
+  logoUrl: string | null,
+): Promise<string> {
   const [team] = await db
     .insert(teams)
-    .values({ apiTeamId, name, logoUrl })
+    .values({ provider, externalId, name, logoUrl })
     .onConflictDoUpdate({
-      target: teams.apiTeamId,
+      target: [teams.provider, teams.externalId],
       set: { name, logoUrl },
     })
     .returning({ id: teams.id });
