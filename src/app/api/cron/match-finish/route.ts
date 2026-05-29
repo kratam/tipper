@@ -2,10 +2,10 @@ import { and, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { matches, tournaments } from "@/db/schema";
+import { expectedMatchDurationMs } from "@/lib/match-duration";
 import { scheduleMatchFinishCheck } from "@/lib/qstash";
 import { syncFixtures } from "@/lib/sync";
 
-const EXPECTED_MATCH_DURATION_MS = 2.5 * 60 * 60 * 1000; // 2h30m
 const LIVE_RECHECK_SECONDS = 10 * 60; // 10 min
 
 export async function POST(request: Request) {
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
   // No live matches — check if there are more scheduled matches today
   const remainingToday = await db
-    .select({ scheduledAt: matches.scheduledAt })
+    .select({ tournamentId: matches.tournamentId, scheduledAt: matches.scheduledAt })
     .from(matches)
     .where(
       and(
@@ -57,9 +57,14 @@ export async function POST(request: Request) {
     );
 
   if (remainingToday.length > 0) {
-    // Find earliest remaining match, schedule at expected end time
+    // Find earliest remaining match, schedule at its sport-specific expected end time
+    const durationByTournament = new Map(
+      activeTournaments.map((t) => [t.id, expectedMatchDurationMs(t.providerSport)]),
+    );
     const earliest = remainingToday.reduce((min, m) => (m.scheduledAt < min.scheduledAt ? m : min));
-    const expectedEnd = earliest.scheduledAt.getTime() + EXPECTED_MATCH_DURATION_MS;
+    const duration =
+      durationByTournament.get(earliest.tournamentId) ?? expectedMatchDurationMs(null);
+    const expectedEnd = earliest.scheduledAt.getTime() + duration;
     const delaySeconds = Math.max(60, Math.ceil((expectedEnd - Date.now()) / 1000));
 
     await scheduleMatchFinishCheck(delaySeconds);

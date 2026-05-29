@@ -1,12 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/nightly",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/eredmenyek-probe",
-      "schedule": "*/5 * * * *"
+      "path": "/api/cron/periodic",
+      "schedule": "0 */6 * * *"
     }
   ]
 }

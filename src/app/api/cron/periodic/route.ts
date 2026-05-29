@@ -2,10 +2,14 @@ import { and, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { matches, tournaments } from "@/db/schema";
+import { expectedMatchDurationMs } from "@/lib/match-duration";
 import { scheduleMatchFinishCheck } from "@/lib/qstash";
 import { backfillTournamentLogos, distributeTokensForTournament, syncTournament } from "@/lib/sync";
 
-const EXPECTED_MATCH_DURATION_MS = 2.5 * 60 * 60 * 1000; // 2h30m
+// 6 óránként fut (vercel.json: 0 0,6,12,18 * * *). A QStash match-finish
+// checkeket csak a következő 6 órás ablakban kezdődő meccsekre lövi ki, így a
+// 4 napi futás átfedés nélkül tölti ki a napot — nincs duplikált QStash üzenet.
+const CRON_WINDOW_MS = 6 * 60 * 60 * 1000;
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -35,33 +39,43 @@ export async function GET(request: Request) {
     await distributeTokensForTournament(tournament.id);
   }
 
-  // 5. Schedule QStash calls for today's matches (match-finish checks)
+  // 5. Schedule QStash calls for matches starting in the next 6h window
+  //    (match-finish checks, per-sport expected duration)
   let scheduledChecks = 0;
   if (activeTournaments.length > 0) {
     const activeTournamentIds = activeTournaments.map((t) => t.id);
+    const durationByTournament = new Map(
+      activeTournaments.map((t) => [t.id, expectedMatchDurationMs(t.providerSport)]),
+    );
 
-    const todayMatches = await db
-      .select({ scheduledAt: matches.scheduledAt })
+    const now = Date.now();
+    const windowEnd = new Date(now + CRON_WINDOW_MS);
+
+    const windowMatches = await db
+      .select({ tournamentId: matches.tournamentId, scheduledAt: matches.scheduledAt })
       .from(matches)
       .where(
         and(
           sql`${matches.tournamentId} IN ${activeTournamentIds}`,
           eq(matches.status, "scheduled"),
-          sql`DATE(${matches.scheduledAt}) = CURRENT_DATE`,
+          sql`${matches.scheduledAt} >= NOW()`,
+          sql`${matches.scheduledAt} < ${windowEnd}`,
         ),
       );
 
-    if (todayMatches.length > 0) {
+    if (windowMatches.length > 0) {
       // Group by expected end time (rounded to 15 min) to avoid duplicate calls
       const endTimeBuckets = new Set<number>();
-      for (const match of todayMatches) {
-        const expectedEnd = match.scheduledAt.getTime() + EXPECTED_MATCH_DURATION_MS;
+      for (const match of windowMatches) {
+        const duration =
+          durationByTournament.get(match.tournamentId) ?? expectedMatchDurationMs(null);
+        const expectedEnd = match.scheduledAt.getTime() + duration;
         const rounded = Math.ceil(expectedEnd / (15 * 60 * 1000)) * (15 * 60 * 1000);
         endTimeBuckets.add(rounded);
       }
 
       for (const endTime of endTimeBuckets) {
-        const delaySeconds = Math.max(60, Math.ceil((endTime - Date.now()) / 1000));
+        const delaySeconds = Math.max(60, Math.ceil((endTime - now) / 1000));
         await scheduleMatchFinishCheck(delaySeconds);
         scheduledChecks++;
       }

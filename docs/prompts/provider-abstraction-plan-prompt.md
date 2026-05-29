@@ -32,7 +32,7 @@ log, `eredmenyek-probe`), mert a megbízhatósági adat befolyásolja, mennyire 
 - `src/lib/sync.ts` (~399 sor) — a sync logika, ami közvetlenül az api-sports-ot hívja
 - `src/db/schema.ts` — `tournaments`, `teams`, `matches`, `match_odds`
 - `src/lib/eredmenyek-probe.ts` — a bizonyított eredmenyek.com hívások (odds GraphQL + dc_ feed + x-fsign harvest)
-- `src/app/api/cron/{nightly,match-finish,sync}/route.ts` — a cron belépési pontok
+- `src/app/api/cron/{periodic,match-finish,sync}/route.ts` — a cron belépési pontok
 - `src/actions/admin.ts` — tournament CRUD + manuális sync
 
 ## Amit a felderítésből már tudunk (ne fedezd fel újra)

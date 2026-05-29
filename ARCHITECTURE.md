@@ -14,7 +14,7 @@ src/
     privacy/, terms/       — Statikus oldalak
   app/api/
     auth/[...path]/        — Neon Auth proxy
-    cron/nightly/          — Éjszakai cron (naponta 03:00 UTC)
+    cron/periodic/         — Periodikus cron (6 óránként, 00/06/12/18 UTC)
     cron/match-finish/     — QStash-triggered meccs befejezés check
     cron/sync/             — Admin manuális sync trigger
   actions/                 — Server Actions
@@ -168,13 +168,13 @@ Event-driven architektúra QStash-sel a Neon compute optimalizálás érdekében
 
 | Endpoint | Trigger | Feladat |
 |----------|---------|---------|
-| `/api/cron/nightly` | Vercel cron, naponta 03:00 UTC | Teljes sync + QStash ütemezés |
+| `/api/cron/periodic` | Vercel cron, 6 óránként (00/06/12/18 UTC) | Teljes sync + QStash ütemezés |
 | `/api/cron/match-finish` | QStash POST | Meccs befejezés detektálás + pontozás |
 | `/api/cron/sync` | Admin panel (manuális) | Teljes sync (admin trigger) |
 
-### Éjszakai cron (`/api/cron/nightly`)
+### Periodikus cron (`/api/cron/periodic`)
 
-Naponta egyszer fut (03:00 UTC), `vercel.json` cron:
+6 óránként fut (`0 */6 * * *` → 00/06/12/18 UTC), `vercel.json` cron:
 
 1. **Logo backfill** — ha `logoUrl` NULL → `/leagues?id=` API hívás
 2. **Full sync** — minden active + upcoming versenysorozatra:
@@ -184,7 +184,9 @@ Naponta egyszer fut (03:00 UTC), `vercel.json` cron:
    - Finished meccsek pontozása (safety net)
    - Cancelled meccsek refund
 3. **Token kiosztás** — `DATE(scheduledAt) <= CURRENT_DATE`, idempotens
-4. **QStash ütemezés** — mai meccsekre `scheduledAt + 2h30m` időpontra match-finish check
+4. **QStash ütemezés** — a **következő 6 órás ablakban** (`scheduledAt ∈ [now, now+6h)`) kezdődő meccsekre, `scheduledAt + sport-hossz` időpontra match-finish check. Az ablak-szűrés miatt a 4 napi futás átfedés nélkül fedi le a napot → nincs duplikált QStash üzenet ugyanarra a meccsre.
+
+**Meccs-hossz sportonként** (`expectedMatchDurationMs`, `src/lib/match-duration.ts`): `providerSport="football"` → **1h55m**, egyébként (jégkorong / api-sports `providerSport=NULL`) → **2h30m**. A bucketelés meccsenként a torna sportja szerint számolja a várható véget.
 
 ### Match-finish check (`/api/cron/match-finish`)
 
@@ -193,7 +195,7 @@ QStash-ből hívva, POST. Csak fixtures sync (1 API hívás/tournament, odds né
 - **Finished** meccs → pontozás + payout
 - **Cancelled** meccs → refund
 - **Még live** → QStash self-reschedule 10 perc múlva
-- **Még van mai meccs** → QStash reschedule a következő meccs várható végére
+- **Még van mai meccs** → QStash reschedule a következő meccs várható végére (sport-függő hossz)
 - **Minden kész** → stop → Neon elalszik
 
 ### Shared sync logika
@@ -279,7 +281,7 @@ QSTASH_TOKEN              — Upstash QStash API token
 
 ## Ismert korlátok
 
-- **Vercel cron**: naponta 1× (03:00 UTC), QStash-sel kiegészítve
+- **Vercel cron**: 6 óránként (00/06/12/18 UTC), QStash-sel kiegészítve
 - **api-sports.io**: 7500 request/hó
 - **Neon Auth**: saját Google OAuth credentials (Neon Console-ban konfigurálva)
 - **Eredmény**: csak regulation time (3 period), overtime nem számít
