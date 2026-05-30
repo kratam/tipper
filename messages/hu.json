@@ -50,11 +50,11 @@
     },
     "howToPlay": "Hogyan működik?",
     "howToPlayTokens": "Tokenek",
-    "howToPlayTokensDesc": "Minden meccs napján kapsz tokeneket. Ha csak most csatlakoztál egy csoporthoz, a korábbi tokeneket is megkapod — nem maradsz le semmiről.",
+    "howToPlayTokensDesc": "Csatlakozáskor egyszeri indulótőkét kapsz, majd minden meccs napján további tokeneket — a verseny végéig. Ha később csatlakozol, a korábbi tokeneket is megkapod, nem maradsz le semmiről.",
     "howToPlayBetting": "Tippelés",
     "howToPlayBettingDesc": "Jósold meg a pontos végeredményt (pl. 3:1), és döntsd el, mennyi tokent teszel fel. Akár jövőbeli meccsekre is tippelhetsz előre. A meccs kezdetéig bármikor módosíthatod a tippedet.",
     "howToPlayScoring": "Pontszámítás",
-    "howToPlayScoringDesc": "Helyes tippért tét × odds tokent kapsz vissza. Bónusz jár, ha a gólkülönbség is stimmel — és még több, ha a pontos eredményt is eltalálod. Rossz tippért semmi.",
+    "howToPlayScoringDesc": "Helyes tippért a tét és az odds szorzatát kapod vissza, a hivatalosnál magasabb kifizetéssel. Bónusz jár, ha a gólkülönbség is stimmel — és még több, ha a pontos eredményt is eltalálod. Rossz tippnél a tét nagy részét elveszted, de egy kis részét visszakapod.",
     "howToPlayPodium": "Dobogós tipp",
     "howToPlayPodiumDesc": "A versenysorozat kezdete előtt megjósolhatod az első három csapat sorrendjét. Minden helyes pozícióért bónusz jár.",
     "noGroupYet": "Még nem vagy tagja egyetlen csoportnak sem. Csatlakozz és versenyezz!",
@@ -364,5 +364,75 @@
     "displayNameDescription": "Így fognak látni mások. Ha üresen hagyod, a Google neved jelenik meg.",
     "displayNamePlaceholder": "pl. Tipper King",
     "saved": "Mentve!"
+  },
+  "help": {
+    "title": "Hogyan működik a TippCasino?",
+    "intro": "Tokenekkel tippelsz sportmeccsek eredményére. Minél meglepőbb a találat, annál többet érsz vele.",
+    "sections": [
+      {
+        "heading": "Honnan van tokenem?",
+        "items": [
+          "Csatlakozáskor 200 tokent kapsz.",
+          "Minden meccs napján további 100 tokent — a VB végéig.",
+          "Nem eshetsz ki: folyamatosan jön a token.",
+          "Ha később csatlakozol, a korábbi meccsek tokenjeit is megkapod.",
+          "Amit nem költesz el, megmarad a következő meccsekre."
+        ]
+      },
+      {
+        "heading": "Mennyit nyerhetek?",
+        "items": [
+          "A nyeremény a hivatalos oddstól függ.",
+          "A meglepetést megtippelni többet ér: ha Curaçao legyőzi Németországot, az sokkal többet hoz, mint fordítva.",
+          "A Ranglistán a kifizetés 15%-kal magasabb a hivatalos oddsnál."
+        ]
+      },
+      {
+        "heading": "Mi van, ha veszítek?",
+        "items": [
+          "Rossz tipp esetén elveszted a feltett tokeneket — egyes versenyeknél a tét egy részét visszakapod.",
+          "A 15%-kal magasabb kifizetés miatt alapvetően megéri fogadni."
+        ]
+      },
+      {
+        "heading": "Módosíthatom a tippem?",
+        "items": [
+          "A meccs kezdetéig bármikor törölheted vagy módosíthatod.",
+          "Az odds menet közben változhat, de a tipped a leadáskori oddssal érvényes — ezt a 🔒 lakat mutatja.",
+          "Ha módosítasz, az akkor érvényes odds számít."
+        ]
+      },
+      {
+        "heading": "Hogyan kapok bónuszt?",
+        "items": [
+          "Ha eltalálod a gólkülönbséget, fix bónuszt kapsz.",
+          "Ha a pontos végeredményt is eltalálod, még nagyobb bónusz jár.",
+          "A bónusz nem függ a téttől — ezért érdemes mindenre legalább 1 tokennel tippelni."
+        ]
+      },
+      {
+        "heading": "Mi az a dobogós tipp?",
+        "items": [
+          "A VB kezdete előtt megtippelheted az első három helyezettet.",
+          "Minden eltalált csapatért és pontos helyezésért plusz token jár a VB végén."
+        ]
+      },
+      {
+        "heading": "Mi a Ranglista?",
+        "items": [
+          "Minden versenysorozathoz tartozik egy Ranglista csoport, amibe automatikusan bekerülsz.",
+          "Itt mindenki ellen versenyzel, aki játszik.",
+          "A fenti számok a Ranglista alapértékei — saját csoportokban mások lehetnek."
+        ]
+      },
+      {
+        "heading": "Mik a csoportok?",
+        "items": [
+          "A játék csoportokban zajlik. Létrehozhatsz sajátot, vagy meghívóval csatlakozhatsz máséhoz.",
+          "Minden csoportban külön token-egyenleged van, és külön ranglista megy.",
+          "A csoport készítője testreszabhatja a szabályokat: token mennyiség, odds szorzó, bónuszok."
+        ]
+      }
+    ]
   }
 }

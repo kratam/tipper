@@ -50,11 +50,11 @@
     },
     "howToPlay": "How does it work?",
     "howToPlayTokens": "Tokens",
-    "howToPlayTokensDesc": "You get tokens every match day. Join a group late? You'll still receive tokens for the days you missed — no catching up needed.",
+    "howToPlayTokensDesc": "You get a one-off starting balance when you join, then more tokens every match day — until the tournament ends. Join late? You'll still receive the earlier tokens, so you won't miss out.",
     "howToPlayBetting": "Betting",
     "howToPlayBettingDesc": "Predict the exact final score (e.g. 3:1) and choose your stake. You can even bet on upcoming matches in advance. Update any time before the match starts.",
     "howToPlayScoring": "Scoring",
-    "howToPlayScoringDesc": "Get the outcome right and you win back stake × odds. Bonus if the goal difference matches too — even more for the exact score. Wrong prediction: nothing.",
+    "howToPlayScoringDesc": "Get the outcome right and you win back stake × odds, with a payout higher than the official odds. Bonus if the goal difference matches too — even more for the exact score. On a wrong prediction you lose most of your stake but get a small part back.",
     "howToPlayPodium": "Podium prediction",
     "howToPlayPodiumDesc": "Before the tournament starts, predict the top 3 teams in order. You earn bonus tokens for each correct position.",
     "noGroupYet": "You're not a member of any group yet. Join and compete!",
@@ -364,5 +364,75 @@
     "displayNameDescription": "This is how others will see you. Leave empty to use your Google name.",
     "displayNamePlaceholder": "e.g. Tipper King",
     "saved": "Saved!"
+  },
+  "help": {
+    "title": "How does TippCasino work?",
+    "intro": "You bet tokens on the results of sports matches. The more surprising your correct call, the more it's worth.",
+    "sections": [
+      {
+        "heading": "Where do my tokens come from?",
+        "items": [
+          "You get 200 tokens when you join.",
+          "You get another 100 tokens on every match day — until the end of the World Cup.",
+          "You can't be eliminated: tokens keep coming.",
+          "If you join later, you also receive the tokens from earlier matches.",
+          "Whatever you don't spend carries over to the next matches."
+        ]
+      },
+      {
+        "heading": "How much can I win?",
+        "items": [
+          "Your winnings depend on the official odds.",
+          "Calling an upset is worth more: if Curaçao beats Germany, that pays far more than the other way around.",
+          "On the Ranglista, the payout is 15% higher than the official odds."
+        ]
+      },
+      {
+        "heading": "What happens if I lose?",
+        "items": [
+          "On a wrong prediction you lose the tokens you staked — in some tournaments you get part of your stake back.",
+          "Thanks to the 15% higher payout, betting is generally worth it."
+        ]
+      },
+      {
+        "heading": "Can I change my prediction?",
+        "items": [
+          "You can delete or change it any time before the match starts.",
+          "Odds can change over time, but your bet stays locked to the odds when you placed it — shown by the 🔒 lock.",
+          "If you change it, the odds valid at that moment apply."
+        ]
+      },
+      {
+        "heading": "How do I earn a bonus?",
+        "items": [
+          "If you get the goal difference right, you earn a fixed bonus.",
+          "If you also nail the exact result, you earn an even bigger bonus.",
+          "The bonus doesn't depend on your stake — so it's worth betting at least 1 token on everything."
+        ]
+      },
+      {
+        "heading": "What is the podium prediction?",
+        "items": [
+          "Before the World Cup starts, you can predict the top three teams.",
+          "Every correct team and exact position earns extra tokens at the end of the World Cup."
+        ]
+      },
+      {
+        "heading": "What is the Ranglista?",
+        "items": [
+          "Every tournament has a leaderboard group called Ranglista that you join automatically.",
+          "Here you compete against everyone who plays.",
+          "The numbers above are the Ranglista defaults — they can differ in your own groups."
+        ]
+      },
+      {
+        "heading": "What are groups?",
+        "items": [
+          "The game happens in groups. You can create your own or join someone else's with an invite.",
+          "You have a separate token balance in each group, and each runs its own leaderboard.",
+          "The group's creator can customize the rules: token amounts, odds multiplier, bonuses."
+        ]
+      }
+    ]
   }
 }

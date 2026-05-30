@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { DisplayNameDialog } from "@/components/display-name-dialog";
+import { HelpDialog } from "@/components/help-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -109,6 +110,9 @@ export function Nav({ user, activeTournaments }: NavProps) {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
+            {/* Help */}
+            <HelpDialog />
+
             {/* Locale switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

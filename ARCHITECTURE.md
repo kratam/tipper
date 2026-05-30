@@ -138,6 +138,8 @@ Implementáció: [src/lib/tokens.ts](src/lib/tokens.ts) `computeProjectedFromCum
 
 `groups.oddsBoost` (real, default 1.0) — szorzó a payout-ra: `payout = stake × odds × oddsBoost`
 
+A hivatalos **Ranglista** csoport `oddsBoost` értéke **1.15** (+15% kifizetés) — lásd `createOfficialGroup` ([src/lib/official-group.ts](src/lib/official-group.ts)). A scoring a csoport *aktuális* `oddsBoost`-jával számol, így ez érték-módosításkor a még le nem pontozott tétekre is hat (a már tárolt payout nem változik).
+
 ## Pontozás (scoring)
 
 Pure függvények: `src/lib/scoring.ts` (tesztelve)
