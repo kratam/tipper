@@ -9,6 +9,7 @@ import { BetForm } from "@/components/bet-form";
 import { GroupBetsSection } from "@/components/group-bets-section";
 import { GroupCard } from "@/components/group-card";
 import type { MatchCardData } from "@/components/match-card";
+import { MatchDateTime } from "@/components/match-datetime";
 import { PublicGroupDialog } from "@/components/public-group-dialog";
 import { TeamLogo } from "@/components/team-logo";
 import { Badge } from "@/components/ui/badge";
@@ -128,11 +129,19 @@ export function BetDialog({
         <DialogContent className="max-h-[85vh] gap-2 overflow-y-auto sm:max-w-md">
           <DialogHeader>
             {showBetForm ? (
-              // A BetForm kártya már tartalmazza a zászlókat, neveket és dátumot,
-              // ezért a fejléc csak a kötelező (sr-only) címet adja.
-              <DialogTitle className="sr-only">
-                {match.homeTeam.name} – {match.awayTeam.name}
-              </DialogTitle>
+              // A BetForm a zászlókat/neveket mutatja; a fejléc a dátumot adja
+              // egy sorban (a bezáró X abszolút, a jobb sarokban ül). A cím
+              // sr-only marad az akadálymentességhez.
+              <>
+                <DialogTitle className="sr-only">
+                  {match.homeTeam.name} – {match.awayTeam.name}
+                </DialogTitle>
+                <MatchDateTime
+                  scheduledAt={match.scheduledAt}
+                  timeZone={timeZone}
+                  className="pr-8 font-mono text-[11px] text-muted-foreground"
+                />
+              </>
             ) : (
               <DialogTitle className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                 <div className="flex min-w-0 items-center gap-2">
@@ -208,8 +217,6 @@ export function BetDialog({
               odds={odds}
               homeTeam={match.homeTeam}
               awayTeam={match.awayTeam}
-              scheduledAt={match.scheduledAt}
-              timeZone={timeZone}
               onSuccess={groups.length <= 1 ? () => onOpenChange(false) : undefined}
             />
           ) : topPublicGroups.length > 0 ? (

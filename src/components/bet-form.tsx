@@ -1,11 +1,10 @@
 "use client";
 
 import { Info, Loader2, Lock, Minus, Plus } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
-import { type ReactNode, useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
+import { type ReactNode, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { cancelBet, placeBet } from "@/actions/bets";
-import { FormattedDate } from "@/components/formatted-date";
 import { TeamLogo } from "@/components/team-logo";
 import { TokenIcon } from "@/components/token-icon";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useRouter } from "@/i18n/navigation";
 import { formatEffectiveOdds } from "@/lib/odds-display";
 import { clampPerMatch, computeStakePresets } from "@/lib/stake-presets";
-import { formatDate } from "@/lib/utils";
 
 interface GroupBetInfo {
   groupId: string;
@@ -46,10 +44,6 @@ interface BetFormProps {
   odds: { homeOdds: string; drawOdds: string; awayOdds: string } | null;
   homeTeam: { name: string; logoUrl: string | null };
   awayTeam: { name: string; logoUrl: string | null };
-  scheduledAt: string;
-  /** Tournament timezone — the date header is shown in this zone, matching the
-   * match list grouping (so a 01:00 local kickoff reads as its local day). */
-  timeZone: string;
   onSuccess?: () => void;
 }
 
@@ -109,44 +103,11 @@ function BalanceInfoTooltip({
   );
 }
 
-export function BetForm({
-  matchId,
-  groups,
-  odds,
-  homeTeam,
-  awayTeam,
-  scheduledAt,
-  timeZone,
-  onSuccess,
-}: BetFormProps) {
+export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }: BetFormProps) {
   const t = useTranslations("betting");
   const tMatches = useTranslations("matches");
-  const locale = useLocale();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-
-  // Secondary "your time" hint: only when the viewer's browser timezone differs
-  // from the tournament timezone (and actually renders a different wall-clock).
-  // Mirrors the match-card hint so the dialog header stays consistent.
-  const [localHint, setLocalHint] = useState<string | null>(null);
-  useEffect(() => {
-    const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (userTz === timeZone) {
-      setLocalHint(null);
-      return;
-    }
-    const inEventTz = formatDate(scheduledAt, locale, timeZone, { omitYear: true });
-    const inUserTz = formatDate(scheduledAt, locale, userTz, { omitYear: true });
-    setLocalHint(inUserTz === inEventTz ? null : inUserTz);
-  }, [scheduledAt, timeZone, locale]);
-
-  // Venue time only (deterministic: tz is explicit), shown inline after the
-  // local date when the viewer's tz differs.
-  const venueTimeOnly = new Intl.DateTimeFormat(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone,
-  }).format(new Date(scheduledAt));
 
   const [homeScore, setHomeScore] = useState<number>(groups[0]?.existingBet?.predictedHome ?? 0);
   const [awayScore, setAwayScore] = useState<number>(groups[0]?.existingBet?.predictedAway ?? 0);
@@ -224,21 +185,10 @@ export function BetForm({
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden border-0 bg-transparent shadow-none">
       <CardContent className="p-0">
-        {/* Match header + score prediction */}
-        <div className="flex flex-col items-center gap-2 px-5 pt-2 pb-4">
-          {/* The date is secondary context here (the match is already selected),
-              so it's a single compact muted line: viewer-local primary + venue
-              time inline. localHint is null on SSR, so the venue-tz fallback
-              keeps the server render deterministic and hydration-safe. */}
-          <span className="font-mono text-[10px] text-muted-foreground/60">
-            {localHint ? (
-              `${localHint} · ${tMatches("venueTime", { time: venueTimeOnly })}`
-            ) : (
-              <FormattedDate date={scheduledAt} timeZone={timeZone} omitYear />
-            )}
-          </span>
+        {/* Match header + score prediction (date lives in the dialog header) */}
+        <div className="flex flex-col items-center gap-2 px-5 pt-1 pb-4">
           {/* Teams + inline score steppers */}
           <div className="grid w-full max-w-xs grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-1.5">
             {/* Logos */}
