@@ -151,7 +151,7 @@ export function GroupLeaderboardContent({
               return (
                 <AccordionItem key={row.userId} value={row.userId}>
                   <AccordionTrigger
-                    className={`px-4 py-3 hover:no-underline ${
+                    className={`items-center px-4 py-3 hover:no-underline ${
                       isCurrentUser ? "bg-amber-500/5 ring-1 ring-amber-500/20 ring-inset" : ""
                     }`}
                   >
