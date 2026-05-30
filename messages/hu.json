@@ -100,7 +100,7 @@
     "upcoming": "Közelgő",
     "played": "Lejátszott",
     "all": "Mind",
-    "localTime": "nálad {time}",
+    "venueTime": "helyszín {time}",
     "tipsTab": "Tippek",
     "statsTab": "Statisztika",
     "podium": "Dobogó",

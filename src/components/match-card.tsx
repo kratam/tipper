@@ -222,12 +222,16 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
             </span>
           ) : (
             <>
+              {/* Primary = viewer's local time (when it differs from the venue
+                  tz); the venue/match time moves to the small secondary line.
+                  localTime is null on SSR and until mount, so the venue time is
+                  the deterministic fallback and there is no hydration mismatch. */}
               <span className="font-mono font-semibold text-sm tabular-nums leading-none">
-                {formatTime(match.scheduledAt, timezone)}
+                {localTime ?? formatTime(match.scheduledAt, timezone)}
               </span>
               {localTime && (
                 <span className="text-[9px] text-muted-foreground/50">
-                  {t("localTime", { time: localTime })}
+                  {t("venueTime", { time: formatTime(match.scheduledAt, timezone) })}
                 </span>
               )}
             </>

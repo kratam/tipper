@@ -100,7 +100,7 @@
     "upcoming": "Upcoming",
     "played": "Played",
     "all": "All",
-    "localTime": "your time {time}",
+    "venueTime": "venue {time}",
     "tipsTab": "Tips",
     "statsTab": "Stats",
     "podium": "Podium",

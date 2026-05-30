@@ -220,13 +220,21 @@ export function BetForm({
       <CardContent className="p-0">
         {/* Match header + score prediction */}
         <div className="flex flex-col items-center gap-4 px-5 pt-5 pb-4">
+          {/* Primary = viewer's local date/time (localHint, computed in an
+              effect so it is null on SSR); the venue date moves to the small
+              secondary line. Falling back to the venue-tz FormattedDate keeps
+              the server render deterministic and hydration-safe. */}
           <div className="flex flex-col items-center gap-0.5">
-            <span className="font-mono text-[11px] text-muted-foreground">
-              <FormattedDate date={scheduledAt} timeZone={timeZone} />
-            </span>
+            {localHint ? (
+              <span className="font-mono text-[11px] text-muted-foreground">{localHint}</span>
+            ) : (
+              <span className="font-mono text-[11px] text-muted-foreground">
+                <FormattedDate date={scheduledAt} timeZone={timeZone} />
+              </span>
+            )}
             {localHint && (
               <span className="font-mono text-[10px] text-muted-foreground/50">
-                {tMatches("localTime", { time: localHint })}
+                {tMatches("venueTime", { time: formatDate(scheduledAt, locale, timeZone) })}
               </span>
             )}
           </div>
