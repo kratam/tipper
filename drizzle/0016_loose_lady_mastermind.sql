@@ -1,0 +1,1 @@
+CREATE INDEX "match_odds_match_fetched_idx" ON "match_odds" USING btree ("match_id","fetched_at");

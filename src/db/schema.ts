@@ -108,16 +108,24 @@ export const matches = pgTable(
   ],
 );
 
-export const matchOdds = pgTable("match_odds", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  matchId: uuid("match_id")
-    .references(() => matches.id)
-    .notNull(),
-  homeOdds: decimal("home_odds", { precision: 6, scale: 2 }).notNull(),
-  drawOdds: decimal("draw_odds", { precision: 6, scale: 2 }).notNull(),
-  awayOdds: decimal("away_odds", { precision: 6, scale: 2 }).notNull(),
-  fetchedAt: timestamp("fetched_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const matchOdds = pgTable(
+  "match_odds",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    matchId: uuid("match_id")
+      .references(() => matches.id)
+      .notNull(),
+    homeOdds: decimal("home_odds", { precision: 6, scale: 2 }).notNull(),
+    drawOdds: decimal("draw_odds", { precision: 6, scale: 2 }).notNull(),
+    awayOdds: decimal("away_odds", { precision: 6, scale: 2 }).notNull(),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  // "Latest odds per match" is read once per match on every tournament page
+  // (ORDER BY fetched_at DESC LIMIT 1, filtered by match_id). Without this the
+  // planner seq-scans match_odds for each match; the table grows unbounded as
+  // the odds-fetch cron appends a new row per refresh.
+  (table) => [index("match_odds_match_fetched_idx").on(table.matchId, table.fetchedAt)],
+);
 
 export const groups = pgTable(
   "groups",
