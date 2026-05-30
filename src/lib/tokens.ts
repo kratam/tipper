@@ -33,7 +33,14 @@ export interface CumulativeBudgetInput {
    * lifetime budget at every cutoff D' ≥ bet.dateNum — wins raise the cap,
    * losses lower it.
    */
-  resolvedBetNets?: { netPayout: number; dateNum: number }[];
+  resolvedBetNets?: ResolvedBetNet[];
+}
+
+export interface ResolvedBetNet {
+  /** `bets.payout - bets.stake`. Already reflects the group's lossPercentage. */
+  netPayout: number;
+  /** The bet's match date as a comparable number (YYYYMMDD). */
+  dateNum: number;
 }
 
 /**
@@ -90,6 +97,34 @@ export function computeProjectedFromCumulativeBudget(input: CumulativeBudgetInpu
 
 export function dateToDateNum(d: Date): number {
   return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+}
+
+/**
+ * Split resolved-bet nets into cumulative winnings (positive nets) and losses
+ * (negative nets) up to and including the target cutoff date. Mirrors the
+ * bet-form "Tippelhető" tooltip breakdown.
+ *
+ * Each resolved bet's `netPayout = payout - stake` already bakes in the group's
+ * lossPercentage: a fully-lost bet under the default 90% rule yields
+ * `payout = partialRefund(stake, 90) = 10% of stake`, so its net is `-90% of
+ * stake` (NOT `-stake`). The split therefore needs no further interpretation —
+ * the 10% refund stays in the budget and is reflected as a smaller loss.
+ *
+ * `losses` is returned as a non-positive number so the tooltip can sum directly:
+ *   initialTokens + matchTokens + winnings + losses - lockedStakes
+ */
+export function splitResolvedNets(
+  resolvedBetNets: ResolvedBetNet[],
+  targetDateNum: number,
+): { winnings: number; losses: number } {
+  let winnings = 0;
+  let losses = 0;
+  for (const r of resolvedBetNets) {
+    if (r.dateNum > targetDateNum) continue;
+    if (r.netPayout > 0) winnings += r.netPayout;
+    else if (r.netPayout < 0) losses += r.netPayout;
+  }
+  return { winnings, losses };
 }
 
 /**

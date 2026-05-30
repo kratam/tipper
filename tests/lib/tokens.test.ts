@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { calculateBetPayout } from "@/lib/scoring";
 import {
   calculateProjectedBalance,
   canAffordBetStake,
@@ -6,6 +7,7 @@ import {
   dateToDateNum,
   getEffectiveBudgetForBet,
   getRelevantOdds,
+  splitResolvedNets,
 } from "@/lib/tokens";
 
 describe("calculateProjectedBalance", () => {
@@ -222,10 +224,11 @@ describe("computeProjectedFromCumulativeBudget — resolved bet payouts", () => 
     ).toBe(420);
   });
 
-  it("a lost bet on a past match reduces the budget by the stake", () => {
+  it("a fully-lost bet (lossPercentage=100) reduces the budget by the whole stake", () => {
     // 2 matches, initial=200, tokenPerMatch=100.
-    // Match1 lost: stake=100, payout=0 → netPayout=-100.
-    // Target match2. maxBudget(nap2) = 200 + 2·100 - 100 = 300.
+    // Match1 lost at 100% (no refund): stake=100, payout=0 → netPayout=-100.
+    // (Under the default 90% rule this net would be -90 — see the 90%-rule
+    // suite below.) Target match2. maxBudget(nap2) = 200 + 2·100 - 100 = 300.
     expect(
       computeProjectedFromCumulativeBudget({
         initialTokens: 200,
@@ -451,6 +454,188 @@ describe("computeProjectedFromCumulativeBudget — resolved bet payouts", () => 
         resolvedBetNets: [{ netPayout: 50, dateNum: 20260501 }],
       }),
     ).toBe(250);
+  });
+});
+
+describe("splitResolvedNets", () => {
+  it("returns zero winnings and losses for no resolved bets", () => {
+    expect(splitResolvedNets([], 20260502)).toEqual({ winnings: 0, losses: 0 });
+  });
+
+  it("sums positive nets into winnings", () => {
+    expect(
+      splitResolvedNets(
+        [
+          { netPayout: 20, dateNum: 20260501 },
+          { netPayout: 30, dateNum: 20260502 },
+        ],
+        20260502,
+      ),
+    ).toEqual({ winnings: 50, losses: 0 });
+  });
+
+  it("sums negative nets into losses (returned as a non-positive number)", () => {
+    expect(
+      splitResolvedNets(
+        [
+          { netPayout: -40, dateNum: 20260501 },
+          { netPayout: -10, dateNum: 20260502 },
+        ],
+        20260502,
+      ),
+    ).toEqual({ winnings: 0, losses: -50 });
+  });
+
+  it("splits a mix of wins and losses", () => {
+    expect(
+      splitResolvedNets(
+        [
+          { netPayout: 25, dateNum: 20260501 },
+          { netPayout: -90, dateNum: 20260501 },
+          { netPayout: 0, dateNum: 20260501 },
+        ],
+        20260502,
+      ),
+    ).toEqual({ winnings: 25, losses: -90 });
+  });
+
+  it("excludes resolved bets after the target cutoff", () => {
+    expect(
+      splitResolvedNets(
+        [
+          { netPayout: 25, dateNum: 20260501 },
+          { netPayout: -90, dateNum: 20260503 }, // after target → ignored
+        ],
+        20260502,
+      ),
+    ).toEqual({ winnings: 25, losses: 0 });
+  });
+
+  it("90% rule: a fully-lost bet contributes its 10%-refund net, not the whole stake", () => {
+    // The default lossPercentage=90 means a lost stake=100 bet pays out 10
+    // (partialRefund) → net = -90. The tooltip's "losses" line must show -90,
+    // NOT -100, so the 10% refund stays visible as remaining budget.
+    expect(splitResolvedNets([{ netPayout: -90, dateNum: 20260501 }], 20260502)).toEqual({
+      winnings: 0,
+      losses: -90,
+    });
+  });
+});
+
+describe("90% rule (lossPercentage) end-to-end: scoring → projection → tooltip", () => {
+  const SETTINGS = { bonusGoalDiff: 0, bonusExactScore: 0, oddsBoost: 1, lossPercentage: 90 };
+
+  it("a fully-lost bet pays out 10% of the stake under the default 90% rule", () => {
+    const lost = calculateBetPayout({
+      predictedHome: 2, // predicts "1" (home win)
+      predictedAway: 0,
+      actualHome: 0, // actual "2" (away win) → 1X2 wrong → loss
+      actualAway: 2,
+      stake: 100,
+      oddsAtBet: 1.8,
+      groupSettings: SETTINGS,
+    });
+    expect(lost.result1x2Correct).toBe(false);
+    expect(lost.payout).toBe(10); // 10% refund, NOT 0
+  });
+
+  it("the 'Tippelhető' tooltip reconciles to the projected balance under the 90% rule", () => {
+    // Group: initialTokens=100, tokenPerMatch=50. Three matches:
+    //   nap1 (20260501): two resolved bets, nap2 (20260502): TARGET (new bet),
+    //   nap3 (20260503): future.
+    // Derive the resolved nets from the real scoring function so the 90% rule
+    // is exercised end-to-end (not hand-typed).
+    const initialTokens = 100;
+    const tokenPerMatch = 50;
+    const targetDateNum = 20260502;
+    const matchDates = [20260501, 20260502, 20260503];
+
+    const lost = calculateBetPayout({
+      predictedHome: 2,
+      predictedAway: 0,
+      actualHome: 0,
+      actualAway: 2,
+      stake: 100,
+      oddsAtBet: 1.8,
+      groupSettings: SETTINGS,
+    });
+    const won = calculateBetPayout({
+      predictedHome: 1,
+      predictedAway: 0,
+      actualHome: 1,
+      actualAway: 0,
+      stake: 50,
+      oddsAtBet: 1.5,
+      groupSettings: SETTINGS,
+    });
+    expect(lost.payout - 100).toBe(-90); // 90% rule: net loss is -90, not -100
+    expect(won.payout - 50).toBe(25); // round(50 × 1.5 × 1) - 50 = +25
+
+    const resolvedBetNets = [
+      { netPayout: lost.payout - 100, dateNum: 20260501 },
+      { netPayout: won.payout - 50, dateNum: 20260501 },
+    ];
+
+    // Bold total in the tooltip = projected (+ existingBetStake, here 0 for a new bet).
+    const projected = computeProjectedFromCumulativeBudget({
+      initialTokens,
+      tokenPerMatch,
+      targetDateNum,
+      matchDates,
+      activeBets: [],
+      resolvedBetNets,
+    });
+    const existingBetStake = 0;
+    const effectiveBalance = projected + existingBetStake;
+
+    // Breakdown lines, exactly as bet-form.tsx sums them.
+    const eligibleMatchCount = matchDates.filter((d) => d <= targetDateNum).length; // 2
+    const { winnings, losses } = splitResolvedNets(resolvedBetNets, targetDateNum);
+    const otherActiveStakes = 0;
+    const breakdownSum =
+      initialTokens + eligibleMatchCount * tokenPerMatch + winnings + losses - otherActiveStakes;
+
+    // 100 + 2·50 + 25 - 90 = 135. nap2 is the binding constraint.
+    expect(winnings).toBe(25);
+    expect(losses).toBe(-90);
+    expect(effectiveBalance).toBe(135);
+    expect(breakdownSum).toBe(effectiveBalance); // tooltip reconciles
+  });
+
+  it("the 90% rule leaves 10% more budget than a 100% (full-loss) rule", () => {
+    // Same lost prediction, compared at lossPercentage 90 vs 100.
+    const base = {
+      predictedHome: 2,
+      predictedAway: 0,
+      actualHome: 0,
+      actualAway: 2,
+      stake: 100,
+      oddsAtBet: 1.8,
+    };
+    const lost90 = calculateBetPayout({
+      ...base,
+      groupSettings: { ...SETTINGS, lossPercentage: 90 },
+    });
+    const lost100 = calculateBetPayout({
+      ...base,
+      groupSettings: { ...SETTINGS, lossPercentage: 100 },
+    });
+
+    const project = (net: number) =>
+      computeProjectedFromCumulativeBudget({
+        initialTokens: 100,
+        tokenPerMatch: 0,
+        targetDateNum: 20260502,
+        matchDates: [20260501, 20260502],
+        activeBets: [],
+        resolvedBetNets: [{ netPayout: net, dateNum: 20260501 }],
+      });
+
+    expect(lost90.payout).toBe(10);
+    expect(lost100.payout).toBe(0);
+    // 100 + (10 - 100) = 10  vs  100 + (0 - 100) = 0
+    expect(project(lost90.payout - 100)).toBe(10);
+    expect(project(lost100.payout - 100)).toBe(0);
   });
 });
 

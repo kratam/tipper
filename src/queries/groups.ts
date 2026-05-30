@@ -2,7 +2,11 @@ import "server-only";
 import { and, eq, inArray, isNotNull, isNull, notInArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { bets, groupMembers, groups, matches, tokenLedger, tournaments } from "@/db/schema";
-import { computeProjectedFromCumulativeBudget, dateToDateNum } from "@/lib/tokens";
+import {
+  computeProjectedFromCumulativeBudget,
+  dateToDateNum,
+  splitResolvedNets,
+} from "@/lib/tokens";
 
 export async function getUserGroups(userId: string) {
   return db.query.groupMembers.findMany({
@@ -162,8 +166,10 @@ export async function getProjectedBalance(
     );
 
   // Resolved bets: scoring has run (bets.payout IS NOT NULL). The net ledger
-  // effect on the lifetime budget is `payout - stake` — wins/bonuses raise
-  // the cap, losses (payout=0) lower it by the stake.
+  // effect on the lifetime budget is `payout - stake` — wins/bonuses raise the
+  // cap, losses lower it. Under the default 90% rule a "lost" bet still pays out
+  // 10% of its stake (payout = partialRefund(stake, lossPercentage) > 0), so its
+  // net is `-90% of stake`, not the full `-stake`.
   const resolvedBetRows = await db
     .select({ stake: bets.stake, payout: bets.payout, scheduledAt: matches.scheduledAt })
     .from(bets)
@@ -185,6 +191,10 @@ export async function getProjectedBalance(
   const distributedSet = new Set(distributionRows.map((r) => r.matchId).filter((x) => x !== null));
 
   const targetDateNum = dateToDateNum(targetMatch.scheduledAt);
+  const resolvedBetNets = resolvedBetRows.map((b) => ({
+    netPayout: (b.payout ?? 0) - b.stake,
+    dateNum: dateToDateNum(b.scheduledAt),
+  }));
   const projected = computeProjectedFromCumulativeBudget({
     initialTokens: group.initialTokens,
     tokenPerMatch: group.tokenPerMatch,
@@ -194,10 +204,7 @@ export async function getProjectedBalance(
       stake: b.stake,
       dateNum: dateToDateNum(b.scheduledAt),
     })),
-    resolvedBetNets: resolvedBetRows.map((b) => ({
-      netPayout: (b.payout ?? 0) - b.stake,
-      dateNum: dateToDateNum(b.scheduledAt),
-    })),
+    resolvedBetNets,
   });
 
   // Tooltip values (legacy semantics). `actual` is the full ledger SUM, which
@@ -218,14 +225,7 @@ export async function getProjectedBalance(
   const eligibleMatchCount = tournamentMatches.filter(
     (m) => dateToDateNum(m.scheduledAt) <= targetDateNum,
   ).length;
-  let winnings = 0;
-  let losses = 0;
-  for (const r of resolvedBetRows) {
-    if (dateToDateNum(r.scheduledAt) > targetDateNum) continue;
-    const net = (r.payout ?? 0) - r.stake;
-    if (net > 0) winnings += net;
-    else if (net < 0) losses += net;
-  }
+  const { winnings, losses } = splitResolvedNets(resolvedBetNets, targetDateNum);
   const otherActiveStakes = activeBetRows
     .filter((b) => dateToDateNum(b.scheduledAt) <= targetDateNum && b.matchId !== matchId)
     .reduce((sum, b) => sum + b.stake, 0);
@@ -246,7 +246,9 @@ export async function getProjectedBalance(
 /**
  * Profit from resolved matches: sum of bet/win/refund ledger entries
  * where the linked match is finished or cancelled.
- * Win: -stake + payout = net gain. Loss: -stake. Cancelled: -stake + stake = 0.
+ * Win: -stake + payout = net gain. Loss: -stake + partialRefund (10% of stake
+ * under the default 90% rule; 0 only when lossPercentage=100). Cancelled:
+ * -stake + stake = 0.
  */
 export async function getUserProfit(userId: string, groupId: string): Promise<number> {
   const result = await db
