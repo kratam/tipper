@@ -85,6 +85,12 @@ scripts/
 
 A `neon_auth` schema külön (Better Auth által kezelt): user, session, account, verification, jwks.
 
+### Driver és kapcsolat
+
+`@neondatabase/serverless` **HTTP driver** (`neon()` + `drizzle-orm/neon-http`) — `src/db/index.ts`. Stateless, query-nként egy POST; ideális a Vercel serverless (rövid életű) futáshoz. A WebSocket Pool driverre **nincs ok váltani**: session-szintű (interaktív) tranzakciót nem használunk (`db.transaction()` sehol), edge runtime nincs, és a Pool sem oldaná meg a lenti cold-start hibát (ugyanaz a wake-útvonal).
+
+**Cold-start retry:** a Neon compute 5 perc idle után scale-to-zero (`suspend_timeout_seconds: 300`). Ébresztéskor a control plane néha tranziensen HTTP 500-zal elhasal (`"Control plane request failed"`, `neon:retryable: true`), a HTTP driver pedig nem retry-zik. Ezt a `neonConfig.fetchFunction = retryingFetch` (`src/lib/db-retry-fetch.ts`) kezeli: retryable 5xx-re és hálózati hibára max 4 próbálkozás exponenciális backoff-fal — minden query automatikusan védve. Ha a cold-start 500-ak gyakorivá válnának a logban, a célzott hosszútávú eszköz a **production compute suspend timeout megemelése / scale-to-zero kikapcsolása** (compute-óra költség ↔ mindig-meleg DB), nem driver-csere.
+
 ### Migrációk
 
 Drizzle ORM migrációk a `drizzle/` könyvtárban. **Deploy előtt kézzel kell futtatni** — a Vercel build nem futtatja (`drizzle-kit migrate` timeoutol a Neon websocket-en Vercel US → Neon EU miatt).
