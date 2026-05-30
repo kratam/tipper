@@ -140,6 +140,14 @@ export function BetForm({
     setLocalHint(inUserTz === inEventTz ? null : inUserTz);
   }, [scheduledAt, timeZone, locale]);
 
+  // Venue time only (deterministic: tz is explicit), shown inline after the
+  // local date when the viewer's tz differs.
+  const venueTimeOnly = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone,
+  }).format(new Date(scheduledAt));
+
   const [homeScore, setHomeScore] = useState<number>(groups[0]?.existingBet?.predictedHome ?? 0);
   const [awayScore, setAwayScore] = useState<number>(groups[0]?.existingBet?.predictedAway ?? 0);
   const [stakes, setStakes] = useState<Record<string, number>>(() => {
@@ -219,27 +227,18 @@ export function BetForm({
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         {/* Match header + score prediction */}
-        <div className="flex flex-col items-center gap-3 px-5 pt-4 pb-4">
-          {/* Primary = viewer's local date/time (localHint, computed in an
-              effect so it is null on SSR); the venue date moves to the small
-              secondary line. Falling back to the venue-tz FormattedDate keeps
-              the server render deterministic and hydration-safe. */}
-          <div className="flex flex-col items-center gap-0.5">
+        <div className="flex flex-col items-center gap-2 px-5 pt-2 pb-4">
+          {/* The date is secondary context here (the match is already selected),
+              so it's a single compact muted line: viewer-local primary + venue
+              time inline. localHint is null on SSR, so the venue-tz fallback
+              keeps the server render deterministic and hydration-safe. */}
+          <span className="font-mono text-[10px] text-muted-foreground/60">
             {localHint ? (
-              <span className="font-mono text-[11px] text-muted-foreground">{localHint}</span>
+              `${localHint} · ${tMatches("venueTime", { time: venueTimeOnly })}`
             ) : (
-              <span className="font-mono text-[11px] text-muted-foreground">
-                <FormattedDate date={scheduledAt} timeZone={timeZone} omitYear />
-              </span>
+              <FormattedDate date={scheduledAt} timeZone={timeZone} omitYear />
             )}
-            {localHint && (
-              <span className="font-mono text-[10px] text-muted-foreground/50">
-                {tMatches("venueTime", {
-                  time: formatDate(scheduledAt, locale, timeZone, { omitYear: true }),
-                })}
-              </span>
-            )}
-          </div>
+          </span>
           {/* Teams + inline score steppers */}
           <div className="grid w-full max-w-xs grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-1.5">
             {/* Logos */}

@@ -125,7 +125,7 @@ export function BetDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
+        <DialogContent className="max-h-[85vh] gap-2 overflow-y-auto sm:max-w-md">
           <DialogHeader>
             {showBetForm ? (
               // A BetForm kártya már tartalmazza a zászlókat, neveket és dátumot,
