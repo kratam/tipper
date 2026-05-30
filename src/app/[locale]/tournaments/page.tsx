@@ -63,12 +63,28 @@ export default async function TournamentsPage() {
             <p className="text-muted-foreground text-sm">{t("howToPlayBettingDesc")}</p>
           </div>
           <div>
+            <p className="font-medium text-sm">{t("howToPlayOdds")}</p>
+            <p className="text-muted-foreground text-sm">{t("howToPlayOddsDesc")}</p>
+          </div>
+          <div>
+            <p className="font-medium text-sm">{t("howToPlayLockedOdds")}</p>
+            <p className="text-muted-foreground text-sm">{t("howToPlayLockedOddsDesc")}</p>
+          </div>
+          <div>
             <p className="font-medium text-sm">{t("howToPlayScoring")}</p>
             <p className="text-muted-foreground text-sm">{t("howToPlayScoringDesc")}</p>
           </div>
           <div>
             <p className="font-medium text-sm">{t("howToPlayPodium")}</p>
             <p className="text-muted-foreground text-sm">{t("howToPlayPodiumDesc")}</p>
+          </div>
+          <div>
+            <p className="font-medium text-sm">{t("howToPlayLeaderboard")}</p>
+            <p className="text-muted-foreground text-sm">{t("howToPlayLeaderboardDesc")}</p>
+          </div>
+          <div>
+            <p className="font-medium text-sm">{t("howToPlayGroups")}</p>
+            <p className="text-muted-foreground text-sm">{t("howToPlayGroupsDesc")}</p>
           </div>
         </div>
       </div>
