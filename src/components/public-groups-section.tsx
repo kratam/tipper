@@ -23,7 +23,7 @@ interface PublicGroup {
     slug: string;
     status: string;
   };
-  members: { id: string }[];
+  memberCount: number;
 }
 
 interface PublicGroupsSectionProps {
@@ -49,7 +49,7 @@ export function PublicGroupsSection({ groups }: PublicGroupsSectionProps) {
           <GroupCard
             key={group.id}
             group={group}
-            memberCount={group.members.length}
+            memberCount={group.memberCount}
             variant="public"
             onClick={() => setSelectedGroup(group)}
           />
@@ -59,7 +59,7 @@ export function PublicGroupsSection({ groups }: PublicGroupsSectionProps) {
       {selectedGroup && (
         <PublicGroupDialog
           group={selectedGroup}
-          memberCount={selectedGroup.members.length}
+          memberCount={selectedGroup.memberCount}
           open={!!selectedGroup}
           onOpenChange={(open) => {
             if (!open) setSelectedGroup(null);

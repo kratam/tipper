@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
-import { getPublicGroups, getUserGroups, getUserProfit } from "@/queries/groups";
+import {
+  getMemberCountsByGroup,
+  getPublicGroups,
+  getUserGroups,
+  getUserProfitsByGroup,
+} from "@/queries/groups";
 
 export default async function GroupsPage() {
   const user = await getCurrentUser();
@@ -19,20 +24,28 @@ export default async function GroupsPage() {
 
   const t = await getTranslations("groups");
   const memberships = await getUserGroups(user.id);
+  const groupIds = memberships.map((gm) => gm.group.id);
 
-  const groupsWithProfits = await Promise.all(
-    memberships.map(async (gm) => {
-      const profit = await getUserProfit(user.id, gm.group.id);
-      return { ...gm, profit };
-    }),
-  );
+  // Profits, member counts, and public-group suggestions are independent —
+  // fetch them together. Profits and counts are single grouped aggregates
+  // instead of a query per group.
+  const [profits, memberCounts, allPublicGroups] = await Promise.all([
+    getUserProfitsByGroup(user.id, groupIds),
+    getMemberCountsByGroup(groupIds),
+    getPublicGroups(user.id),
+  ]);
+
+  const groupsWithProfits = memberships.map((gm) => ({
+    ...gm,
+    profit: profits.get(gm.group.id) ?? 0,
+    memberCount: memberCounts.get(gm.group.id) ?? 0,
+  }));
 
   const activeGroups = groupsWithProfits.filter((gm) => !gm.group.tournament.isArchived);
   const archivedGroups = groupsWithProfits.filter((gm) => gm.group.tournament.isArchived);
 
   // Public groups: not finished, user not a member (archived tournaments already
   // filtered out at query level).
-  const allPublicGroups = await getPublicGroups(user.id);
   const publicGroups = allPublicGroups.filter((g) => g.tournament.status !== "finished");
 
   return (
@@ -55,7 +68,7 @@ export default async function GroupsPage() {
             <GroupCard
               key={gm.group.id}
               group={gm.group}
-              memberCount={gm.group.members?.length ?? 0}
+              memberCount={gm.memberCount}
               profit={gm.profit}
               variant="own"
             />

@@ -9,6 +9,9 @@ import {
 } from "@/lib/tokens";
 
 export async function getUserGroups(userId: string) {
+  // Member rows are NOT loaded here — callers that need a head count use
+  // getMemberCountsByGroup, which fetches counts in a single aggregate instead
+  // of shipping every membership row for every group.
   return db.query.groupMembers.findMany({
     where: eq(groupMembers.userId, userId),
     with: {
@@ -16,11 +19,24 @@ export async function getUserGroups(userId: string) {
         with: {
           tournament: true,
           owner: true,
-          members: true,
         },
       },
     },
   });
+}
+
+/**
+ * Head count per group in one aggregate query. Returns a Map keyed by groupId;
+ * groups with no members are absent (treat as 0).
+ */
+export async function getMemberCountsByGroup(groupIds: string[]): Promise<Map<string, number>> {
+  if (groupIds.length === 0) return new Map();
+  const rows = await db
+    .select({ groupId: groupMembers.groupId, count: sql<number>`count(*)` })
+    .from(groupMembers)
+    .where(inArray(groupMembers.groupId, groupIds))
+    .groupBy(groupMembers.groupId);
+  return new Map(rows.map((r) => [r.groupId, Number(r.count)]));
 }
 
 export async function getGroupBySlug(tournamentSlug: string, groupSlug: string) {
@@ -127,17 +143,74 @@ export async function getProjectedBalance(
   });
   if (!group) return { projected: 0, actual: 0, pending: 0, tokenPerMatch: 0, ...EMPTY_BREAKDOWN };
 
-  // Betting days are bucketed in the tournament's timezone (NOT UTC), so a
-  // 01:00 local kickoff counts as its local day. See dateToDateNum.
-  const tournament = await db.query.tournaments.findFirst({
-    where: eq(tournaments.id, group.tournamentId),
-    columns: { timezone: true },
-  });
+  // Everything below depends only on `group` + the input ids, not on each
+  // other — fetch in one Promise.all instead of chaining round trips (neon-http
+  // = one HTTP request per query). The batch variant getBatchProjectedBalances
+  // already fetches in parallel; this brings the single-pair path in line.
+  //
+  // - tournament: timezone — betting days are bucketed in the tournament's
+  //   timezone (NOT UTC), so a 01:00 local kickoff counts as its local day.
+  // - tournamentMatches: every non-cancelled match in the tournament (date+id).
+  // - activeBetRows: unresolved (payout IS NULL) bets on non-cancelled matches —
+  //   still lock up their stake. Cancelled-match bets are excluded (already
+  //   refunded, net 0, and not in the budget).
+  // - resolvedBetRows: scoring done (payout IS NOT NULL). Net `payout - stake`
+  //   raises/lowers the lifetime cap.
+  // - distributionRows: already-distributed matchIds (drives tooltip pending).
+  // - actual: full ledger SUM (already reflects resolved wins/losses).
+  const [
+    tournament,
+    targetMatch,
+    tournamentMatches,
+    activeBetRows,
+    resolvedBetRows,
+    distributionRows,
+    actual,
+  ] = await Promise.all([
+    db.query.tournaments.findFirst({
+      where: eq(tournaments.id, group.tournamentId),
+      columns: { timezone: true },
+    }),
+    db.query.matches.findFirst({ where: eq(matches.id, matchId) }),
+    db
+      .select({ id: matches.id, scheduledAt: matches.scheduledAt })
+      .from(matches)
+      .where(
+        and(eq(matches.tournamentId, group.tournamentId), sql`${matches.status} <> 'cancelled'`),
+      ),
+    db
+      .select({ stake: bets.stake, matchId: bets.matchId, scheduledAt: matches.scheduledAt })
+      .from(bets)
+      .innerJoin(matches, eq(bets.matchId, matches.id))
+      .where(
+        and(
+          eq(bets.userId, userId),
+          eq(bets.groupId, groupId),
+          isNull(bets.payout),
+          sql`${matches.status} <> 'cancelled'`,
+        ),
+      ),
+    db
+      .select({ stake: bets.stake, payout: bets.payout, scheduledAt: matches.scheduledAt })
+      .from(bets)
+      .innerJoin(matches, eq(bets.matchId, matches.id))
+      .where(and(eq(bets.userId, userId), eq(bets.groupId, groupId), isNotNull(bets.payout))),
+    db
+      .select({ matchId: tokenLedger.referenceId })
+      .from(tokenLedger)
+      .where(
+        and(
+          eq(tokenLedger.userId, userId),
+          eq(tokenLedger.groupId, groupId),
+          eq(tokenLedger.type, "distribution"),
+          sql`${tokenLedger.referenceId} IS NOT NULL`,
+        ),
+      ),
+    getTokenBalance(userId, groupId),
+  ]);
+
   const timeZone = tournament?.timezone ?? "UTC";
 
-  const targetMatch = await db.query.matches.findFirst({
-    where: eq(matches.id, matchId),
-  });
   if (!targetMatch)
     return {
       projected: 0,
@@ -148,54 +221,6 @@ export async function getProjectedBalance(
       initialTokens: group.initialTokens,
     };
 
-  // Fetch every non-cancelled match in the tournament (date + id only).
-  const tournamentMatches = await db
-    .select({ id: matches.id, scheduledAt: matches.scheduledAt })
-    .from(matches)
-    .where(
-      and(eq(matches.tournamentId, group.tournamentId), sql`${matches.status} <> 'cancelled'`),
-    );
-
-  // Active bets: unresolved (payout IS NULL) on a non-cancelled match. These
-  // still lock up their stake. Cancelled-match bets are excluded because they
-  // were already refunded (net effect = 0) and their match is not in the
-  // budget (tournamentMatches excludes cancelled).
-  const activeBetRows = await db
-    .select({ stake: bets.stake, matchId: bets.matchId, scheduledAt: matches.scheduledAt })
-    .from(bets)
-    .innerJoin(matches, eq(bets.matchId, matches.id))
-    .where(
-      and(
-        eq(bets.userId, userId),
-        eq(bets.groupId, groupId),
-        isNull(bets.payout),
-        sql`${matches.status} <> 'cancelled'`,
-      ),
-    );
-
-  // Resolved bets: scoring has run (bets.payout IS NOT NULL). The net ledger
-  // effect on the lifetime budget is `payout - stake` — wins/bonuses raise the
-  // cap, losses lower it. Under the default 90% rule a "lost" bet still pays out
-  // 10% of its stake (payout = partialRefund(stake, lossPercentage) > 0), so its
-  // net is `-90% of stake`, not the full `-stake`.
-  const resolvedBetRows = await db
-    .select({ stake: bets.stake, payout: bets.payout, scheduledAt: matches.scheduledAt })
-    .from(bets)
-    .innerJoin(matches, eq(bets.matchId, matches.id))
-    .where(and(eq(bets.userId, userId), eq(bets.groupId, groupId), isNotNull(bets.payout)));
-
-  // Already-distributed matchIds for this user (drives the tooltip's pending count).
-  const distributionRows = await db
-    .select({ matchId: tokenLedger.referenceId })
-    .from(tokenLedger)
-    .where(
-      and(
-        eq(tokenLedger.userId, userId),
-        eq(tokenLedger.groupId, groupId),
-        eq(tokenLedger.type, "distribution"),
-        sql`${tokenLedger.referenceId} IS NOT NULL`,
-      ),
-    );
   const distributedSet = new Set(distributionRows.map((r) => r.matchId).filter((x) => x !== null));
 
   const targetDateNum = dateToDateNum(targetMatch.scheduledAt, timeZone);
@@ -215,11 +240,10 @@ export async function getProjectedBalance(
     resolvedBetNets,
   });
 
-  // Tooltip values (legacy semantics). `actual` is the full ledger SUM, which
-  // already reflects resolved wins/losses — so the tooltip stays correct
-  // without changes. We still subtract future active-bet stakes so the
-  // "actual balance" line shows what's really available today.
-  const actual = await getTokenBalance(userId, groupId);
+  // Tooltip values (legacy semantics). `actual` (fetched above) is the full
+  // ledger SUM, which already reflects resolved wins/losses — so the tooltip
+  // stays correct without changes. We still subtract future active-bet stakes
+  // so the "actual balance" line shows what's really available today.
   const futureBetsNet = activeBetRows
     .filter((b) => dateToDateNum(b.scheduledAt, timeZone) > targetDateNum)
     .reduce((sum, b) => sum - b.stake, 0); // bets are negative ledger entries
@@ -275,6 +299,37 @@ export async function getUserProfit(userId: string, groupId: string): Promise<nu
     );
 
   return Number(result[0]?.profit ?? 0);
+}
+
+/**
+ * Batch variant of getUserProfit: one grouped aggregate for many groups instead
+ * of a query per group. Returns a Map keyed by groupId; groups with no matching
+ * ledger rows are absent (treat as 0).
+ */
+export async function getUserProfitsByGroup(
+  userId: string,
+  groupIds: string[],
+): Promise<Map<string, number>> {
+  if (groupIds.length === 0) return new Map();
+
+  const rows = await db
+    .select({
+      groupId: tokenLedger.groupId,
+      profit: sql<number>`COALESCE(SUM(CASE WHEN ${matches.status} IN ('finished', 'cancelled') THEN ${tokenLedger.amount} ELSE 0 END), 0)`,
+    })
+    .from(tokenLedger)
+    .leftJoin(bets, eq(tokenLedger.referenceId, bets.id))
+    .leftJoin(matches, eq(bets.matchId, matches.id))
+    .where(
+      and(
+        eq(tokenLedger.userId, userId),
+        inArray(tokenLedger.groupId, groupIds),
+        inArray(tokenLedger.type, ["bet", "win", "refund"]),
+      ),
+    )
+    .groupBy(tokenLedger.groupId);
+
+  return new Map(rows.map((r) => [r.groupId, Number(r.profit)]));
 }
 
 /**
@@ -485,7 +540,7 @@ export async function getPublicGroups(userId: string) {
 
   if (nonArchivedTournamentIds.length === 0) return [];
 
-  return db.query.groups.findMany({
+  const rows = await db.query.groups.findMany({
     where: and(
       eq(groups.isPublic, true),
       eq(groups.isOfficial, false),
@@ -495,9 +550,11 @@ export async function getPublicGroups(userId: string) {
     with: {
       tournament: true,
       owner: true,
-      members: true,
     },
   });
+
+  const counts = await getMemberCountsByGroup(rows.map((r) => r.id));
+  return rows.map((g) => ({ ...g, memberCount: counts.get(g.id) ?? 0 }));
 }
 
 export interface PublicGroupSuggestion {
@@ -547,19 +604,21 @@ export async function getTopPublicGroupsForTournament(
     ),
     with: {
       tournament: true,
-      members: true,
     },
   });
 
+  const counts = await getMemberCountsByGroup(rows.map((r) => r.id));
+
   return rows
-    .sort((a, b) => b.members.length - a.members.length)
+    .map((g) => ({ group: g, memberCount: counts.get(g.id) ?? 0 }))
+    .sort((a, b) => b.memberCount - a.memberCount)
     .slice(0, limit)
-    .map((g) => ({
+    .map(({ group: g, memberCount }) => ({
       id: g.id,
       name: g.name,
       slug: g.slug,
       description: g.description,
-      memberCount: g.members.length,
+      memberCount,
       tokenPerMatch: g.tokenPerMatch,
       initialTokens: g.initialTokens,
       bonusGoalDiff: g.bonusGoalDiff,

@@ -17,8 +17,8 @@ interface ArchivedGroupItem {
       slug: string;
       status: string;
     };
-    members?: { id: string }[] | undefined;
   };
+  memberCount: number;
   profit: number;
 }
 
@@ -50,7 +50,7 @@ export function ArchivedGroupsSection({ items }: ArchivedGroupsSectionProps) {
             <GroupCard
               key={item.group.id}
               group={item.group}
-              memberCount={item.group.members?.length ?? 0}
+              memberCount={item.memberCount}
               profit={item.profit}
               variant="own"
             />

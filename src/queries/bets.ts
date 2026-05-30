@@ -2,7 +2,7 @@ import "server-only";
 import { and, eq, inArray } from "drizzle-orm";
 import { getLocale } from "next-intl/server";
 import { db } from "@/db";
-import { bets, groupMembers } from "@/db/schema";
+import { bets, groupMembers, matches } from "@/db/schema";
 import type { Locale } from "@/lib/providers/types";
 import { withMatchTeamDisplay } from "@/queries/team-display";
 
@@ -89,15 +89,21 @@ export async function getGroupBetsForStartedMatch(
 }
 
 export async function getGroupBetsForFinishedMatches(groupId: string) {
-  return db.query.bets
-    .findMany({
-      where: eq(bets.groupId, groupId),
-      with: {
-        user: true,
-        match: true,
-      },
-    })
-    .then((allBets) => allBets.filter((bet) => bet.match.status === "finished"));
+  // Filter to finished-match bets in SQL (via a matchId subquery) instead of
+  // loading every group bet and discarding non-finished ones in memory.
+  return db.query.bets.findMany({
+    where: and(
+      eq(bets.groupId, groupId),
+      inArray(
+        bets.matchId,
+        db.select({ id: matches.id }).from(matches).where(eq(matches.status, "finished")),
+      ),
+    ),
+    with: {
+      user: true,
+      match: true,
+    },
+  });
 }
 
 /**
@@ -112,8 +118,16 @@ export async function getUserBetsForTournament(
   useFlagFallback: boolean,
 ) {
   const locale = (await getLocale()) as Locale;
-  const allBets = await db.query.bets.findMany({
-    where: eq(bets.userId, userId),
+  // Restrict to this tournament's matches in SQL (matchId subquery) instead of
+  // loading the user's bets across every tournament and filtering in memory.
+  const tournamentBets = await db.query.bets.findMany({
+    where: and(
+      eq(bets.userId, userId),
+      inArray(
+        bets.matchId,
+        db.select({ id: matches.id }).from(matches).where(eq(matches.tournamentId, tournamentId)),
+      ),
+    ),
     with: {
       match: {
         with: {
@@ -125,10 +139,8 @@ export async function getUserBetsForTournament(
       group: true,
     },
   });
-  return allBets
-    .filter((bet) => bet.match.tournamentId === tournamentId)
-    .map((bet) => ({
-      ...bet,
-      match: withMatchTeamDisplay(bet.match, locale, useFlagFallback),
-    }));
+  return tournamentBets.map((bet) => ({
+    ...bet,
+    match: withMatchTeamDisplay(bet.match, locale, useFlagFallback),
+  }));
 }
