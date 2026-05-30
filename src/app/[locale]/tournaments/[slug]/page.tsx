@@ -70,7 +70,7 @@ export default async function TournamentDetailPage({
 
   // Phase 3: batch balance + podium + leaderboards in parallel
   const [batchBalances, existingPodiumBet, groupLeaderboards] = await Promise.all([
-    getBatchProjectedBalances(user.id, groupsForBalance, matches),
+    getBatchProjectedBalances(user.id, groupsForBalance, matches, tournament.timezone),
     getPodiumBet(user.id, tournament.id).then((bet) =>
       bet
         ? {

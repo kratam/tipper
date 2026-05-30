@@ -55,6 +55,9 @@ interface BetDialogProps {
   onOpenChange: (open: boolean) => void;
   topPublicGroups?: PublicGroupSuggestion[];
   currentUserId: string;
+  /** Tournament timezone — passed to BetForm so the date header matches the
+   * match list's day grouping. */
+  timeZone: string;
 }
 
 export function BetDialog({
@@ -64,6 +67,7 @@ export function BetDialog({
   onOpenChange,
   topPublicGroups = [],
   currentUserId,
+  timeZone,
 }: BetDialogProps) {
   const t = useTranslations("matches");
   const tTournaments = useTranslations("tournaments");
@@ -205,6 +209,7 @@ export function BetDialog({
               homeTeam={match.homeTeam}
               awayTeam={match.awayTeam}
               scheduledAt={match.scheduledAt}
+              timeZone={timeZone}
               onSuccess={groups.length <= 1 ? () => onOpenChange(false) : undefined}
             />
           ) : topPublicGroups.length > 0 ? (

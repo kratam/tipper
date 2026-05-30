@@ -66,9 +66,61 @@ describe("getRelevantOdds", () => {
 });
 
 describe("dateToDateNum", () => {
-  it("encodes a UTC date as YYYYMMDD", () => {
-    expect(dateToDateNum(new Date("2026-05-07T17:30:00Z"))).toBe(20260507);
-    expect(dateToDateNum(new Date("2026-01-01T00:00:00Z"))).toBe(20260101);
+  it("encodes the calendar date in the given timezone as YYYYMMDD", () => {
+    expect(dateToDateNum(new Date("2026-05-07T17:30:00Z"), "UTC")).toBe(20260507);
+    expect(dateToDateNum(new Date("2026-01-01T00:00:00Z"), "UTC")).toBe(20260101);
+  });
+
+  it("buckets a late-night local match into its LOCAL day, not the UTC day", () => {
+    // FIFA WC 2026 (Europe/Budapest, CEST = UTC+2 in June):
+    // a 01:00 local kickoff is stored as 23:00Z the previous day. It must
+    // count as June 15 (local), not June 14 (UTC). Regression for the
+    // "Tippelhető: 0" bug on the first match of a new betting day.
+    const lateNight = new Date("2026-06-14T23:00:00Z");
+    expect(dateToDateNum(lateNight, "Europe/Budapest")).toBe(20260615);
+    expect(dateToDateNum(lateNight, "UTC")).toBe(20260614);
+  });
+
+  it("buckets an early-morning local match into the same local day", () => {
+    // 04:00 local = 02:00Z same day → June 15 in both zones.
+    const earlyMorning = new Date("2026-06-15T02:00:00Z");
+    expect(dateToDateNum(earlyMorning, "Europe/Budapest")).toBe(20260615);
+  });
+});
+
+describe("timezone day-bucketing regression (Tippelhető: 0 bug)", () => {
+  // FIFA WC 2026, Europe/Budapest. June 14 (local) has one evening match;
+  // June 15 (local) has four matches — the first kicks off at 01:00 local
+  // (stored 23:00Z the previous day), the rest later. initialTokens 0,
+  // tokenPerMatch 100. The user spent everything available through June 14.
+  const TZ = "Europe/Budapest";
+  const june14Evening = new Date("2026-06-14T18:00:00Z"); // 20:00 local, Jun 14
+  const june15_0100 = new Date("2026-06-14T23:00:00Z"); // 01:00 local, Jun 15
+  const june15_0400 = new Date("2026-06-15T02:00:00Z"); // 04:00 local, Jun 15
+  const june15_1800 = new Date("2026-06-15T16:00:00Z"); // 18:00 local, Jun 15
+  const june15_2000 = new Date("2026-06-15T18:00:00Z"); // 20:00 local, Jun 15
+  const allMatches = [june14Evening, june15_0100, june15_0400, june15_1800, june15_2000];
+
+  const matchDates = allMatches.map((d) => dateToDateNum(d, TZ));
+  // Through June 14 the user could bet initial(0) + 1 match × 100 = 100; assume spent.
+  const activeBets = [{ stake: 100, dateNum: dateToDateNum(june14Evening, TZ) }];
+
+  const projectedFor = (target: Date) =>
+    computeProjectedFromCumulativeBudget({
+      initialTokens: 0,
+      tokenPerMatch: 100,
+      targetDateNum: dateToDateNum(target, TZ),
+      matchDates,
+      activeBets,
+    });
+
+  it("gives the 01:00 local match its own day's budget (not 0)", () => {
+    // June 15 cutoff: max = 5 × 100 = 500, locked = 100 → 400.
+    expect(projectedFor(june15_0100)).toBe(400);
+  });
+
+  it("gives identical Tippelhető for the 01:00 and 04:00 matches of the same local day", () => {
+    expect(projectedFor(june15_0100)).toBe(projectedFor(june15_0400));
   });
 });
 

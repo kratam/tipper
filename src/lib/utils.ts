@@ -23,12 +23,13 @@ export function slugify(text: string): string {
     .replace(/^-|-$/g, "");
 }
 
-export function formatDate(date: Date | string, locale: string): string {
+export function formatDate(date: Date | string, locale: string, timeZone?: string): string {
   return new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    ...(timeZone ? { timeZone } : {}),
   }).format(new Date(date));
 }

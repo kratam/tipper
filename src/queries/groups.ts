@@ -127,6 +127,14 @@ export async function getProjectedBalance(
   });
   if (!group) return { projected: 0, actual: 0, pending: 0, tokenPerMatch: 0, ...EMPTY_BREAKDOWN };
 
+  // Betting days are bucketed in the tournament's timezone (NOT UTC), so a
+  // 01:00 local kickoff counts as its local day. See dateToDateNum.
+  const tournament = await db.query.tournaments.findFirst({
+    where: eq(tournaments.id, group.tournamentId),
+    columns: { timezone: true },
+  });
+  const timeZone = tournament?.timezone ?? "UTC";
+
   const targetMatch = await db.query.matches.findFirst({
     where: eq(matches.id, matchId),
   });
@@ -190,19 +198,19 @@ export async function getProjectedBalance(
     );
   const distributedSet = new Set(distributionRows.map((r) => r.matchId).filter((x) => x !== null));
 
-  const targetDateNum = dateToDateNum(targetMatch.scheduledAt);
+  const targetDateNum = dateToDateNum(targetMatch.scheduledAt, timeZone);
   const resolvedBetNets = resolvedBetRows.map((b) => ({
     netPayout: (b.payout ?? 0) - b.stake,
-    dateNum: dateToDateNum(b.scheduledAt),
+    dateNum: dateToDateNum(b.scheduledAt, timeZone),
   }));
   const projected = computeProjectedFromCumulativeBudget({
     initialTokens: group.initialTokens,
     tokenPerMatch: group.tokenPerMatch,
     targetDateNum,
-    matchDates: tournamentMatches.map((m) => dateToDateNum(m.scheduledAt)),
+    matchDates: tournamentMatches.map((m) => dateToDateNum(m.scheduledAt, timeZone)),
     activeBets: activeBetRows.map((b) => ({
       stake: b.stake,
-      dateNum: dateToDateNum(b.scheduledAt),
+      dateNum: dateToDateNum(b.scheduledAt, timeZone),
     })),
     resolvedBetNets,
   });
@@ -213,21 +221,21 @@ export async function getProjectedBalance(
   // "actual balance" line shows what's really available today.
   const actual = await getTokenBalance(userId, groupId);
   const futureBetsNet = activeBetRows
-    .filter((b) => dateToDateNum(b.scheduledAt) > targetDateNum)
+    .filter((b) => dateToDateNum(b.scheduledAt, timeZone) > targetDateNum)
     .reduce((sum, b) => sum - b.stake, 0); // bets are negative ledger entries
   const tooltipActual = actual - futureBetsNet;
   const pending = tournamentMatches.filter(
-    (m) => dateToDateNum(m.scheduledAt) <= targetDateNum && !distributedSet.has(m.id),
+    (m) => dateToDateNum(m.scheduledAt, timeZone) <= targetDateNum && !distributedSet.has(m.id),
   ).length;
 
   // Breakdown for the bet-form tooltip. All values are computed at the target
   // day cutoff so they reconcile to the displayed effective balance.
   const eligibleMatchCount = tournamentMatches.filter(
-    (m) => dateToDateNum(m.scheduledAt) <= targetDateNum,
+    (m) => dateToDateNum(m.scheduledAt, timeZone) <= targetDateNum,
   ).length;
   const { winnings, losses } = splitResolvedNets(resolvedBetNets, targetDateNum);
   const otherActiveStakes = activeBetRows
-    .filter((b) => dateToDateNum(b.scheduledAt) <= targetDateNum && b.matchId !== matchId)
+    .filter((b) => dateToDateNum(b.scheduledAt, timeZone) <= targetDateNum && b.matchId !== matchId)
     .reduce((sum, b) => sum + b.stake, 0);
 
   return {
@@ -280,6 +288,7 @@ export async function getBatchProjectedBalances(
   userId: string,
   groupsData: Array<{ id: string; initialTokens: number; tokenPerMatch: number }>,
   allMatches: Array<{ id: string; scheduledAt: Date; status: string }>,
+  timeZone: string,
 ): Promise<Record<string, Record<string, ProjectedBalanceResult>>> {
   if (groupsData.length === 0 || allMatches.length === 0) return {};
 
@@ -351,7 +360,7 @@ export async function getBatchProjectedBalances(
 
   // Eligible matches for budget (non-cancelled tournament matches we're computing for)
   const budgetMatches = allMatches.filter((m) => m.status !== "cancelled");
-  const matchDates = budgetMatches.map((m) => dateToDateNum(m.scheduledAt));
+  const matchDates = budgetMatches.map((m) => dateToDateNum(m.scheduledAt, timeZone));
 
   // Index active bets by group (matchId kept so we can exclude the target
   // match's bet when computing the breakdown's otherActiveStakes).
@@ -360,7 +369,11 @@ export async function getBatchProjectedBalances(
     Array<{ stake: number; matchId: string; dateNum: number }>
   >();
   for (const r of activeBetRows) {
-    const entry = { stake: r.stake, matchId: r.matchId, dateNum: dateToDateNum(r.scheduledAt) };
+    const entry = {
+      stake: r.stake,
+      matchId: r.matchId,
+      dateNum: dateToDateNum(r.scheduledAt, timeZone),
+    };
     const existing = activeBetsByGroup.get(r.groupId);
     if (existing) existing.push(entry);
     else activeBetsByGroup.set(r.groupId, [entry]);
@@ -376,7 +389,7 @@ export async function getBatchProjectedBalances(
     const entry = {
       stake: r.stake,
       payout: r.payout ?? 0,
-      dateNum: dateToDateNum(r.scheduledAt),
+      dateNum: dateToDateNum(r.scheduledAt, timeZone),
     };
     const existing = resolvedBetsByGroup.get(r.groupId);
     if (existing) existing.push(entry);
@@ -387,7 +400,7 @@ export async function getBatchProjectedBalances(
 
   for (const match of allMatches) {
     result[match.id] = {};
-    const targetDateNum = dateToDateNum(match.scheduledAt);
+    const targetDateNum = dateToDateNum(match.scheduledAt, timeZone);
 
     for (const group of groupsData) {
       const actual = actualByGroup.get(group.id) ?? 0;
@@ -414,11 +427,11 @@ export async function getBatchProjectedBalances(
       const tooltipActual = actual - futureBetsNet;
 
       const pending = budgetMatches.filter(
-        (m) => dateToDateNum(m.scheduledAt) <= targetDateNum && !distributed.has(m.id),
+        (m) => dateToDateNum(m.scheduledAt, timeZone) <= targetDateNum && !distributed.has(m.id),
       ).length;
 
       const eligibleMatchCount = budgetMatches.filter(
-        (m) => dateToDateNum(m.scheduledAt) <= targetDateNum,
+        (m) => dateToDateNum(m.scheduledAt, timeZone) <= targetDateNum,
       ).length;
       let winnings = 0;
       let losses = 0;

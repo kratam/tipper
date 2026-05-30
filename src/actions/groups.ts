@@ -82,6 +82,7 @@ export async function createGroup(input: CreateGroupInput) {
     input.tournamentId,
     group.initialTokens,
     group.tokenPerMatch,
+    tournament.timezone,
   );
 
   return group;
@@ -111,6 +112,7 @@ export async function joinGroup(inviteCode: string) {
     group.tournamentId,
     group.initialTokens,
     group.tokenPerMatch,
+    group.tournament.timezone,
   );
 
   redirect(`/tournaments/${group.tournament.slug}/groups/${group.slug}`);
@@ -145,6 +147,7 @@ export async function joinPublicGroup(groupId: string) {
     group.tournamentId,
     group.initialTokens,
     group.tokenPerMatch,
+    group.tournament.timezone,
   );
 }
 

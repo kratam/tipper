@@ -413,6 +413,7 @@ export function TournamentTabs({
         onOpenChange={setDialogOpen}
         topPublicGroups={topPublicGroups}
         currentUserId={currentUserId}
+        timeZone={timezone}
       />
     </>
   );

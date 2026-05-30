@@ -95,8 +95,23 @@ export function computeProjectedFromCumulativeBudget(input: CumulativeBudgetInpu
   return minAvailable === Number.POSITIVE_INFINITY ? 0 : minAvailable;
 }
 
-export function dateToDateNum(d: Date): number {
-  return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+/**
+ * Encode a match's calendar date as a comparable YYYYMMDD number, evaluated in
+ * the tournament's timezone (NOT UTC). The "betting day" that governs token
+ * distribution and the cumulative budget must match what users see, so a
+ * 01:00 Europe/Budapest kickoff (stored 23:00Z the previous day) counts as the
+ * local day, not the UTC day. Uses the same en-CA / timeZone approach as the
+ * match-card display so the grouping stays consistent across the app.
+ */
+export function dateToDateNum(d: Date, timeZone: string): number {
+  // en-CA formats as "YYYY-MM-DD", which strips trivially to digits.
+  const iso = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+  return Number.parseInt(iso.replace(/-/g, ""), 10);
 }
 
 /**
@@ -179,6 +194,7 @@ export async function distributeInitialTokens(
   tournamentId: string,
   initialTokens: number,
   tokenPerMatch: number,
+  timeZone: string,
 ): Promise<void> {
   // Lazy import: top-level `import { db }` would throw at module load
   // when DATABASE_URL is unset (e.g. in vitest), breaking the pure-function
@@ -219,7 +235,7 @@ export async function distributeInitialTokens(
       and(
         eq(matches.tournamentId, tournamentId),
         sql`${matches.status} <> 'cancelled'`,
-        sql`DATE(${matches.scheduledAt}) <= CURRENT_DATE`,
+        sql`DATE(${matches.scheduledAt} AT TIME ZONE ${timeZone}) <= DATE(now() AT TIME ZONE ${timeZone})`,
         sql`NOT EXISTS (
           SELECT 1 FROM token_ledger tl
           WHERE tl.user_id = ${userId}

@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { groupMembers, groups, users } from "@/db/schema";
+import { groupMembers, groups, tournaments, users } from "@/db/schema";
 import { distributeInitialTokens } from "@/lib/tokens";
 import { generateInviteCode } from "@/lib/utils";
 
@@ -96,6 +96,11 @@ export async function ensureOfficialMembership(
 
   const { db } = await import("@/db");
 
+  const tournament = await db.query.tournaments.findFirst({
+    where: eq(tournaments.id, tournamentId),
+    columns: { timezone: true },
+  });
+
   const existingMembership = await db.query.groupMembers.findFirst({
     where: and(eq(groupMembers.groupId, officialGroup.id), eq(groupMembers.userId, userId)),
   });
@@ -116,5 +121,6 @@ export async function ensureOfficialMembership(
     tournamentId,
     officialGroup.initialTokens,
     officialGroup.tokenPerMatch,
+    tournament?.timezone ?? "UTC",
   );
 }

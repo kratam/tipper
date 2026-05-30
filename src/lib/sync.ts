@@ -229,12 +229,20 @@ export async function distributeTokensForTournament(tournamentId: string): Promi
     with: { members: true },
   });
 
+  // Betting days are bucketed in the tournament's timezone (NOT UTC), so a
+  // match's tokens are released on its local calendar day. See dateToDateNum.
+  const tournament = await db.query.tournaments.findFirst({
+    where: eq(tournaments.id, tournamentId),
+    columns: { timezone: true },
+  });
+  const timeZone = tournament?.timezone ?? "UTC";
+
   for (const group of tournamentGroups) {
     const eligibleMatches = await db.query.matches.findMany({
       where: and(
         eq(matches.tournamentId, tournamentId),
         eq(matches.status, "scheduled"),
-        sql`DATE(${matches.scheduledAt}) <= CURRENT_DATE`,
+        sql`DATE(${matches.scheduledAt} AT TIME ZONE ${timeZone}) <= DATE(now() AT TIME ZONE ${timeZone})`,
       ),
     });
 
