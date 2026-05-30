@@ -91,36 +91,46 @@ export async function createOfficialGroup(tournamentId: string) {
 export async function ensureOfficialMembership(
   userId: string,
   tournamentId: string,
+  timezone?: string,
 ): Promise<void> {
   const officialGroup = await createOfficialGroup(tournamentId);
 
   const { db } = await import("@/db");
 
-  const tournament = await db.query.tournaments.findFirst({
-    where: eq(tournaments.id, tournamentId),
-    columns: { timezone: true },
-  });
+  // The tournament timezone is already loaded by the page that triggers the
+  // auto-join — accept it as a parameter to skip a redundant round trip. The
+  // neon-http driver issues one HTTP request per query, so every avoided query
+  // shaves real latency. Only hit the DB when the caller can't supply it.
+  const tz =
+    timezone ??
+    (
+      await db.query.tournaments.findFirst({
+        where: eq(tournaments.id, tournamentId),
+        columns: { timezone: true },
+      })
+    )?.timezone ??
+    "UTC";
 
-  const existingMembership = await db.query.groupMembers.findFirst({
-    where: and(eq(groupMembers.groupId, officialGroup.id), eq(groupMembers.userId, userId)),
-  });
-
-  if (!existingMembership) {
-    await db.insert(groupMembers).values({
-      groupId: officialGroup.id,
+  // Membership check/insert and token distribution touch different tables and
+  // don't depend on each other — run them concurrently instead of chaining the
+  // round trips. distributeInitialTokens is idempotent and back-fills any
+  // catch-up tokens for matches whose date has arrived since the last visit.
+  await Promise.all([
+    (async () => {
+      const existingMembership = await db.query.groupMembers.findFirst({
+        where: and(eq(groupMembers.groupId, officialGroup.id), eq(groupMembers.userId, userId)),
+      });
+      if (!existingMembership) {
+        await db.insert(groupMembers).values({ groupId: officialGroup.id, userId });
+      }
+    })(),
+    distributeInitialTokens(
       userId,
-    });
-  }
-
-  // Always run — distributeInitialTokens is idempotent and back-fills any
-  // catch-up tokens for matches whose date has arrived since the user
-  // last visited (cheap NOT EXISTS check per match).
-  await distributeInitialTokens(
-    userId,
-    officialGroup.id,
-    tournamentId,
-    officialGroup.initialTokens,
-    officialGroup.tokenPerMatch,
-    tournament?.timezone ?? "UTC",
-  );
+      officialGroup.id,
+      tournamentId,
+      officialGroup.initialTokens,
+      officialGroup.tokenPerMatch,
+      tz,
+    ),
+  ]);
 }

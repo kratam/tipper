@@ -358,9 +358,15 @@ export async function getBatchProjectedBalances(
     .innerJoin(matches, eq(bets.matchId, matches.id))
     .where(and(eq(bets.userId, userId), inArray(bets.groupId, groupIds), isNotNull(bets.payout)));
 
-  // Eligible matches for budget (non-cancelled tournament matches we're computing for)
-  const budgetMatches = allMatches.filter((m) => m.status !== "cancelled");
-  const matchDates = budgetMatches.map((m) => dateToDateNum(m.scheduledAt, timeZone));
+  // Eligible matches for budget (non-cancelled tournament matches we're computing for).
+  // Precompute each match's dateNum ONCE here: the inner pending/eligible filters
+  // would otherwise recompute it O(matches × groups) times, and each dateToDateNum
+  // call used to build a fresh Intl.DateTimeFormat (see getBatchProjectedBalances'
+  // hot path — ~21k formatter constructions for a 104-match tournament).
+  const budgetMatchInfos = allMatches
+    .filter((m) => m.status !== "cancelled")
+    .map((m) => ({ id: m.id, dateNum: dateToDateNum(m.scheduledAt, timeZone) }));
+  const matchDates = budgetMatchInfos.map((m) => m.dateNum);
 
   // Index active bets by group (matchId kept so we can exclude the target
   // match's bet when computing the breakdown's otherActiveStakes).
@@ -402,6 +408,9 @@ export async function getBatchProjectedBalances(
     result[match.id] = {};
     const targetDateNum = dateToDateNum(match.scheduledAt, timeZone);
 
+    // Group-independent: matches whose betting day is on or before the target.
+    const eligibleMatchCount = budgetMatchInfos.filter((m) => m.dateNum <= targetDateNum).length;
+
     for (const group of groupsData) {
       const actual = actualByGroup.get(group.id) ?? 0;
       const distributed = distributedByGroup.get(group.id) ?? new Set<string>();
@@ -426,13 +435,10 @@ export async function getBatchProjectedBalances(
         .reduce((sum, b) => sum - b.stake, 0); // bets are negative ledger entries
       const tooltipActual = actual - futureBetsNet;
 
-      const pending = budgetMatches.filter(
-        (m) => dateToDateNum(m.scheduledAt, timeZone) <= targetDateNum && !distributed.has(m.id),
+      const pending = budgetMatchInfos.filter(
+        (m) => m.dateNum <= targetDateNum && !distributed.has(m.id),
       ).length;
 
-      const eligibleMatchCount = budgetMatches.filter(
-        (m) => dateToDateNum(m.scheduledAt, timeZone) <= targetDateNum,
-      ).length;
       let winnings = 0;
       let losses = 0;
       for (const r of resolvedBets) {

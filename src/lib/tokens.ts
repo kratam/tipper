@@ -102,15 +102,32 @@ export function computeProjectedFromCumulativeBudget(input: CumulativeBudgetInpu
  * 01:00 Europe/Budapest kickoff (stored 23:00Z the previous day) counts as the
  * local day, not the UTC day. Uses the same en-CA / timeZone approach as the
  * match-card display so the grouping stays consistent across the app.
+ *
+ * Constructing an `Intl.DateTimeFormat` is expensive (tens of µs), and this is
+ * called O(matches²) times when projecting balances for a whole tournament
+ * (see getBatchProjectedBalances). Memoize one formatter per timezone so the
+ * hot loop only pays the cheap `.format()` call. The cache is keyed by the
+ * handful of tournament timezones the app ever sees, so it stays tiny.
  */
+const dateNumFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function getDateNumFormatter(timeZone: string): Intl.DateTimeFormat {
+  let fmt = dateNumFormatters.get(timeZone);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    dateNumFormatters.set(timeZone, fmt);
+  }
+  return fmt;
+}
+
 export function dateToDateNum(d: Date, timeZone: string): number {
   // en-CA formats as "YYYY-MM-DD", which strips trivially to digits.
-  const iso = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(d);
+  const iso = getDateNumFormatter(timeZone).format(d);
   return Number.parseInt(iso.replace(/-/g, ""), 10);
 }
 
@@ -202,52 +219,54 @@ export async function distributeInitialTokens(
   // while still letting server callers use the function normally.
   const { db } = await import("@/db");
 
-  // 1. Initial tokens (one-time, referenceId=NULL)
-  const existingInitial = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(tokenLedger)
-    .where(
-      and(
-        eq(tokenLedger.userId, userId),
-        eq(tokenLedger.groupId, groupId),
-        eq(tokenLedger.type, "distribution"),
-        sql`${tokenLedger.referenceId} IS NULL`,
+  // Two independent reads — issue them concurrently (neon-http = one HTTP
+  // request per query, so this overlaps the round trips):
+  //   1. Has the one-time initial grant (referenceId IS NULL) been made yet?
+  //   2. Catch-up: every non-cancelled match whose scheduled date is today or
+  //      earlier and that doesn't already have a per-match distribution for
+  //      this user. The initial grant has referenceId IS NULL so it never
+  //      collides with the per-match NOT EXISTS check — the reads are safe to
+  //      run in parallel.
+  const [existingInitial, eligibleMatches] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(tokenLedger)
+      .where(
+        and(
+          eq(tokenLedger.userId, userId),
+          eq(tokenLedger.groupId, groupId),
+          eq(tokenLedger.type, "distribution"),
+          sql`${tokenLedger.referenceId} IS NULL`,
+        ),
       ),
-    );
-
-  if (Number(existingInitial[0].count) === 0) {
-    await db.insert(tokenLedger).values({
-      userId,
-      groupId,
-      tournamentId,
-      amount: initialTokens,
-      type: "distribution",
-    });
-  }
-
-  // 2. Catch-up: distribute tokenPerMatch for every tournament match whose
-  // scheduled date is today or earlier and that doesn't already have a
-  // distribution for this user. Cancelled matches are excluded.
-  const eligibleMatches = await db
-    .select({ id: matches.id })
-    .from(matches)
-    .where(
-      and(
-        eq(matches.tournamentId, tournamentId),
-        sql`${matches.status} <> 'cancelled'`,
-        sql`DATE(${matches.scheduledAt} AT TIME ZONE ${timeZone}) <= DATE(now() AT TIME ZONE ${timeZone})`,
-        sql`NOT EXISTS (
+    db
+      .select({ id: matches.id })
+      .from(matches)
+      .where(
+        and(
+          eq(matches.tournamentId, tournamentId),
+          sql`${matches.status} <> 'cancelled'`,
+          sql`DATE(${matches.scheduledAt} AT TIME ZONE ${timeZone}) <= DATE(now() AT TIME ZONE ${timeZone})`,
+          sql`NOT EXISTS (
           SELECT 1 FROM token_ledger tl
           WHERE tl.user_id = ${userId}
             AND tl.group_id = ${groupId}
             AND tl.type = 'distribution'
             AND tl.reference_id = ${matches.id}
         )`,
+        ),
       ),
-    );
+  ]);
 
+  // Collect all new ledger rows and insert them in a single statement instead
+  // of one round trip per match (a mid-tournament first visit can have dozens
+  // of eligible matches).
+  const rows: (typeof tokenLedger.$inferInsert)[] = [];
+  if (Number(existingInitial[0].count) === 0) {
+    rows.push({ userId, groupId, tournamentId, amount: initialTokens, type: "distribution" });
+  }
   for (const { id: matchId } of eligibleMatches) {
-    await db.insert(tokenLedger).values({
+    rows.push({
       userId,
       groupId,
       tournamentId,
@@ -255,5 +274,9 @@ export async function distributeInitialTokens(
       type: "distribution",
       referenceId: matchId,
     });
+  }
+
+  if (rows.length > 0) {
+    await db.insert(tokenLedger).values(rows);
   }
 }

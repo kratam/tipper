@@ -39,7 +39,8 @@ export default async function TournamentDetailPage({
   if (!tournament) notFound();
 
   // Lazy auto-join to the tournament's official group. Idempotent.
-  await ensureOfficialMembership(user.id, tournament.id);
+  // Pass the already-loaded timezone so it doesn't re-query the tournament.
+  await ensureOfficialMembership(user.id, tournament.id, tournament.timezone);
 
   // Phase 2: all independent data in parallel
   const [matches, userBets, userGroupMemberships, tournamentTeams] = await Promise.all([
