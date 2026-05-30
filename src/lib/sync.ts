@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   bets,
@@ -237,32 +237,51 @@ export async function distributeTokensForTournament(tournamentId: string): Promi
   });
   const timeZone = tournament?.timezone ?? "UTC";
 
-  for (const group of tournamentGroups) {
-    const eligibleMatches = await db.query.matches.findMany({
-      where: and(
-        eq(matches.tournamentId, tournamentId),
-        eq(matches.status, "scheduled"),
-        sql`DATE(${matches.scheduledAt} AT TIME ZONE ${timeZone}) <= DATE(now() AT TIME ZONE ${timeZone})`,
-      ),
-    });
+  // Eligible matches depend only on the tournament + timezone, not the group —
+  // compute them once instead of re-querying per group.
+  const eligibleMatches = await db.query.matches.findMany({
+    where: and(
+      eq(matches.tournamentId, tournamentId),
+      eq(matches.status, "scheduled"),
+      sql`DATE(${matches.scheduledAt} AT TIME ZONE ${timeZone}) <= DATE(now() AT TIME ZONE ${timeZone})`,
+    ),
+    columns: { id: true },
+  });
 
+  if (eligibleMatches.length === 0) return;
+
+  // Load every existing per-match distribution for this tournament in ONE query
+  // and dedup in memory, instead of a COUNT round trip per (group × match ×
+  // member). Previously this issued thousands of sequential neon-http requests
+  // on every cron tick once a tournament was underway.
+  const existingDistributions = await db
+    .select({
+      groupId: tokenLedger.groupId,
+      userId: tokenLedger.userId,
+      referenceId: tokenLedger.referenceId,
+    })
+    .from(tokenLedger)
+    .where(
+      and(
+        eq(tokenLedger.tournamentId, tournamentId),
+        eq(tokenLedger.type, "distribution"),
+        isNotNull(tokenLedger.referenceId),
+      ),
+    );
+
+  const distributedKey = (groupId: string, userId: string, matchId: string) =>
+    `${groupId}:${userId}:${matchId}`;
+  const seen = new Set(
+    existingDistributions.map((r) => distributedKey(r.groupId, r.userId, r.referenceId ?? "")),
+  );
+
+  // Collect all missing rows and insert them in a single statement.
+  const rows: (typeof tokenLedger.$inferInsert)[] = [];
+  for (const group of tournamentGroups) {
     for (const match of eligibleMatches) {
       for (const member of group.members) {
-        const existing = await db
-          .select({ count: sql<number>`count(*)` })
-          .from(tokenLedger)
-          .where(
-            and(
-              eq(tokenLedger.userId, member.userId),
-              eq(tokenLedger.groupId, group.id),
-              eq(tokenLedger.type, "distribution"),
-              eq(tokenLedger.referenceId, match.id),
-            ),
-          );
-
-        if (Number(existing[0].count) > 0) continue;
-
-        await db.insert(tokenLedger).values({
+        if (seen.has(distributedKey(group.id, member.userId, match.id))) continue;
+        rows.push({
           userId: member.userId,
           groupId: group.id,
           tournamentId,
@@ -272,6 +291,10 @@ export async function distributeTokensForTournament(tournamentId: string): Promi
         });
       }
     }
+  }
+
+  if (rows.length > 0) {
+    await db.insert(tokenLedger).values(rows);
   }
 }
 
