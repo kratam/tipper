@@ -23,9 +23,14 @@ export function slugify(text: string): string {
     .replace(/^-|-$/g, "");
 }
 
-export function formatDate(date: Date | string, locale: string, timeZone?: string): string {
+export function formatDate(
+  date: Date | string,
+  locale: string,
+  timeZone?: string,
+  opts?: { omitYear?: boolean },
+): string {
   return new Intl.DateTimeFormat(locale, {
-    year: "numeric",
+    ...(opts?.omitYear ? {} : { year: "numeric" }),
     month: "short",
     day: "numeric",
     hour: "2-digit",
