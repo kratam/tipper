@@ -129,6 +129,7 @@
     "title": "Place Bet",
     "prediction": "Your prediction",
     "stake": "Stake",
+    "perMatch": "base",
     "availableTokens": "Available tokens",
     "submit": "Place bet",
     "update": "Update bet",

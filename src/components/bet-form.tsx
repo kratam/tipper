@@ -7,11 +7,13 @@ import { toast } from "sonner";
 import { cancelBet, placeBet } from "@/actions/bets";
 import { FormattedDate } from "@/components/formatted-date";
 import { TeamLogo } from "@/components/team-logo";
+import { TokenIcon } from "@/components/token-icon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRouter } from "@/i18n/navigation";
 import { formatEffectiveOdds } from "@/lib/odds-display";
+import { clampPerMatch, computeStakePresets } from "@/lib/stake-presets";
 
 interface GroupBetInfo {
   groupId: string;
@@ -103,36 +105,6 @@ function BalanceInfoTooltip({
   );
 }
 
-function computeStakePresets(
-  balance: number,
-  matchCount: number,
-): { value: number; label: string }[] {
-  const evenShare = Math.floor(balance / matchCount);
-  const doubleShare = Math.floor((balance * 2) / matchCount);
-  const evenPct = Math.round(100 / matchCount);
-  const doublePct = Math.min(100, evenPct * 2);
-  const presets: { value: number; label: string }[] = [];
-  const seenValues = new Set<number>();
-  const seenLabels = new Set<string>();
-
-  for (const { value, label } of [
-    { value: evenShare, label: `${evenPct}%` },
-    { value: doubleShare, label: `${doublePct}%` },
-    { value: balance, label: "MAX" },
-  ]) {
-    if (value >= 1 && !seenValues.has(value) && !seenLabels.has(label)) {
-      seenValues.add(value);
-      seenLabels.add(label);
-      presets.push({ value, label });
-    }
-  }
-  return presets;
-}
-
-function computeDefaultStake(balance: number, matchCount: number): number {
-  return Math.max(1, Math.floor(balance / matchCount));
-}
-
 export function BetForm({
   matchId,
   groups,
@@ -152,16 +124,16 @@ export function BetForm({
   const [stakes, setStakes] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     for (const g of groups) {
-      initial[g.groupId] =
-        g.existingBet?.stake ?? computeDefaultStake(g.projectedBalance, g.unbettedMatchCountOnDay);
+      const effective = g.projectedBalance + (g.existingBet?.stake ?? 0);
+      initial[g.groupId] = g.existingBet?.stake ?? clampPerMatch(g.tokenPerMatch, effective);
     }
     return initial;
   });
   const [stakeInputs, setStakeInputs] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     for (const g of groups) {
-      const value =
-        g.existingBet?.stake ?? computeDefaultStake(g.projectedBalance, g.unbettedMatchCountOnDay);
+      const effective = g.projectedBalance + (g.existingBet?.stake ?? 0);
+      const value = g.existingBet?.stake ?? clampPerMatch(g.tokenPerMatch, effective);
       initial[g.groupId] = String(value);
     }
     return initial;
@@ -364,10 +336,15 @@ export function BetForm({
               </div>
 
               {/* Stake chips + custom input */}
-              <div className="mb-3 flex items-center gap-1.5">
-                <span className="mr-1 shrink-0 text-muted-foreground text-xs">{t("stake")}</span>
-                {computeStakePresets(effectiveBalance, group.unbettedMatchCountOnDay).map(
-                  (preset) => (
+              <div className="mb-3">
+                <span className="mb-1 block text-muted-foreground text-xs">{t("stake")}</span>
+                <div className="flex items-center gap-1.5">
+                  {computeStakePresets(
+                    effectiveBalance,
+                    group.unbettedMatchCountOnDay,
+                    clampPerMatch(group.tokenPerMatch, effectiveBalance),
+                    t("perMatch"),
+                  ).map((preset) => (
                     <button
                       key={preset.label}
                       type="button"
@@ -381,39 +358,45 @@ export function BetForm({
                           : "bg-muted text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      <span className="text-[10px] leading-none opacity-60">{preset.label}</span>
+                      {preset.isPerMatch ? (
+                        <span role="img" aria-label={preset.label} className="opacity-60">
+                          <TokenIcon size={12} />
+                        </span>
+                      ) : (
+                        <span className="text-[10px] leading-none opacity-60">{preset.label}</span>
+                      )}
                       <span>{preset.value}</span>
                     </button>
-                  ),
-                )}
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={stakeInputs[group.groupId] ?? ""}
-                  onChange={(e) => {
-                    const raw = e.target.value.replace(/[^0-9]/g, "");
-                    setStakeInputs({ ...stakeInputs, [group.groupId]: raw });
-                    const num = Number(raw);
-                    if (raw !== "" && num >= 0) {
-                      setStakes({ ...stakes, [group.groupId]: num });
-                    }
-                  }}
-                  onBlur={() => {
-                    const num = Number(stakeInputs[group.groupId]);
-                    if (!stakeInputs[group.groupId] || num < 1) {
-                      setStakes({ ...stakes, [group.groupId]: 1 });
-                      setStakeInputs({ ...stakeInputs, [group.groupId]: "1" });
-                    } else if (num > effectiveBalance) {
-                      setStakes({ ...stakes, [group.groupId]: effectiveBalance });
-                      setStakeInputs({
-                        ...stakeInputs,
-                        [group.groupId]: String(effectiveBalance),
-                      });
-                    }
-                  }}
-                  className="ml-auto w-14 rounded-md border border-input bg-transparent px-2 py-1 text-center font-mono text-xs"
-                />
+                  ))}
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={stakeInputs[group.groupId] ?? ""}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, "");
+                      setStakeInputs({ ...stakeInputs, [group.groupId]: raw });
+                      const num = Number(raw);
+                      if (raw !== "" && num >= 0) {
+                        setStakes({ ...stakes, [group.groupId]: num });
+                      }
+                    }}
+                    onBlur={() => {
+                      const num = Number(stakeInputs[group.groupId]);
+                      if (!stakeInputs[group.groupId] || num < 1) {
+                        setStakes({ ...stakes, [group.groupId]: 1 });
+                        setStakeInputs({ ...stakeInputs, [group.groupId]: "1" });
+                      } else if (num > effectiveBalance) {
+                        setStakes({ ...stakes, [group.groupId]: effectiveBalance });
+                        setStakeInputs({
+                          ...stakeInputs,
+                          [group.groupId]: String(effectiveBalance),
+                        });
+                      }
+                    }}
+                    className="ml-auto w-14 rounded-md border border-input bg-transparent px-2 py-1 text-center font-mono text-xs"
+                  />
+                </div>
               </div>
 
               {/* Submit + cancel */}
