@@ -196,7 +196,14 @@ export const bets = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [uniqueIndex("bet_unique_idx").on(table.userId, table.matchId, table.groupId)],
+  (table) => [
+    uniqueIndex("bet_unique_idx").on(table.userId, table.matchId, table.groupId),
+    // Scoring/refund/flip/odds-sync filter bets by matchId on every match-finish
+    // cron, and the tournament/finished-bet reads filter via a matchId subquery.
+    // matchId is the non-leading column of bet_unique_idx, so those scans can't
+    // use it — add a dedicated index.
+    index("bets_match_idx").on(table.matchId),
+  ],
 );
 
 export const podiumBets = pgTable(
@@ -243,6 +250,11 @@ export const tokenLedger = pgTable(
   },
   (table) => [
     index("token_ledger_user_group_type_idx").on(table.userId, table.groupId, table.type),
+    // The token-distribution cron reads all per-match distributions for a
+    // tournament in one query (WHERE tournament_id AND type='distribution').
+    // token_ledger is the fastest-growing table (a row per user × match ×
+    // event), so support that read directly.
+    index("token_ledger_tournament_type_idx").on(table.tournamentId, table.type),
   ],
 );
 

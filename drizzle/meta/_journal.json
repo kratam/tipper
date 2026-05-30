@@ -120,6 +120,13 @@
       "when": 1780164271739,
       "tag": "0016_loose_lady_mastermind",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1780165750866,
+      "tag": "0017_flat_tusk",
+      "breakpoints": true
     }
   ]
 }
