@@ -306,66 +306,70 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
                 </span>
               ) : null}
 
-              {/* Tét: label + presetek + egyedi input egy kompakt sávban */}
-              <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-muted/50 px-2 py-1.5">
-                <span className="pl-0.5 text-muted-foreground text-xs">{t("stake")}</span>
-                {computeStakePresets(
-                  effectiveBalance,
-                  group.unbettedMatchCountOnDay,
-                  clampPerMatch(group.tokenPerMatch, effectiveBalance),
-                  t("perMatch"),
-                ).map((preset) => (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    onClick={() => {
-                      setStakes({ ...stakes, [group.groupId]: preset.value });
-                      setStakeInputs({ ...stakeInputs, [group.groupId]: String(preset.value) });
+              {/* Tét: érték-mező + gyors preset gombok (rácsban, hogy mobilon se fusson ki) */}
+              <div className="mt-3 flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-muted-foreground text-xs">{t("stake")}</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={stakeInputs[group.groupId] ?? ""}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, "");
+                      setStakeInputs({ ...stakeInputs, [group.groupId]: raw });
+                      const num = Number(raw);
+                      if (raw !== "" && num >= 0) {
+                        setStakes({ ...stakes, [group.groupId]: num });
+                      }
                     }}
-                    className={`flex items-center gap-1 rounded-md px-2 py-1 font-medium font-mono text-xs transition-colors ${
-                      stakes[group.groupId] === preset.value
-                        ? "bg-foreground text-card"
-                        : "bg-background text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {preset.isPerMatch ? (
-                      <span role="img" aria-label={preset.label} className="opacity-60">
-                        <TokenIcon size={12} />
-                      </span>
-                    ) : (
-                      <span className="text-[10px] leading-none opacity-60">{preset.label}</span>
-                    )}
-                    <span>{preset.value}</span>
-                  </button>
-                ))}
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={stakeInputs[group.groupId] ?? ""}
-                  onChange={(e) => {
-                    const raw = e.target.value.replace(/[^0-9]/g, "");
-                    setStakeInputs({ ...stakeInputs, [group.groupId]: raw });
-                    const num = Number(raw);
-                    if (raw !== "" && num >= 0) {
-                      setStakes({ ...stakes, [group.groupId]: num });
-                    }
-                  }}
-                  onBlur={() => {
-                    const num = Number(stakeInputs[group.groupId]);
-                    if (!stakeInputs[group.groupId] || num < 1) {
-                      setStakes({ ...stakes, [group.groupId]: 1 });
-                      setStakeInputs({ ...stakeInputs, [group.groupId]: "1" });
-                    } else if (num > effectiveBalance) {
-                      setStakes({ ...stakes, [group.groupId]: effectiveBalance });
-                      setStakeInputs({
-                        ...stakeInputs,
-                        [group.groupId]: String(effectiveBalance),
-                      });
-                    }
-                  }}
-                  className="ml-auto w-14 rounded-md border border-input bg-background px-2 py-1 text-center font-mono text-xs"
-                />
+                    onBlur={() => {
+                      const num = Number(stakeInputs[group.groupId]);
+                      if (!stakeInputs[group.groupId] || num < 1) {
+                        setStakes({ ...stakes, [group.groupId]: 1 });
+                        setStakeInputs({ ...stakeInputs, [group.groupId]: "1" });
+                      } else if (num > effectiveBalance) {
+                        setStakes({ ...stakes, [group.groupId]: effectiveBalance });
+                        setStakeInputs({
+                          ...stakeInputs,
+                          [group.groupId]: String(effectiveBalance),
+                        });
+                      }
+                    }}
+                    className="w-24 rounded-md border border-input bg-background px-2 py-1 text-center font-mono text-sm"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                  {computeStakePresets(
+                    effectiveBalance,
+                    group.unbettedMatchCountOnDay,
+                    clampPerMatch(group.tokenPerMatch, effectiveBalance),
+                    t("perMatch"),
+                  ).map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => {
+                        setStakes({ ...stakes, [group.groupId]: preset.value });
+                        setStakeInputs({ ...stakeInputs, [group.groupId]: String(preset.value) });
+                      }}
+                      className={`flex items-center justify-center gap-1 rounded-md px-2 py-1.5 font-medium font-mono text-xs transition-colors ${
+                        stakes[group.groupId] === preset.value
+                          ? "bg-foreground text-card"
+                          : "bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {preset.isPerMatch ? (
+                        <span role="img" aria-label={preset.label} className="opacity-60">
+                          <TokenIcon size={12} />
+                        </span>
+                      ) : (
+                        <span className="text-[10px] leading-none opacity-60">{preset.label}</span>
+                      )}
+                      <span>{preset.value}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Tipp leadása / módosítása + visszavonás (ikon) */}
