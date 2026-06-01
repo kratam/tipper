@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useLeaderboardPolling } from "@/hooks/use-leaderboard-polling";
 import { useRouter } from "@/i18n/navigation";
+import type { GroupRules } from "@/lib/group-rules";
 
 interface LeaderboardRow {
   rank: number;
@@ -34,16 +35,7 @@ interface MemberInfo {
   avatarUrl: string | null;
 }
 
-interface GroupSettings {
-  tokenPerMatch: number;
-  initialTokens: number;
-  bonusGoalDiff: number;
-  bonusExactScore: number;
-  bonusPodiumMention: number;
-  bonusPodiumExact: number;
-  oddsBoost: number;
-  lossPercentage: number;
-}
+type GroupSettings = GroupRules;
 
 interface FinishedMatch {
   id: string;

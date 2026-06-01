@@ -48,6 +48,17 @@ export default async function GroupDetailPage({
     notFound();
   }
 
+  const groupRules = {
+    tokenPerMatch: group.tokenPerMatch,
+    initialTokens: group.initialTokens,
+    bonusGoalDiff: group.bonusGoalDiff,
+    bonusExactScore: group.bonusExactScore,
+    bonusPodiumMention: group.bonusPodiumMention,
+    bonusPodiumExact: group.bonusPodiumExact,
+    oddsBoost: group.oddsBoost,
+    lossPercentage: group.lossPercentage,
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
@@ -56,6 +67,7 @@ export default async function GroupDetailPage({
           tournamentSlug={group.tournament.slug}
           tournamentLogoUrl={group.tournament.logoUrl}
           groupName={group.name}
+          rules={groupRules}
           days={upcomingDays}
         />
         {!group.isOfficial && (
@@ -87,16 +99,7 @@ export default async function GroupDetailPage({
           name: m.user.displayName ?? m.user.name,
           avatarUrl: m.user.avatarUrl,
         }))}
-        settings={{
-          tokenPerMatch: group.tokenPerMatch,
-          initialTokens: group.initialTokens,
-          bonusGoalDiff: group.bonusGoalDiff,
-          bonusExactScore: group.bonusExactScore,
-          bonusPodiumMention: group.bonusPodiumMention,
-          bonusPodiumExact: group.bonusPodiumExact,
-          oddsBoost: group.oddsBoost,
-          lossPercentage: group.lossPercentage,
-        }}
+        settings={groupRules}
         finishedMatches={finishedMatches.map((m) => ({
           id: m.id,
           homeTeam: { name: m.homeTeam.name, logoUrl: m.homeTeam.logoUrl },

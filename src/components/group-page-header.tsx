@@ -1,7 +1,9 @@
 import { ArrowRight, CircleAlert } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { GroupRulesDialog } from "@/components/group-rules-dialog";
 import { TournamentLogo } from "@/components/tournament-logo";
 import { Link } from "@/i18n/navigation";
+import type { GroupRules } from "@/lib/group-rules";
 import type { UpcomingDaySummary } from "@/queries/matches";
 
 interface GroupPageHeaderProps {
@@ -9,6 +11,7 @@ interface GroupPageHeaderProps {
   tournamentSlug: string;
   tournamentLogoUrl: string | null;
   groupName: string;
+  rules: GroupRules;
   days: UpcomingDaySummary[];
 }
 
@@ -56,6 +59,7 @@ export function GroupPageHeader({
   tournamentSlug,
   tournamentLogoUrl,
   groupName,
+  rules,
   days,
 }: GroupPageHeaderProps) {
   return (
@@ -72,8 +76,9 @@ export function GroupPageHeader({
         </Link>
         <h1 className="truncate font-bold font-mono text-2xl tracking-tight">{groupName}</h1>
       </div>
-      <div className="pt-2">
+      <div className="flex shrink-0 items-center gap-1 pt-2">
         <MissingTipsLink tournamentSlug={tournamentSlug} days={days} />
+        <GroupRulesDialog groupName={groupName} rules={rules} iconOnly />
       </div>
     </div>
   );
