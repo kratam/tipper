@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { type ReactNode, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { cancelBet, placeBet } from "@/actions/bets";
+import { GroupRulesDialog } from "@/components/group-rules-dialog";
 import { TeamLogo } from "@/components/team-logo";
 import { TokenIcon } from "@/components/token-icon";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,11 @@ interface GroupBetInfo {
   losses: number;
   otherActiveStakes: number;
   oddsBoost: number;
-  // lossPercentage is not needed here: bet-form is pre-bet UI only and never renders payout.
+  lossPercentage: number;
+  bonusGoalDiff: number;
+  bonusExactScore: number;
+  bonusPodiumMention: number;
+  bonusPodiumExact: number;
   existingBet: {
     id: string;
     predictedHome: number;
@@ -259,7 +264,23 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
             <div key={group.groupId} className="border-border border-t px-5 py-4">
               <div className="mb-3 flex flex-col gap-1">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="truncate font-medium text-sm">{group.groupName}</span>
+                  <div className="flex min-w-0 items-center gap-1">
+                    <span className="truncate font-medium text-sm">{group.groupName}</span>
+                    <GroupRulesDialog
+                      groupName={group.groupName}
+                      rules={{
+                        tokenPerMatch: group.tokenPerMatch,
+                        initialTokens: group.initialTokens,
+                        bonusGoalDiff: group.bonusGoalDiff,
+                        bonusExactScore: group.bonusExactScore,
+                        bonusPodiumMention: group.bonusPodiumMention,
+                        bonusPodiumExact: group.bonusPodiumExact,
+                        oddsBoost: group.oddsBoost,
+                        lossPercentage: group.lossPercentage,
+                      }}
+                      iconOnly
+                    />
+                  </div>
                   <div className="flex shrink-0 items-center gap-1">
                     <span className="font-mono text-muted-foreground text-xs">
                       {t("projectedBalance")}: {effectiveBalance}

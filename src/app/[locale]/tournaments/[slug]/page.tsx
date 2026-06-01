@@ -129,6 +129,10 @@ export default async function TournamentDetailPage({
       otherActiveStakes: number;
       oddsBoost: number;
       lossPercentage: number;
+      bonusGoalDiff: number;
+      bonusExactScore: number;
+      bonusPodiumMention: number;
+      bonusPodiumExact: number;
       existingBet: {
         id: string;
         predictedHome: number;
@@ -158,6 +162,10 @@ export default async function TournamentDetailPage({
         otherActiveStakes: bal?.otherActiveStakes ?? 0,
         oddsBoost: gm.group.oddsBoost,
         lossPercentage: gm.group.lossPercentage,
+        bonusGoalDiff: gm.group.bonusGoalDiff,
+        bonusExactScore: gm.group.bonusExactScore,
+        bonusPodiumMention: gm.group.bonusPodiumMention,
+        bonusPodiumExact: gm.group.bonusPodiumExact,
         existingBet: existingBet
           ? {
               id: existingBet.id,
