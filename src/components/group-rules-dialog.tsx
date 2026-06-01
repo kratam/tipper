@@ -31,7 +31,7 @@ export function GroupRulesDialog({ groupName, rules, iconOnly = false }: GroupRu
     <>
       <Button
         type="button"
-        variant="ghost"
+        variant="outline"
         size="sm"
         onClick={() => setOpen(true)}
         aria-label={iconOnly ? t("rules") : undefined}
