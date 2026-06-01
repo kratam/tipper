@@ -53,13 +53,14 @@ interface BetFormProps {
 }
 
 function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const t = useTranslations("betting");
   return (
     <div className="flex flex-col items-center gap-1">
       <button
         type="button"
         onClick={() => onChange(Math.min(99, value + 1))}
         className="flex h-5 w-8 items-center justify-center rounded-md bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
-        aria-label="+1"
+        aria-label={t("increaseScore")}
       >
         <Plus className="size-3" />
       </button>
@@ -70,7 +71,7 @@ function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number
         type="button"
         onClick={() => onChange(Math.max(0, value - 1))}
         className="flex h-5 w-8 items-center justify-center rounded-md bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
-        aria-label="-1"
+        aria-label={t("decreaseScore")}
       >
         <Minus className="size-3" />
       </button>
