@@ -3,8 +3,10 @@
 import { ChevronDown, ChevronUp, CircleAlert, CircleCheck, Crown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { GroupRulesDialog } from "@/components/group-rules-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "@/i18n/navigation";
+import type { GroupRules } from "@/lib/group-rules";
 
 const STORAGE_KEY = "tipper:officialRibbon:open";
 
@@ -25,9 +27,7 @@ interface OfficialGroupRibbonProps {
   groupName: string;
   groupSlug: string;
   tournamentSlug: string;
-  oddsBoost: number;
-  bonusGoalDiff: number;
-  bonusExactScore: number;
+  rules: GroupRules;
   myProfit: number;
   myRank: number | null;
   miniLeaderboard: MiniLeaderboardEntry[];
@@ -39,9 +39,7 @@ export function OfficialGroupRibbon({
   groupName,
   groupSlug,
   tournamentSlug,
-  oddsBoost,
-  bonusGoalDiff,
-  bonusExactScore,
+  rules,
   myProfit,
   myRank,
   miniLeaderboard,
@@ -124,26 +122,17 @@ export function OfficialGroupRibbon({
       </button>
 
       {open && (
-        <Link
-          href={`/tournaments/${tournamentSlug}/groups/${groupSlug}`}
-          aria-label={t("viewDetails")}
-          className="flex flex-col gap-3 border-amber-500/20 border-t bg-amber-500/5 px-4 py-3 transition-colors hover:bg-amber-500/10"
-        >
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-            <span className="font-bold">{groupName}</span>
-            <span className="text-muted-foreground">
-              · {t("oddsBoost")}: <span className="font-mono text-amber-500">×{oddsBoost}</span>
-            </span>
-            <span className="text-muted-foreground">
-              · {t("goalDiff")}: <span className="font-mono text-amber-500">+{bonusGoalDiff}</span>
-            </span>
-            <span className="text-muted-foreground">
-              · {t("exactScore")}:{" "}
-              <span className="font-mono text-amber-500">+{bonusExactScore}</span>
-            </span>
+        <div className="flex flex-col gap-3 border-amber-500/20 border-t bg-amber-500/5 px-4 py-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-bold text-sm">{groupName}</span>
+            <GroupRulesDialog groupName={groupName} rules={rules} />
           </div>
           {miniLeaderboard.length > 0 && (
-            <div className="flex flex-col gap-1">
+            <Link
+              href={`/tournaments/${tournamentSlug}/groups/${groupSlug}`}
+              aria-label={t("viewDetails")}
+              className="flex flex-col gap-1 rounded transition-colors hover:bg-amber-500/10"
+            >
               {miniLeaderboard.map((row) => {
                 const isCurrentUser = row.userId === currentUserId;
                 return (
@@ -170,9 +159,9 @@ export function OfficialGroupRibbon({
                   </div>
                 );
               })}
-            </div>
+            </Link>
           )}
-        </Link>
+        </div>
       )}
     </div>
   );

@@ -77,10 +77,14 @@ interface OfficialCardData {
   groupName: string;
   groupSlug: string;
   tournamentSlug: string;
-  oddsBoost: number;
   tokenPerMatch: number;
+  initialTokens: number;
   bonusGoalDiff: number;
   bonusExactScore: number;
+  bonusPodiumMention: number;
+  bonusPodiumExact: number;
+  oddsBoost: number;
+  lossPercentage: number;
   myProfit: number;
   myRank: number | null;
   miniLeaderboard: MiniLeaderboardEntry[];
@@ -275,9 +279,16 @@ export function TournamentTabs({
             groupName={officialCard.groupName}
             groupSlug={officialCard.groupSlug}
             tournamentSlug={officialCard.tournamentSlug}
-            oddsBoost={officialCard.oddsBoost}
-            bonusGoalDiff={officialCard.bonusGoalDiff}
-            bonusExactScore={officialCard.bonusExactScore}
+            rules={{
+              tokenPerMatch: officialCard.tokenPerMatch,
+              initialTokens: officialCard.initialTokens,
+              bonusGoalDiff: officialCard.bonusGoalDiff,
+              bonusExactScore: officialCard.bonusExactScore,
+              bonusPodiumMention: officialCard.bonusPodiumMention,
+              bonusPodiumExact: officialCard.bonusPodiumExact,
+              oddsBoost: officialCard.oddsBoost,
+              lossPercentage: officialCard.lossPercentage,
+            }}
             myProfit={officialCard.myProfit}
             myRank={officialCard.myRank}
             miniLeaderboard={officialCard.miniLeaderboard}
