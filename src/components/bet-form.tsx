@@ -78,6 +78,22 @@ function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number
   );
 }
 
+/** Egy odds-cella a scoreboard alá igazítva (1 = hazai, X = döntetlen, 2 = vendég). */
+function OddCell({ label, value, selected }: { label: string; value: string; selected: boolean }) {
+  return (
+    <div
+      className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-mono text-sm transition-colors ${
+        selected
+          ? "bg-amber-500/20 text-amber-700 ring-1 ring-amber-500/40"
+          : "bg-muted text-muted-foreground"
+      }`}
+    >
+      <span className="text-[10px] opacity-50">{label}</span>
+      <span className="font-semibold">{value}</span>
+    </div>
+  );
+}
+
 function BalanceInfoTooltip({
   label,
   children,
@@ -208,28 +224,35 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
                 <ScoreStepper value={awayScore} onChange={setAwayScore} />
               </div>
             }
+            bottomRow={
+              odds
+                ? {
+                    home: (
+                      <OddCell
+                        label="1"
+                        value={odds.homeOdds}
+                        selected={predictedOutcome === "1"}
+                      />
+                    ),
+                    center: (
+                      <OddCell
+                        label="X"
+                        value={odds.drawOdds}
+                        selected={predictedOutcome === "X"}
+                      />
+                    ),
+                    away: (
+                      <OddCell
+                        label="2"
+                        value={odds.awayOdds}
+                        selected={predictedOutcome === "2"}
+                      />
+                    ),
+                  }
+                : undefined
+            }
           />
-          {odds ? (
-            <div className="flex justify-center gap-2">
-              {[
-                { label: "1", value: odds.homeOdds, outcome: "1" },
-                { label: "X", value: odds.drawOdds, outcome: "X" },
-                { label: "2", value: odds.awayOdds, outcome: "2" },
-              ].map((o) => (
-                <div
-                  key={o.label}
-                  className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-mono text-sm transition-colors ${
-                    predictedOutcome === o.outcome
-                      ? "bg-amber-500/20 text-amber-700 ring-1 ring-amber-500/40"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  <span className="text-[10px] opacity-50">{o.label}</span>
-                  <span className="font-semibold">{o.value}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
+          {!odds && (
             <p className="text-center text-amber-500 text-xs">{tMatches("oddsNotAvailable")}</p>
           )}
         </div>
