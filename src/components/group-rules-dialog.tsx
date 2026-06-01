@@ -34,7 +34,7 @@ export function GroupRulesDialog({ groupName, rules, iconOnly = false }: GroupRu
         variant="ghost"
         size="sm"
         onClick={() => setOpen(true)}
-        aria-label={t("rules")}
+        aria-label={iconOnly ? t("rules") : undefined}
         className="gap-1.5 text-muted-foreground"
       >
         <ScrollText className="size-4" />
