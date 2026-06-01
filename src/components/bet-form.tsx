@@ -6,7 +6,7 @@ import { type ReactNode, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { cancelBet, placeBet } from "@/actions/bets";
 import { GroupRulesDialog } from "@/components/group-rules-dialog";
-import { TeamLogo } from "@/components/team-logo";
+import { MatchScoreboard } from "@/components/match-scoreboard";
 import { TokenIcon } from "@/components/token-icon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,22 +53,27 @@ interface BetFormProps {
 }
 
 function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const t = useTranslations("betting");
   return (
-    <div className="flex items-center gap-1">
-      <button
-        type="button"
-        onClick={() => onChange(Math.max(0, value - 1))}
-        className="flex size-7 items-center justify-center rounded-full bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
-      >
-        <Minus className="size-3" />
-      </button>
-      <span className="w-7 text-center font-bold font-mono text-2xl tabular-nums">{value}</span>
+    <div className="flex flex-col items-center gap-1">
       <button
         type="button"
         onClick={() => onChange(Math.min(99, value + 1))}
-        className="flex size-7 items-center justify-center rounded-full bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
+        className="flex h-5 w-8 items-center justify-center rounded-md bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
+        aria-label={t("increaseScore")}
       >
         <Plus className="size-3" />
+      </button>
+      <span className="w-7 text-center font-bold font-mono text-2xl tabular-nums leading-none">
+        {value}
+      </span>
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(0, value - 1))}
+        className="flex h-5 w-8 items-center justify-center rounded-md bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
+        aria-label={t("decreaseScore")}
+      >
+        <Minus className="size-3" />
       </button>
     </div>
   );
@@ -193,54 +198,39 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
     <Card className="overflow-hidden border-0 bg-transparent shadow-none">
       <CardContent className="p-0">
         {/* Match header + score prediction (date lives in the dialog header) */}
-        <div className="flex flex-col items-center gap-2 px-5 pt-1 pb-4">
-          {/* Teams + inline score steppers */}
-          <div className="grid w-full max-w-xs grid-cols-[1fr_auto_1fr] items-center gap-x-3 gap-y-1.5">
-            {/* Logos */}
-            <div className="flex justify-center">
-              <TeamLogo name={homeTeam.name} logoUrl={homeTeam.logoUrl} size={40} />
+        <div className="flex flex-col items-center gap-3 px-5 pt-1 pb-4">
+          <MatchScoreboard
+            homeTeam={homeTeam}
+            awayTeam={awayTeam}
+            center={
+              <div className="flex items-center gap-2">
+                <ScoreStepper value={homeScore} onChange={setHomeScore} />
+                <span className="font-mono text-lg text-muted-foreground">:</span>
+                <ScoreStepper value={awayScore} onChange={setAwayScore} />
+              </div>
+            }
+          />
+          {odds ? (
+            <div className="flex justify-center gap-2">
+              {[
+                { label: "1", value: odds.homeOdds, outcome: "1" },
+                { label: "X", value: odds.drawOdds, outcome: "X" },
+                { label: "2", value: odds.awayOdds, outcome: "2" },
+              ].map((o) => (
+                <div
+                  key={o.label}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-mono text-sm transition-colors ${
+                    predictedOutcome === o.outcome
+                      ? "bg-amber-500/20 text-amber-700 ring-1 ring-amber-500/40"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  <span className="text-[10px] opacity-50">{o.label}</span>
+                  <span className="font-semibold">{o.value}</span>
+                </div>
+              ))}
             </div>
-            <div />
-            <div className="flex justify-center">
-              <TeamLogo name={awayTeam.name} logoUrl={awayTeam.logoUrl} size={40} />
-            </div>
-
-            {/* Names */}
-            <span className="text-center font-medium text-xs leading-tight">{homeTeam.name}</span>
-            <div />
-            <span className="text-center font-medium text-xs leading-tight">{awayTeam.name}</span>
-
-            {/* Score steppers with colon */}
-            <div className="flex justify-center pt-1">
-              <ScoreStepper value={homeScore} onChange={setHomeScore} />
-            </div>
-            <span className="pt-1 text-center font-mono text-lg text-muted-foreground">:</span>
-            <div className="flex justify-center pt-1">
-              <ScoreStepper value={awayScore} onChange={setAwayScore} />
-            </div>
-            {/* Odds row */}
-            {odds
-              ? [
-                  { label: "1", value: odds.homeOdds, outcome: "1" },
-                  { label: "X", value: odds.drawOdds, outcome: "X" },
-                  { label: "2", value: odds.awayOdds, outcome: "2" },
-                ].map((o) => (
-                  <div key={o.label} className="flex justify-center pt-1">
-                    <div
-                      className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-mono text-sm transition-colors ${
-                        predictedOutcome === o.outcome
-                          ? "bg-amber-500/20 text-amber-700 ring-1 ring-amber-500/40"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      <span className="text-[10px] opacity-50">{o.label}</span>
-                      <span className="font-semibold">{o.value}</span>
-                    </div>
-                  </div>
-                ))
-              : null}
-          </div>
-          {!odds && (
+          ) : (
             <p className="text-center text-amber-500 text-xs">{tMatches("oddsNotAvailable")}</p>
           )}
         </div>

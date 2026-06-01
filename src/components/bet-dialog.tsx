@@ -10,9 +10,8 @@ import { GroupBetsSection } from "@/components/group-bets-section";
 import { GroupCard } from "@/components/group-card";
 import type { MatchCardData } from "@/components/match-card";
 import { MatchDateTime } from "@/components/match-datetime";
+import { MatchScoreboard } from "@/components/match-scoreboard";
 import { PublicGroupDialog } from "@/components/public-group-dialog";
-import { TeamLogo } from "@/components/team-logo";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -104,10 +103,6 @@ export function BetDialog({
   const showScore =
     match.status === "finished" && match.homeScore !== null && match.awayScore !== null;
 
-  // BetForm már mutatja a zászlókat + neveket + dátumot a kártyában, ezért a fejléc
-  // teljesen felesleges ilyenkor (a nevek belelógnának a jobb felső X-be is).
-  const showBetForm = match.participantsKnown && !matchStarted && groups.length > 0;
-
   const odds = match.odds
     ? {
         homeOdds: match.odds.homeOdds,
@@ -127,60 +122,32 @@ export function BetDialog({
     />
   );
 
+  const scoreboardCenter = showScore ? (
+    <span className="font-bold font-mono text-2xl tabular-nums">
+      {match.homeScore} : {match.awayScore}
+    </span>
+  ) : match.status === "live" ? (
+    <span className="flex items-center gap-1.5 font-semibold text-base text-red-500">
+      <Circle className="size-2 animate-pulse fill-red-500 text-red-500" />
+      {t("live")}
+    </span>
+  ) : (
+    <span className="text-muted-foreground/40 text-xs tracking-[0.15em]">{t("vs")}</span>
+  );
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-h-[85vh] gap-2 overflow-y-auto sm:max-w-md">
           <DialogHeader>
-            {showBetForm ? (
-              // A BetForm a zászlókat/neveket mutatja; a fejléc a dátumot adja
-              // egy sorban (a bezáró X abszolút, a jobb sarokban ül). A cím
-              // sr-only marad az akadálymentességhez.
-              <>
-                <DialogTitle className="sr-only">
-                  {match.homeTeam.name} – {match.awayTeam.name}
-                </DialogTitle>
-                <MatchDateTime
-                  scheduledAt={match.scheduledAt}
-                  timeZone={timeZone}
-                  className="pr-8 font-mono text-[11px] text-muted-foreground"
-                />
-              </>
-            ) : (
-              <DialogTitle className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                <div className="flex min-w-0 items-center gap-2">
-                  <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
-                  <span className="truncate font-semibold text-sm">{match.homeTeam.name}</span>
-                </div>
-                <div className="flex flex-col items-center gap-0.5">
-                  {showScore ? (
-                    <span className="font-bold font-mono text-2xl tabular-nums tracking-wider">
-                      {match.homeScore} – {match.awayScore}
-                    </span>
-                  ) : match.status === "live" ? (
-                    <span className="flex items-center gap-1 font-semibold text-red-500 text-sm">
-                      <Circle className="size-2 animate-pulse fill-red-500 text-red-500" />
-                      {t("live")}
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground/40 tracking-[0.15em]">
-                      {t("vs")}
-                    </span>
-                  )}
-                  {match.status === "finished" && (
-                    <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                      {t("finished")}
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex min-w-0 items-center justify-end gap-2 pr-8">
-                  <span className="truncate text-right font-semibold text-sm">
-                    {match.awayTeam.name}
-                  </span>
-                  <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
-                </div>
-              </DialogTitle>
-            )}
+            <DialogTitle className="sr-only">
+              {match.homeTeam.name} – {match.awayTeam.name}
+            </DialogTitle>
+            <MatchDateTime
+              scheduledAt={match.scheduledAt}
+              timeZone={timeZone}
+              className="font-mono text-[11px] text-muted-foreground"
+            />
             <DialogDescription className="sr-only">
               {match.homeTeam.name} vs {match.awayTeam.name}
             </DialogDescription>
@@ -188,32 +155,7 @@ export function BetDialog({
 
           {!match.participantsKnown ? (
             <p className="text-center text-muted-foreground text-sm">{t("participantsUnknown")}</p>
-          ) : matchStarted ? (
-            <div className="flex flex-col gap-3">
-              {groupBetsData === undefined ? (
-                <p className="text-center text-muted-foreground text-sm">{t("loadingBets")}</p>
-              ) : groupBetsData.length === 0 ? (
-                <p className="text-center text-muted-foreground text-sm">{t("betLocked")}</p>
-              ) : groupBetsData.length === 1 ? (
-                renderGroupSection(groupBetsData[0])
-              ) : (
-                <Tabs defaultValue={groupBetsData[0].groupId} className="w-full">
-                  <TabsList className="w-full flex-wrap">
-                    {groupBetsData.map((group) => (
-                      <TabsTrigger key={group.groupId} value={group.groupId}>
-                        {group.groupName}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                  {groupBetsData.map((group) => (
-                    <TabsContent key={group.groupId} value={group.groupId} className="pt-1">
-                      {renderGroupSection(group)}
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              )}
-            </div>
-          ) : groups.length > 0 ? (
+          ) : !matchStarted && groups.length > 0 ? (
             <BetForm
               matchId={match.id}
               groups={groups}
@@ -222,28 +164,60 @@ export function BetDialog({
               awayTeam={match.awayTeam}
               onSuccess={groups.length <= 1 ? () => onOpenChange(false) : undefined}
             />
-          ) : topPublicGroups.length > 0 ? (
-            <div className="flex flex-col gap-3">
-              <p className="text-muted-foreground text-sm">{tTournaments("noGroupYetShort")}</p>
-              <GroupCard
-                group={topPublicGroups[0]}
-                memberCount={topPublicGroups[0].memberCount}
-                variant="public"
-                onClick={() => setSelectedPublicGroup(topPublicGroups[0])}
-              />
-              <Button variant="outline" size="sm" asChild className="w-full gap-2">
-                <Link href="/groups">
-                  <Users className="size-4" />
-                  {tTournaments("browseGroups")}
-                </Link>
-              </Button>
-            </div>
           ) : (
             <div className="flex flex-col gap-3">
-              <p className="text-muted-foreground text-sm">{tTournaments("noPublicGroup")}</p>
-              <Button variant="outline" size="sm" asChild className="w-full gap-2">
-                <Link href="/groups/new">{tTournaments("createGroup")}</Link>
-              </Button>
+              <MatchScoreboard
+                homeTeam={match.homeTeam}
+                awayTeam={match.awayTeam}
+                center={scoreboardCenter}
+              />
+              {matchStarted ? (
+                groupBetsData === undefined ? (
+                  <p className="text-center text-muted-foreground text-sm">{t("loadingBets")}</p>
+                ) : groupBetsData.length === 0 ? (
+                  <p className="text-center text-muted-foreground text-sm">{t("betLocked")}</p>
+                ) : groupBetsData.length === 1 ? (
+                  renderGroupSection(groupBetsData[0])
+                ) : (
+                  <Tabs defaultValue={groupBetsData[0].groupId} className="w-full">
+                    <TabsList className="w-full flex-wrap">
+                      {groupBetsData.map((group) => (
+                        <TabsTrigger key={group.groupId} value={group.groupId}>
+                          {group.groupName}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                    {groupBetsData.map((group) => (
+                      <TabsContent key={group.groupId} value={group.groupId} className="pt-1">
+                        {renderGroupSection(group)}
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                )
+              ) : topPublicGroups.length > 0 ? (
+                <>
+                  <p className="text-muted-foreground text-sm">{tTournaments("noGroupYetShort")}</p>
+                  <GroupCard
+                    group={topPublicGroups[0]}
+                    memberCount={topPublicGroups[0].memberCount}
+                    variant="public"
+                    onClick={() => setSelectedPublicGroup(topPublicGroups[0])}
+                  />
+                  <Button variant="outline" size="sm" asChild className="w-full gap-2">
+                    <Link href="/groups">
+                      <Users className="size-4" />
+                      {tTournaments("browseGroups")}
+                    </Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-muted-foreground text-sm">{tTournaments("noPublicGroup")}</p>
+                  <Button variant="outline" size="sm" asChild className="w-full gap-2">
+                    <Link href="/groups/new">{tTournaments("createGroup")}</Link>
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </DialogContent>

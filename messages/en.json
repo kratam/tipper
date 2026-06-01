@@ -138,6 +138,8 @@
     "customPerGroup": "Custom per group",
     "homeScore": "Home",
     "awayScore": "Away",
+    "increaseScore": "Increase score",
+    "decreaseScore": "Decrease score",
     "success": "{home} {homeScore}:{awayScore} {away}",
     "successDesc": "{stake} token — {group}",
     "updateSuccess": "{home} {homeScore}:{awayScore} {away}",

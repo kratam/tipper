@@ -138,6 +138,8 @@
     "customPerGroup": "Csoportonként külön",
     "homeScore": "Hazai",
     "awayScore": "Vendég",
+    "increaseScore": "Eredmény növelése",
+    "decreaseScore": "Eredmény csökkentése",
     "success": "{home} {homeScore}:{awayScore} {away}",
     "successDesc": "{stake} token — {group}",
     "updateSuccess": "{home} {homeScore}:{awayScore} {away}",

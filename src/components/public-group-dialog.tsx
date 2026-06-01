@@ -1,6 +1,6 @@
 "use client";
 
-import { UserPlus } from "lucide-react";
+import { UserPlus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 import ReactMarkdown from "react-markdown";
@@ -8,7 +8,13 @@ import { toast } from "sonner";
 import { joinPublicGroup } from "@/actions/groups";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -84,8 +90,12 @@ export function PublicGroupDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="max-w-md overflow-hidden p-0 sm:max-w-md">
         {/* Gradient header */}
-        <div className="bg-linear-to-br from-[#1e3a5f] to-[#2d1b69] p-6">
-          <DialogTitle className="font-bold text-lg text-white">{group.name}</DialogTitle>
+        <div className="relative bg-linear-to-br from-[#1e3a5f] to-[#2d1b69] p-6">
+          <DialogClose className="absolute top-3 right-3 flex size-7 items-center justify-center rounded-md text-white/70 transition-colors hover:bg-white/10 hover:text-white">
+            <X className="size-4" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+          <DialogTitle className="pr-8 font-bold text-lg text-white">{group.name}</DialogTitle>
           <DialogDescription className="mt-1 text-sm text-white/60">
             {group.tournament.name}
           </DialogDescription>
