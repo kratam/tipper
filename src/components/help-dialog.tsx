@@ -29,7 +29,7 @@ export function HelpDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[85dvh] gap-0 overflow-y-auto sm:max-w-lg">
-        <DialogHeader className="pr-8">
+        <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("intro")}</DialogDescription>
         </DialogHeader>
