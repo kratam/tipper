@@ -170,7 +170,7 @@ export function GroupDetailTabs({
 
   return (
     <Tabs defaultValue="leaderboard">
-      <TabsList>
+      <TabsList className="w-full">
         <TabsTrigger value="leaderboard">{t("leaderboard")}</TabsTrigger>
         <TabsTrigger value="results">{t("results")}</TabsTrigger>
         {canEditSettings && <TabsTrigger value="settings">{t("settings")}</TabsTrigger>}

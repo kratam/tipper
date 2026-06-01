@@ -39,7 +39,7 @@
   "tournaments": {
     "title": "Tournaments",
     "matches": "Matches",
-    "podium": "Podium Prediction",
+    "podium": "Podium",
     "matchCount": "{count} matches",
     "betProgress": "{betCount}/{total} bets",
     "noTournaments": "No tournaments yet",

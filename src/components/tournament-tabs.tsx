@@ -14,6 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMatchPolling } from "@/hooks/use-match-polling";
 import type { PublicGroupSuggestion } from "@/queries/groups";
 
@@ -295,60 +296,27 @@ export function TournamentTabs({
         )}
 
         {/* Unified filter row: upcoming / played / all / podium */}
-        <div className="flex gap-1 rounded-lg bg-muted p-1">
-          <button
-            type="button"
-            onClick={() => setFilter("upcoming")}
-            className={`flex-1 rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
-              filter === "upcoming"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {tMatches("upcoming")}
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilter("played")}
-            className={`flex-1 rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
-              filter === "played"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {tMatches("played")}
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilter("all")}
-            className={`flex-1 rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
-              filter === "all"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {tMatches("all")}
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilter("podium")}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-sm transition-colors ${
-              filter === "podium"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <span>{t("podium")}</span>
-            {existingPodiumBet ? (
-              <Check
-                className="size-3.5 text-emerald-600 dark:text-emerald-400"
-                aria-label={t("podiumTab.submitted")}
-              />
-            ) : isLocked ? (
-              <Lock className="size-3.5 text-muted-foreground" aria-label={t("podiumTab.locked")} />
-            ) : null}
-          </button>
-        </div>
+        <Tabs value={filter} onValueChange={(value) => setFilter(value as MatchFilter)}>
+          <TabsList className="w-full">
+            <TabsTrigger value="upcoming">{tMatches("upcoming")}</TabsTrigger>
+            <TabsTrigger value="played">{tMatches("played")}</TabsTrigger>
+            <TabsTrigger value="all">{tMatches("all")}</TabsTrigger>
+            <TabsTrigger value="podium">
+              <span>{t("podium")}</span>
+              {existingPodiumBet ? (
+                <Check
+                  className="size-3.5 text-emerald-600 dark:text-emerald-400"
+                  aria-label={t("podiumTab.submitted")}
+                />
+              ) : isLocked ? (
+                <Lock
+                  className="size-3.5 text-muted-foreground"
+                  aria-label={t("podiumTab.locked")}
+                />
+              ) : null}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {filter === "podium" ? (
           <div className="flex flex-col gap-4">
