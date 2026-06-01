@@ -212,6 +212,7 @@
     "joinGroup": "Join Group",
     "descriptionLabel": "Description",
     "rules": "Rules",
+    "rulesDialogDescription": "Group scoring and token rules.",
     "rulesTokens": "Tokens",
     "rulesScoring": "Scoring",
     "rulesPodium": "Podium prediction",

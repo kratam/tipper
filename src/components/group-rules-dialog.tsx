@@ -47,7 +47,7 @@ export function GroupRulesDialog({ groupName, rules, iconOnly = false }: GroupRu
             <DialogTitle className="font-mono text-base">
               {groupName} · {t("rules")}
             </DialogTitle>
-            <DialogDescription className="sr-only">{t("rules")}</DialogDescription>
+            <DialogDescription className="sr-only">{t("rulesDialogDescription")}</DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col gap-4">

@@ -212,6 +212,7 @@
     "joinGroup": "Csatlakozás",
     "descriptionLabel": "Leírás",
     "rules": "Szabályok",
+    "rulesDialogDescription": "A csoport pontozási és token szabályai.",
     "rulesTokens": "Tokenek",
     "rulesScoring": "Pontozás",
     "rulesPodium": "Dobogó tipp",
