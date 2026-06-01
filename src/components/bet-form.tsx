@@ -54,21 +54,25 @@ interface BetFormProps {
 
 function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
-    <div className="flex items-center gap-1">
-      <button
-        type="button"
-        onClick={() => onChange(Math.max(0, value - 1))}
-        className="flex size-7 items-center justify-center rounded-full bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
-      >
-        <Minus className="size-3" />
-      </button>
-      <span className="w-7 text-center font-bold font-mono text-2xl tabular-nums">{value}</span>
+    <div className="flex flex-col items-center gap-1">
       <button
         type="button"
         onClick={() => onChange(Math.min(99, value + 1))}
-        className="flex size-7 items-center justify-center rounded-full bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
+        className="flex h-5 w-8 items-center justify-center rounded-md bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
+        aria-label="+1"
       >
         <Plus className="size-3" />
+      </button>
+      <span className="w-7 text-center font-bold font-mono text-2xl tabular-nums leading-none">
+        {value}
+      </span>
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(0, value - 1))}
+        className="flex h-5 w-8 items-center justify-center rounded-md bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
+        aria-label="-1"
+      >
+        <Minus className="size-3" />
       </button>
     </div>
   );
