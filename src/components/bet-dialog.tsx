@@ -95,10 +95,10 @@ export function BetDialog({
   if (!match) return null;
 
   const isFinished = match.status === "finished";
+  // Livescore nincs implementálva, ezért élő meccsnél nem mutatunk eredményt
+  // (a 0-0 valószínűleg hamis) — helyette az "ÉLŐ" jelzés a középpont.
   const showScore =
-    (match.status === "finished" || match.status === "live") &&
-    match.homeScore !== null &&
-    match.awayScore !== null;
+    match.status === "finished" && match.homeScore !== null && match.awayScore !== null;
 
   // BetForm már mutatja a zászlókat + neveket + dátumot a kártyában, ezért a fejléc
   // teljesen felesleges ilyenkor (a nevek belelógnának a jobb felső X-be is).
@@ -153,15 +153,14 @@ export function BetDialog({
                     <span className="font-bold font-mono text-2xl tabular-nums tracking-wider">
                       {match.homeScore} – {match.awayScore}
                     </span>
+                  ) : match.status === "live" ? (
+                    <span className="flex items-center gap-1 font-semibold text-red-500 text-sm">
+                      <Circle className="size-2 animate-pulse fill-red-500 text-red-500" />
+                      {t("live")}
+                    </span>
                   ) : (
                     <span className="text-[10px] text-muted-foreground/40 tracking-[0.15em]">
                       {t("vs")}
-                    </span>
-                  )}
-                  {match.status === "live" && (
-                    <span className="flex items-center gap-1 font-medium text-[10px] text-red-500">
-                      <Circle className="size-1.5 animate-pulse fill-red-500 text-red-500" />
-                      {t("live")}
                     </span>
                   )}
                   {match.status === "finished" && (
@@ -170,7 +169,7 @@ export function BetDialog({
                     </Badge>
                   )}
                 </div>
-                <div className="flex min-w-0 items-center justify-end gap-2">
+                <div className="flex min-w-0 items-center justify-end gap-2 pr-8">
                   <span className="truncate text-right font-semibold text-sm">
                     {match.awayTeam.name}
                   </span>
