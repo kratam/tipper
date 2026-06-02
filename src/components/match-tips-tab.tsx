@@ -26,7 +26,7 @@ function medalFor(rank: number): string {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="px-1 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
+    <div className="mt-0.5 mb-1 px-1 font-bold text-[10px] text-faint uppercase tracking-[0.12em]">
       {children}
     </div>
   );
@@ -51,8 +51,8 @@ export function MatchTipsTab({
   // Expanded: the full ranking in a scrollable box (data is already loaded).
   if (expanded) {
     return (
-      <div className="flex flex-col gap-1">
-        <div className="flex max-h-80 flex-col gap-1 overflow-y-auto pr-1">
+      <div className="flex flex-col gap-1.5">
+        <div className="flex max-h-80 flex-col gap-[5px] overflow-y-auto pr-1">
           {ranked.map((bet) => (
             <BetRow
               key={bet.betId}
@@ -68,7 +68,7 @@ export function MatchTipsTab({
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="w-full rounded-md border border-dashed px-2.5 py-1.5 text-center text-muted-foreground text-xs transition-colors hover:bg-muted/50"
+          className="w-full rounded-sm border border-border border-dashed px-2.5 py-1.5 text-center font-medium font-mono text-gold text-xs transition-colors hover:bg-secondary"
         >
           {t("collapseList")}
         </button>
@@ -80,7 +80,7 @@ export function MatchTipsTab({
     <button
       type="button"
       onClick={() => setExpanded(true)}
-      className="w-full rounded-md border border-dashed px-2.5 py-1.5 text-center text-muted-foreground text-xs transition-colors hover:bg-muted/50"
+      className="w-full rounded-sm border border-border border-dashed px-2.5 py-1.5 text-center font-medium font-mono text-gold text-xs transition-colors hover:bg-secondary"
     >
       {t("showAll", { count: ranked.length })}
     </button>
@@ -91,7 +91,7 @@ export function MatchTipsTab({
     const sorted = sortLiveBets(bets, currentUserId);
     const visible = sorted.slice(0, LIVE_COLLAPSED_ROWS);
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-[5px]">
         {visible.map((bet) => (
           <BetRow
             key={bet.betId}
@@ -112,8 +112,8 @@ export function MatchTipsTab({
   const hasNeighbors = view.neighbors.length > 0;
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-[5px]">
         {hasNeighbors && <SectionLabel>{t("podium")}</SectionLabel>}
         {view.podium.map((bet) => (
           <BetRow
@@ -129,9 +129,9 @@ export function MatchTipsTab({
       </div>
 
       {hasNeighbors && (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-[5px]">
           {view.hiddenBetween > 0 && (
-            <div className="py-0.5 text-center text-[10px] text-muted-foreground/60">
+            <div className="py-1 text-center text-[10px] text-faint">
               {t("hiddenBetween", { count: view.hiddenBetween })}
             </div>
           )}

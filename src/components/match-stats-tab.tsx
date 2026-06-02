@@ -1,5 +1,6 @@
 "use client";
 
+import { Crosshair } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { TokenIcon } from "@/components/token-icon";
@@ -19,15 +20,16 @@ function formatTokens(n: number): string {
   return String(n);
 }
 
-const OUTCOME_COLOR: Record<Outcome1x2, string> = {
-  "1": "#10b981",
-  X: "#9ca3af",
-  "2": "#ef4444",
+/** 1 = sky, X = violet, 2 = orange — a prototípus szegmens-színskálája. */
+const OUTCOME_GRADIENT: Record<Outcome1x2, string> = {
+  "1": "linear-gradient(180deg, #38bdf8, #0284c7)",
+  X: "linear-gradient(180deg, #a78bfa, #7c3aed)",
+  "2": "linear-gradient(180deg, #fb923c, #ea580c)",
 };
 
 function StatLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-1.5 px-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
+    <div className="mb-1.5 px-0.5 font-bold text-[10px] text-faint uppercase tracking-[0.12em]">
       {children}
     </div>
   );
@@ -35,9 +37,9 @@ function StatLabel({ children }: { children: React.ReactNode }) {
 
 function KeyValue({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between border-border/50 border-b py-1 text-xs last:border-0">
+    <div className="flex items-center justify-between border-border border-b py-[7px] text-[13px] last:border-0">
       <span className="text-muted-foreground">{label}</span>
-      <span className="inline-flex items-center gap-1 font-medium font-mono">{children}</span>
+      <span className="inline-flex items-center gap-1.5 font-mono font-semibold">{children}</span>
     </div>
   );
 }
@@ -53,20 +55,24 @@ function StackedBar({
   const total = slices.reduce((sum, s) => sum + metric(s), 0);
 
   if (total === 0) {
-    return <div className="h-5 rounded-md bg-muted" />;
+    return <div className="h-[30px] rounded-lg bg-surface-3" />;
   }
 
   return (
-    <div className="flex h-5 overflow-hidden rounded-md">
+    <div className="flex h-[30px] gap-1">
       {slices.map((slice) => {
         const value = metric(slice);
         if (value === 0) return null;
         return (
           <div
             key={slice.key}
-            className="h-full min-w-[3px]"
-            style={{ flex: value, backgroundColor: OUTCOME_COLOR[slice.key] }}
-          />
+            className="flex min-w-[7px] items-center justify-center overflow-hidden rounded-[7px] shadow-[inset_0_1px_0_rgba(255,255,255,0.22),inset_0_-1px_0_rgba(0,0,0,0.14)]"
+            style={{ flex: value, background: OUTCOME_GRADIENT[slice.key] }}
+          >
+            <span className="font-extrabold font-mono text-[11px] text-white [text-shadow:0_1px_1.5px_rgba(0,0,0,0.4)]">
+              {slice.key}
+            </span>
+          </div>
         );
       })}
     </div>
@@ -94,26 +100,26 @@ export function MatchStatsTab({ bets, homeScore, awayScore, isFinished }: MatchS
       <section>
         <StatLabel>{t("statDistribution")}</StatLabel>
 
-        <div className="mb-0.5 flex items-center gap-1 px-0.5 text-[10px] text-muted-foreground">
+        <div className="mb-1.5 flex items-center gap-1 px-0.5 text-[10.5px] text-muted-foreground">
           {t("statDistByCount")} · {t("statPlayers", { count: stats.betCount })}
         </div>
         <StackedBar slices={stats.distribution} metric={(s) => s.count} />
 
-        <div className="mt-2 mb-0.5 flex items-center gap-1 px-0.5 text-[10px] text-muted-foreground">
+        <div className="mt-2 mb-1.5 flex items-center gap-1 px-0.5 text-[10.5px] text-muted-foreground">
           {t("statDistByStake")} · {formatTokens(stats.totalStake)}
           <TokenIcon size={9} />
         </div>
         <StackedBar slices={stats.distribution} metric={(s) => s.totalStake} />
 
-        <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1">
+        <div className="mt-2.5 flex flex-wrap gap-x-3.5 gap-y-1.5">
           {stats.distribution.map((slice) => (
             <span
               key={slice.key}
-              className="inline-flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground tabular-nums"
+              className="inline-flex items-center gap-1.5 font-mono text-[10.5px] text-muted-foreground tabular-nums"
             >
               <span
-                className="size-2 shrink-0 rounded-[2px]"
-                style={{ backgroundColor: OUTCOME_COLOR[slice.key] }}
+                className="size-[9px] shrink-0 rounded-[3px] shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]"
+                style={{ background: OUTCOME_GRADIENT[slice.key] }}
               />
               <span className="font-semibold text-foreground">{slice.key}</span>·{" "}
               {t("statPlayers", { count: slice.count })} · {formatTokens(slice.totalStake)}
@@ -140,7 +146,8 @@ export function MatchStatsTab({ bets, homeScore, awayScore, isFinished }: MatchS
         </KeyValue>
         {stats.exactCorrectCount !== null && (
           <KeyValue label={t("statExactCorrect")}>
-            {t("statPlayers", { count: stats.exactCorrectCount })} 🎯
+            {t("statPlayers", { count: stats.exactCorrectCount })}
+            <Crosshair className="size-[13px] text-gold" />
           </KeyValue>
         )}
         {stats.winnerCorrectCount !== null && (

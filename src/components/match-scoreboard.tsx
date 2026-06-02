@@ -31,13 +31,17 @@ export function MatchScoreboard({
   bottomRow,
 }: MatchScoreboardProps) {
   return (
-    <div className="grid grid-cols-[1fr_auto_1fr] items-center justify-items-center gap-x-6 gap-y-1.5">
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center justify-items-center gap-x-6 gap-y-1.5 px-0.5 pt-1.5 pb-3.5">
       <TeamLogo name={homeTeam.name} logoUrl={homeTeam.logoUrl} size={logoSize} />
-      <div className="flex items-center justify-center">{center}</div>
+      <div className="flex min-w-[78px] items-center justify-center">{center}</div>
       <TeamLogo name={awayTeam.name} logoUrl={awayTeam.logoUrl} size={logoSize} />
-      <span className="text-center font-medium text-xs leading-tight">{homeTeam.name}</span>
+      <span className="line-clamp-2 text-center font-[650] text-[13.5px] text-foreground leading-tight">
+        {homeTeam.name}
+      </span>
       <div />
-      <span className="text-center font-medium text-xs leading-tight">{awayTeam.name}</span>
+      <span className="line-clamp-2 text-center font-[650] text-[13.5px] text-foreground leading-tight">
+        {awayTeam.name}
+      </span>
       {bottomRow && (
         <>
           <div className="pt-0.5">{bottomRow.home}</div>
