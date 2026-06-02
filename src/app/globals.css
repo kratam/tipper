@@ -174,4 +174,40 @@
     -webkit-mask-image: radial-gradient(140% 90% at 50% 0%, #000 30%, transparent 92%);
     mask-image: radial-gradient(140% 90% at 50% 0%, #000 30%, transparent 92%);
   }
+  html,
+  body {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+}
+
+/* ÉLŐ pulzálás (match-card, scoreboard live-dot) */
+@keyframes livepulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--loss) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion override must win over component animations */
+    animation-duration: 0.001ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion override must win over component animations */
+    animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion override must win over component animations */
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* utility a pulzáló élő-ponthoz */
+.tc-live-dot {
+  animation: livepulse 1.4s ease-out infinite;
 }
