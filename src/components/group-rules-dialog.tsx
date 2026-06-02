@@ -52,18 +52,25 @@ export function GroupRulesDialog({ groupName, rules, iconOnly = false }: GroupRu
 
           <div className="flex flex-col gap-4">
             {sections.map((section) => (
-              <div key={section.titleKey} className="flex flex-col gap-1.5">
-                <h3 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+              <div key={section.titleKey} className="flex flex-col">
+                <h3 className="mb-1 font-bold text-[10px] text-faint uppercase tracking-[0.12em]">
                   {t(section.titleKey as Parameters<typeof t>[0])}
                 </h3>
                 {section.rows.map((row) => (
-                  <div key={row.labelKey} className="flex flex-col gap-0.5">
-                    <div className="flex items-baseline justify-between gap-4">
-                      <span className="text-sm">{t(row.labelKey as Parameters<typeof t>[0])}</span>
-                      <span className="font-mono text-amber-500 text-sm">{row.value}</span>
+                  <div
+                    key={row.labelKey}
+                    className="flex flex-col gap-0.5 border-border border-b py-2 last:border-b-0"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[13px] text-muted-foreground">
+                        {t(row.labelKey as Parameters<typeof t>[0])}
+                      </span>
+                      <span className="font-mono font-semibold text-[13px] text-gold">
+                        {row.value}
+                      </span>
                     </div>
                     {row.explainKey && (
-                      <p className="text-muted-foreground text-xs">
+                      <p className="text-faint text-xs">
                         {t(row.explainKey as Parameters<typeof t>[0], row.explainParams)}
                       </p>
                     )}

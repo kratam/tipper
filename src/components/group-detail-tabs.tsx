@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { NumericInput } from "@/components/ui/numeric-input";
-import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -213,10 +212,12 @@ export function GroupDetailTabs({
               <CardTitle className="text-base">{t("descriptionLabel")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-              <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="flex items-center justify-between gap-3 rounded-sm border border-border bg-secondary p-3 px-3.5">
                 <div className="flex flex-col gap-0.5">
-                  <Label htmlFor="isPublic">{t("public")}</Label>
-                  <span className="text-muted-foreground text-xs">{t("publicDescription")}</span>
+                  <Label htmlFor="isPublic" className="font-semibold text-[13.5px]">
+                    {t("public")}
+                  </Label>
+                  <span className="text-[11.5px] text-faint">{t("publicDescription")}</span>
                 </div>
                 <Switch id="isPublic" checked={isPublicState} onCheckedChange={setIsPublicState} />
               </div>
@@ -240,9 +241,11 @@ export function GroupDetailTabs({
             <CardContent className="flex flex-col gap-4">
               {tournamentStatus === "upcoming" ? (
                 <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">{t("tokenPerMatch")}</Label>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 max-[560px]:grid-cols-1">
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="font-semibold text-[12.5px] text-muted-foreground">
+                        {t("tokenPerMatch")}
+                      </Label>
                       <NumericInput
                         value={settings.tokenPerMatch}
                         onChange={(val) => setSettings({ ...settings, tokenPerMatch: val })}
@@ -250,8 +253,10 @@ export function GroupDetailTabs({
                         className="font-mono"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">{t("initialTokens")}</Label>
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="font-semibold text-[12.5px] text-muted-foreground">
+                        {t("initialTokens")}
+                      </Label>
                       <NumericInput
                         value={settings.initialTokens}
                         onChange={(val) => setSettings({ ...settings, initialTokens: val })}
@@ -259,8 +264,10 @@ export function GroupDetailTabs({
                         className="font-mono"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">{t("bonusGoalDiff")}</Label>
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="font-semibold text-[12.5px] text-muted-foreground">
+                        {t("bonusGoalDiff")}
+                      </Label>
                       <NumericInput
                         value={settings.bonusGoalDiff}
                         onChange={(val) => setSettings({ ...settings, bonusGoalDiff: val })}
@@ -268,8 +275,10 @@ export function GroupDetailTabs({
                         className="font-mono"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">{t("bonusExactScore")}</Label>
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="font-semibold text-[12.5px] text-muted-foreground">
+                        {t("bonusExactScore")}
+                      </Label>
                       <NumericInput
                         value={settings.bonusExactScore}
                         onChange={(val) => setSettings({ ...settings, bonusExactScore: val })}
@@ -277,8 +286,10 @@ export function GroupDetailTabs({
                         className="font-mono"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">{t("bonusPodiumMention")}</Label>
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="font-semibold text-[12.5px] text-muted-foreground">
+                        {t("bonusPodiumMention")}
+                      </Label>
                       <NumericInput
                         value={settings.bonusPodiumMention}
                         onChange={(val) => setSettings({ ...settings, bonusPodiumMention: val })}
@@ -286,8 +297,10 @@ export function GroupDetailTabs({
                         className="font-mono"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">{t("bonusPodiumExact")}</Label>
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="font-semibold text-[12.5px] text-muted-foreground">
+                        {t("bonusPodiumExact")}
+                      </Label>
                       <NumericInput
                         value={settings.bonusPodiumExact}
                         onChange={(val) => setSettings({ ...settings, bonusPodiumExact: val })}
@@ -295,8 +308,10 @@ export function GroupDetailTabs({
                         className="font-mono"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">{t("oddsBoost")}</Label>
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="font-semibold text-[12.5px] text-muted-foreground">
+                        {t("oddsBoost")}
+                      </Label>
                       <NumericInput
                         value={settings.oddsBoost}
                         onChange={(val) => setSettings({ ...settings, oddsBoost: val })}
@@ -306,8 +321,10 @@ export function GroupDetailTabs({
                         className="font-mono"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-xs">{t("lossPercentage")}</Label>
+                    <div className="flex flex-col gap-1.5">
+                      <Label className="font-semibold text-[12.5px] text-muted-foreground">
+                        {t("lossPercentage")}
+                      </Label>
                       <NumericInput
                         value={settings.lossPercentage}
                         onChange={(val) => setSettings({ ...settings, lossPercentage: val })}
@@ -332,34 +349,35 @@ export function GroupDetailTabs({
             <CardHeader>
               <CardTitle className="text-base">{t("members")}</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-2">
+            <CardContent className="flex flex-col">
               {members.map((member) => (
-                <div key={member.id} className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="size-6">
-                      <AvatarImage src={member.avatarUrl ?? undefined} />
-                      <AvatarFallback className="text-xs">
-                        {member.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()
-                          .slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm">{member.name}</span>
-                  </div>
+                <div
+                  key={member.id}
+                  className="flex items-center gap-2.5 border-border border-b py-2 last:border-b-0"
+                >
+                  <Avatar className="size-[30px]">
+                    <AvatarImage src={member.avatarUrl ?? undefined} />
+                    <AvatarFallback className="text-xs">
+                      {member.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="flex-1 truncate font-medium text-[13.5px]">{member.name}</span>
                   {member.userId !== currentUserId && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive"
+                    <button
+                      type="button"
+                      title={t("removeMember")}
+                      aria-label={t("removeMember")}
+                      className="grid size-[30px] place-items-center rounded-[8px] text-faint transition-colors hover:bg-loss-soft hover:text-loss disabled:pointer-events-none disabled:opacity-50"
                       onClick={() => handleRemoveMember(member.userId)}
                       disabled={isPending}
                     >
-                      <Trash2 className="mr-1 size-3" />
-                      {t("removeMember")}
-                    </Button>
+                      <Trash2 className="size-4" />
+                    </button>
                   )}
                 </div>
               ))}
@@ -367,21 +385,18 @@ export function GroupDetailTabs({
           </Card>
 
           {!isOfficial && (
-            <>
-              <Separator />
-
-              {/* Delete group */}
+            <div className="rounded-sm border border-loss-soft p-3.5">
               <Button
                 variant="destructive"
                 size="sm"
-                className="w-fit gap-2"
+                className="gap-2"
                 onClick={() => handleDeleteGroup()}
                 disabled={isPending}
               >
                 <Trash2 className="size-4" />
                 {t("deleteGroup")}
               </Button>
-            </>
+            </div>
           )}
         </TabsContent>
       )}
