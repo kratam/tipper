@@ -18,8 +18,8 @@ interface PodiumTeamListProps {
 
 export function PodiumTeamList({ teams, selectedId, disabledIds, onSelect }: PodiumTeamListProps) {
   return (
-    <div className="max-h-75 overflow-y-auto">
-      <div className="flex flex-col">
+    <div className="max-h-[min(52vh,440px)] overflow-y-auto px-1 py-1">
+      <div className="flex flex-col gap-[3px]">
         {teams.map((team) => {
           const isSelected = team.id === selectedId;
           const isDisabled = disabledIds.has(team.id) && !isSelected;
@@ -31,17 +31,17 @@ export function PodiumTeamList({ teams, selectedId, disabledIds, onSelect }: Pod
               disabled={isDisabled}
               onClick={() => onSelect(team.id)}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 text-left transition-colors",
-                isSelected && "border-primary border-l-3 bg-primary/10",
+                "flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-left transition-colors",
+                isSelected && "border border-gold-line bg-gold-soft",
                 isDisabled && "cursor-not-allowed opacity-40",
-                !isSelected && !isDisabled && "hover:bg-muted",
+                !isSelected && !isDisabled && "hover:bg-surface-2",
               )}
             >
               <TeamLogo name={team.name} logoUrl={team.logoUrl} size={28} shape="round" />
-              <span className={cn("flex-1 text-sm", isSelected && "font-semibold")}>
+              <span className={cn("flex-1 text-sm", isSelected ? "font-semibold" : "font-medium")}>
                 {team.name}
               </span>
-              {isSelected && <span className="text-primary text-sm">✓</span>}
+              {isSelected && <span className="text-gold text-sm">✓</span>}
             </button>
           );
         })}

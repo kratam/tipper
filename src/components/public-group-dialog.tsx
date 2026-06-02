@@ -16,7 +16,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useRouter } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
 
 interface PublicGroupDialogProps {
   group: {
@@ -42,12 +41,8 @@ interface PublicGroupDialogProps {
 
 function StatusBadge({ status }: { status: string }) {
   const t = useTranslations("groups");
-  const styles: Record<string, string> = {
-    active: "bg-green-500/20 text-green-300",
-    upcoming: "bg-yellow-500/20 text-yellow-300",
-  };
   return (
-    <Badge variant="secondary" className={cn("text-[11px]", styles[status])}>
+    <Badge variant={status as "active" | "upcoming"} className="text-[11px]">
       {t(status as "active" | "upcoming")}
     </Badge>
   );
@@ -55,9 +50,9 @@ function StatusBadge({ status }: { status: string }) {
 
 function RuleBox({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-muted p-2.5">
+    <div className="rounded-sm border border-border bg-surface-2 p-2.5">
       <div className="text-[11px] text-muted-foreground">{label}</div>
-      <div className="font-bold text-base">{value}</div>
+      <div className="font-bold font-mono text-base">{value}</div>
     </div>
   );
 }
@@ -90,16 +85,18 @@ export function PublicGroupDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="max-w-md overflow-hidden p-0 sm:max-w-md">
         {/* Gradient header */}
-        <div className="relative bg-linear-to-br from-[#1e3a5f] to-[#2d1b69] p-6">
-          <DialogClose className="absolute top-3 right-3 flex size-7 items-center justify-center rounded-md text-white/70 transition-colors hover:bg-white/10 hover:text-white">
+        <div className="relative bg-linear-to-br from-[#1e3a5f] to-[#2d1b69] p-6 after:pointer-events-none after:absolute after:inset-0 after:bg-[radial-gradient(120%_90%_at_88%_-10%,color-mix(in_oklab,var(--gold)_22%,transparent),transparent_55%)]">
+          <DialogClose className="absolute top-3 right-3 z-[1] flex size-7 items-center justify-center rounded-md text-white/70 transition-colors hover:bg-white/10 hover:text-white">
             <X className="size-4" />
             <span className="sr-only">Close</span>
           </DialogClose>
-          <DialogTitle className="pr-8 font-bold text-lg text-white">{group.name}</DialogTitle>
-          <DialogDescription className="mt-1 text-sm text-white/60">
+          <DialogTitle className="relative z-[1] pr-8 font-bold text-lg text-white">
+            {group.name}
+          </DialogTitle>
+          <DialogDescription className="relative z-[1] mt-1 font-mono text-sm text-white/60">
             {group.tournament.name}
           </DialogDescription>
-          <div className="mt-3 flex items-center gap-3">
+          <div className="relative z-[1] mt-3 flex items-center gap-3">
             <span className="text-white/50 text-xs">
               {t("memberCount", { count: memberCount })}
             </span>

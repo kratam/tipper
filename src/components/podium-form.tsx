@@ -39,10 +39,7 @@ const podiumConfig: {
   height: string;
   gradient: string;
   border: string;
-  borderDashed: string;
-  shadow: string;
   textColor: string;
-  plusColor: string;
   order: string;
   bgBar: string;
   label: string;
@@ -50,43 +47,37 @@ const podiumConfig: {
   {
     medal: "silver",
     emoji: "🥈",
-    height: "h-[88px] sm:h-[95px]",
-    gradient: "bg-gradient-to-b from-slate-200 to-slate-300",
-    border: "border-slate-400",
-    borderDashed: "border-slate-400",
-    shadow: "shadow-sm",
-    textColor: "text-slate-700",
-    plusColor: "text-slate-400",
+    height: "h-[92px]",
+    gradient:
+      "bg-linear-to-b from-[color-mix(in_oklab,#cdd5e3_42%,var(--card))] to-[color-mix(in_oklab,#cdd5e3_18%,var(--card))]",
+    border: "border-[color-mix(in_oklab,#cdd5e3_40%,transparent)]",
+    textColor: "text-foreground",
     order: "order-1",
-    bgBar: "bg-slate-400",
+    bgBar: "bg-[#9aa6b8] text-white",
     label: "2.",
   },
   {
     medal: "gold",
     emoji: "🥇",
-    height: "h-[115px] sm:h-[130px]",
-    gradient: "bg-gradient-to-b from-amber-100 to-amber-200",
-    border: "border-amber-400",
-    borderDashed: "border-amber-500",
-    shadow: "shadow-md shadow-amber-200/50",
-    textColor: "text-amber-800",
-    plusColor: "text-amber-500",
+    height: "h-[124px]",
+    gradient:
+      "bg-linear-to-b from-[color-mix(in_oklab,var(--gold)_55%,var(--card))] to-[color-mix(in_oklab,var(--gold)_28%,var(--card))]",
+    border: "border-gold-line",
+    textColor: "text-foreground",
     order: "order-2",
-    bgBar: "bg-amber-400",
+    bgBar: "bg-gold-2 text-gold-ink",
     label: "1.",
   },
   {
     medal: "bronze",
     emoji: "🥉",
-    height: "h-[65px] sm:h-[70px]",
-    gradient: "bg-gradient-to-b from-orange-200 to-orange-300",
-    border: "border-orange-500",
-    borderDashed: "border-orange-600",
-    shadow: "shadow-sm",
-    textColor: "text-orange-900",
-    plusColor: "text-orange-500",
+    height: "h-[70px]",
+    gradient:
+      "bg-linear-to-b from-[color-mix(in_oklab,#d98a4a_45%,var(--card))] to-[color-mix(in_oklab,#d98a4a_20%,var(--card))]",
+    border: "border-[color-mix(in_oklab,#d98a4a_45%,transparent)]",
+    textColor: "text-foreground",
     order: "order-3",
-    bgBar: "bg-orange-500",
+    bgBar: "bg-[#c47a3e] text-white",
     label: "3.",
   },
 ];
@@ -96,8 +87,8 @@ const podiumConfig: {
  * korong + árnyék + reszponzív méret. A `ring` itt is elválasztja a korong élét.
  */
 function PodiumBadge({ team, size = "md" }: { team: TeamOption; size?: "sm" | "md" }) {
-  const sizeClass = size === "sm" ? "size-8" : "size-10 sm:size-12";
-  const textSize = size === "sm" ? "text-[9px]" : "text-xs";
+  const sizeClass = size === "sm" ? "size-[38px]" : "size-[46px]";
+  const textSize = size === "sm" ? "text-[10px]" : "text-xs";
 
   if (team.logoUrl) {
     return (
@@ -108,7 +99,7 @@ function PodiumBadge({ team, size = "md" }: { team: TeamOption; size?: "sm" | "m
         height={48}
         className={cn(
           sizeClass,
-          "rounded-full bg-white object-contain shadow-sm",
+          "rounded-full bg-white object-cover shadow-[0_3px_8px_rgba(0,0,0,0.3)]",
           isPlainFlag(team.logoUrl) && "ring-1 ring-black/10 dark:ring-white/15",
         )}
       />
@@ -120,7 +111,7 @@ function PodiumBadge({ team, size = "md" }: { team: TeamOption; size?: "sm" | "m
       className={cn(
         sizeClass,
         textSize,
-        "flex items-center justify-center rounded-full bg-white font-bold shadow-sm",
+        "flex items-center justify-center rounded-full bg-white font-bold text-[#2a1c05] shadow-[0_3px_8px_rgba(0,0,0,0.3)]",
       )}
     >
       {team.name.slice(0, 3).toUpperCase()}
@@ -178,9 +169,9 @@ export function PodiumForm({ tournamentId, teams, existingBet, isLocked }: Podiu
 
   return (
     <Card>
-      <CardContent className="flex flex-col gap-4 px-4 py-4">
+      <CardContent className="flex flex-col gap-5 px-4 py-5">
         {/* Podium */}
-        <div className="mx-auto flex w-full max-w-xs items-end justify-center gap-2">
+        <div className="mx-auto flex w-full max-w-[380px] items-end justify-center gap-2.5">
           {podiumConfig.map((cfg) => {
             const selectedTeamId = selections[cfg.medal];
             const team = teams.find((t) => t.id === selectedTeamId);
@@ -191,38 +182,45 @@ export function PodiumForm({ tournamentId, teams, existingBet, isLocked }: Podiu
                 key={cfg.medal}
                 className={cn("flex min-w-0 flex-1 basis-0 flex-col items-center", cfg.order)}
               >
-                <div className="mb-1 text-lg sm:text-2xl">{cfg.emoji}</div>
+                <div className="mb-1.5 text-lg">{cfg.emoji}</div>
                 <div
                   className={cn(
                     cfg.height,
-                    cfg.gradient,
-                    "flex w-full items-center justify-center rounded-t-lg transition-all",
+                    "grid w-full place-items-center rounded-t-xl border-[1.5px] transition-transform",
                     isEmpty
-                      ? cn("border-2 border-dashed", cfg.borderDashed)
-                      : cn("border-2", cfg.border, cfg.shadow),
-                    !isLocked && "cursor-pointer hover:scale-[1.03] active:scale-[0.98]",
+                      ? "border-border border-dashed bg-secondary"
+                      : cn(cfg.gradient, cfg.border),
+                    !isLocked && "cursor-pointer hover:-translate-y-[3px] active:translate-y-0",
                     isLocked && "cursor-default",
                   )}
                   role={isLocked ? undefined : "button"}
                   tabIndex={isLocked ? undefined : 0}
                 >
                   {isEmpty ? (
-                    <div className="text-center">
-                      <div className={cn("text-lg", cfg.plusColor)}>+</div>
-                      <div className={cn("text-[9px]", cfg.plusColor)}>{t("pickTeam")}</div>
+                    <div className="text-center text-faint">
+                      <div className="text-xl leading-none">+</div>
+                      <div className="mt-0.5 text-[9.5px]">{t("pickTeam")}</div>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center gap-1">
+                    <div className="flex flex-col items-center gap-1.5 p-1.5">
                       <PodiumBadge team={team} size={cfg.medal === "gold" ? "md" : "sm"} />
-                      <span className={cn("font-bold text-[10px] sm:text-xs", cfg.textColor)}>
-                        {team.name.length > 8 ? team.name.slice(0, 3).toUpperCase() : team.name}
+                      <span
+                        className={cn(
+                          "max-w-20 text-center font-bold text-[10.5px] leading-tight",
+                          cfg.textColor,
+                        )}
+                      >
+                        {team.name.length > 11 ? `${team.name.slice(0, 9)}…` : team.name}
                       </span>
                     </div>
                   )}
                 </div>
                 {/* Position number bar */}
                 <div
-                  className={cn("w-full py-1 text-center font-bold text-white text-xs", cfg.bgBar)}
+                  className={cn(
+                    "w-full rounded-b-[7px] py-[5px] text-center font-extrabold font-mono text-[13px]",
+                    cfg.bgBar,
+                  )}
                 >
                   {cfg.label}
                 </div>

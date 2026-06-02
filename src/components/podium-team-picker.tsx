@@ -60,10 +60,10 @@ export function TeamPicker({
     return (
       <Popover open={open} onOpenChange={onOpenChange}>
         <PopoverTrigger asChild>{children}</PopoverTrigger>
-        <PopoverContent className="w-64 p-0" align="center">
-          <div className="border-b px-4 py-2">
-            <p className="font-semibold text-sm">
-              {medalEmojis[medal]} {t(medal)}
+        <PopoverContent className="w-72 p-0" align="center">
+          <div className="border-border border-b px-4 py-2.5">
+            <p className="inline-flex items-center gap-2 font-semibold text-sm">
+              <span className="text-base">{medalEmojis[medal]}</span> {t(medal)}
             </p>
           </div>
           <PodiumTeamList

@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ChevronRight,
-  CircleAlert,
-  CircleCheck,
-  TrendingDown,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { CircleAlert, CircleCheck, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { GroupCard } from "@/components/group-card";
@@ -50,15 +43,12 @@ interface GroupTokenSummaryProps {
 
 function ProfitDisplay({ profit }: { profit: number }) {
   const formatted = profit > 0 ? `+${profit}` : `${profit}`;
-  const colorClass =
-    profit > 0
-      ? "text-emerald-600 dark:text-emerald-400"
-      : profit < 0
-        ? "text-red-600 dark:text-red-400"
-        : "text-muted-foreground";
+  const colorClass = profit > 0 ? "text-win" : profit < 0 ? "text-loss" : "text-muted-foreground";
 
   return <span className={`font-bold font-mono text-sm ${colorClass}`}>{formatted}</span>;
 }
+
+const MINI_MEDALS = ["🥇", "🥈", "🥉"];
 
 export function GroupTokenSummary({
   groups,
@@ -135,7 +125,7 @@ export function GroupTokenSummary({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
       {groups.map((g) => {
         const hasMatches = g.next3Days.total > 0;
         const allPlaced = hasMatches && g.next3Days.withBet === g.next3Days.total;
@@ -144,32 +134,36 @@ export function GroupTokenSummary({
           <Link
             key={g.groupId}
             href={`/tournaments/${g.tournamentSlug}/groups/${g.groupSlug}`}
-            className="group flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-all hover:bg-accent hover:ring-1 hover:ring-foreground/15"
+            className="flex flex-col gap-[11px] rounded-lg border border-border bg-card p-[15px] text-left shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_12px_28px_-22px_rgba(0,0,0,0.9)] transition-all hover:-translate-y-0.5 hover:border-gold-line"
           >
-            {/* Header: group name + arrow */}
-            <div className="flex items-center justify-between">
-              <span className="font-medium">{g.groupName}</span>
-              <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+            {/* Top: icon + name + rank */}
+            <div className="flex items-start gap-2.5">
+              <span className="grid size-[34px] flex-none place-items-center rounded-[9px] border border-border bg-surface-2 text-muted-foreground">
+                <Users className="size-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="font-bold text-[15px] leading-tight">{g.groupName}</div>
+              </div>
+              {g.myRank != null && (
+                <div className="flex-none text-right">
+                  <div className="font-extrabold font-mono text-[17px]">#{g.myRank}</div>
+                </div>
+              )}
             </div>
 
             {/* Mini leaderboard */}
             {g.miniLeaderboard.length > 0 && (
-              <div className="flex flex-col gap-1">
-                {g.miniLeaderboard.map((entry) => {
+              <div className="flex flex-col gap-1 rounded-[10px] bg-surface-2 p-2.5">
+                {g.miniLeaderboard.map((entry, i) => {
                   const isMe = entry.userId === currentUserId;
                   return (
-                    <div
-                      key={entry.userId}
-                      className={`flex items-center gap-2 rounded px-2 py-1 text-sm ${
-                        isMe ? "bg-amber-500/10 ring-1 ring-amber-500/20 ring-inset" : ""
-                      }`}
-                    >
-                      <span className="w-8 font-mono text-muted-foreground text-xs">
-                        #{entry.rank}
+                    <div key={entry.userId} className="flex items-center gap-2 text-xs">
+                      <span className="w-4 font-mono text-faint">
+                        {MINI_MEDALS[i] ?? `#${entry.rank}`}
                       </span>
-                      <Avatar className="size-5">
+                      <Avatar className="size-[18px]">
                         <AvatarImage src={entry.userAvatarUrl ?? undefined} />
-                        <AvatarFallback className="text-[10px]">
+                        <AvatarFallback className="text-[9px]">
                           {entry.userName
                             .split(" ")
                             .map((n) => n[0])
@@ -178,10 +172,14 @@ export function GroupTokenSummary({
                             .slice(0, 2)}
                         </AvatarFallback>
                       </Avatar>
-                      <span className={`flex-1 truncate ${isMe ? "font-medium" : ""}`}>
+                      <span className={`flex-1 truncate ${isMe ? "font-bold" : ""}`}>
                         {entry.userName}
                       </span>
-                      <ProfitDisplay profit={entry.profit} />
+                      <span
+                        className={`font-bold font-mono ${entry.profit >= 0 ? "text-win" : "text-loss"}`}
+                      >
+                        {entry.profit > 0 ? `+${entry.profit}` : entry.profit}
+                      </span>
                     </div>
                   );
                 })}
@@ -189,31 +187,16 @@ export function GroupTokenSummary({
             )}
 
             {/* Footer: profit + unbetted info */}
-            <div className="flex items-center gap-3 border-border border-t pt-2 text-muted-foreground text-xs">
-              <span
-                className={`flex items-center gap-1 font-medium font-mono ${
-                  g.myProfit > 0
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : g.myProfit < 0
-                      ? "text-red-600 dark:text-red-400"
-                      : ""
-                }`}
-              >
-                {g.myProfit > 0 ? (
-                  <TrendingUp className="size-3.5" />
-                ) : g.myProfit < 0 ? (
-                  <TrendingDown className="size-3.5" />
-                ) : null}
-                {t("profit")}: {g.myProfit > 0 ? `+${g.myProfit}` : g.myProfit}
-              </span>
+            <div className="flex items-center justify-between gap-2">
+              <ProfitDisplay profit={g.myProfit} />
 
               {!hasMatches ? (
-                <span className="flex items-center gap-1 text-muted-foreground">
+                <span className="inline-flex items-center gap-[5px] font-semibold text-[11.5px] text-faint">
                   <CircleCheck className="size-3.5" />
                   {t("next3Days.none")}
                 </span>
               ) : allPlaced ? (
-                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                <span className="inline-flex items-center gap-[5px] text-[11.5px] text-faint">
                   <CircleCheck className="size-3.5" />
                   {t("next3Days.progress", {
                     total: g.next3Days.total,
@@ -221,7 +204,7 @@ export function GroupTokenSummary({
                   })}
                 </span>
               ) : (
-                <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                <span className="inline-flex items-center gap-[5px] font-semibold text-[11.5px] text-gold">
                   <CircleAlert className="size-3.5" />
                   {t("next3Days.progress", {
                     total: g.next3Days.total,

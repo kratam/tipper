@@ -28,24 +28,24 @@ interface GroupCardProps {
 function ProfitBadge({ profit }: { profit: number }) {
   const formatted = profit > 0 ? `+${profit}` : `${profit}`;
   const colorClass =
-    profit > 0 ? "text-emerald-400" : profit < 0 ? "text-red-400" : "text-white/70";
+    profit > 0 ? "text-[#4ade80]" : profit < 0 ? "text-[#f87171]" : "text-white/70";
 
   return (
-    <div className="flex items-center gap-1 rounded-md bg-black/25 px-2 py-1">
-      <span className={`font-bold font-mono text-sm ${colorClass}`}>{formatted}</span>
-    </div>
+    <span
+      className={cn(
+        "z-[1] inline-flex shrink-0 items-center gap-1 rounded-full bg-black/[0.28] px-2 py-[3px] font-bold font-mono text-[12.5px]",
+        colorClass,
+      )}
+    >
+      {formatted}
+    </span>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
   const t = useTranslations("groups");
-  const styles: Record<string, string> = {
-    active: "bg-green-500/10 text-green-600",
-    upcoming: "bg-yellow-500/10 text-yellow-600",
-    finished: "bg-muted text-muted-foreground",
-  };
   return (
-    <Badge variant="secondary" className={cn("text-[10px]", styles[status])}>
+    <Badge variant={status as "active" | "upcoming" | "finished"} className="text-[10.5px]">
       {t(status as "active" | "upcoming" | "finished")}
     </Badge>
   );
@@ -56,38 +56,38 @@ function CardInner({ group, memberCount, profit, variant = "own" }: GroupCardPro
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border transition-all",
-        variant === "public"
-          ? "border-border border-dashed hover:ring-1 hover:ring-foreground/15"
-          : "border-border shadow-sm hover:ring-1 hover:ring-foreground/15",
+        "w-full overflow-hidden rounded-lg border border-border bg-card text-left shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_12px_28px_-22px_rgba(0,0,0,0.9)] transition-all hover:-translate-y-[3px] hover:border-gold-line",
+        variant === "public" && "border-dashed",
       )}
     >
       {/* Gradient header */}
-      <div className="bg-linear-to-br from-[#1e3a5f] to-[#2d1b69] p-4">
-        <div className="flex items-start justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="truncate font-bold text-sm text-white">{group.name}</div>
-            <div className="mt-0.5 truncate text-[11px] text-white/55">{group.tournament.name}</div>
+      <div className="relative flex items-start justify-between gap-2.5 bg-linear-to-br from-[#1e3a5f] to-[#2d1b69] p-[15px] pb-3.5 after:pointer-events-none after:absolute after:inset-0 after:bg-[radial-gradient(120%_90%_at_88%_-10%,color-mix(in_oklab,var(--gold)_22%,transparent),transparent_55%)]">
+        <div className="z-[1] min-w-0 flex-1">
+          <div className="truncate font-bold text-[15px] text-white leading-tight">
+            {group.name}
           </div>
-          {variant === "own" && profit != null ? (
-            <ProfitBadge profit={profit} />
-          ) : (
-            <Globe className="size-4 shrink-0 text-white/35" />
-          )}
+          <div className="mt-[3px] truncate font-mono text-[11px] text-white/60">
+            {group.tournament.name}
+          </div>
         </div>
+        {variant === "own" && profit != null ? (
+          <ProfitBadge profit={profit} />
+        ) : (
+          <Globe className="z-[1] size-4 shrink-0 text-white/40" />
+        )}
       </div>
 
       {/* Body */}
-      <div className="bg-card p-3">
+      <div className="bg-card p-[15px] pt-3.5">
         {group.description && (
-          <div className="mb-2.5 line-clamp-2 text-muted-foreground text-xs leading-relaxed [&_p]:m-0">
+          <div className="mb-[11px] line-clamp-2 text-[12.5px] text-muted-foreground leading-relaxed [&_p]:m-0">
             <ReactMarkdown allowedElements={["p", "strong", "em"]}>
               {group.description}
             </ReactMarkdown>
           </div>
         )}
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1 text-[11px] text-muted-foreground/70">
+        <div className="flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-[5px] text-[11.5px] text-faint">
             <Users className="size-3" />
             {t("memberCount", { count: memberCount })}
           </span>
@@ -101,7 +101,7 @@ function CardInner({ group, memberCount, profit, variant = "own" }: GroupCardPro
 export function GroupCard(props: GroupCardProps) {
   if (props.variant === "public" && props.onClick) {
     return (
-      <button type="button" onClick={props.onClick} className="text-left">
+      <button type="button" onClick={props.onClick} className="w-full text-left">
         <CardInner {...props} />
       </button>
     );

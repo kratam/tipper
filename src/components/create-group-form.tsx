@@ -124,7 +124,7 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
           </div>
 
           {/* Public toggle */}
-          <div className="flex items-center justify-between rounded-lg border p-3">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-2 p-3">
             <div className="flex flex-col gap-0.5">
               <Label htmlFor="isPublic">{t("public")}</Label>
               <span className="text-muted-foreground text-xs">{t("publicDescription")}</span>
@@ -147,7 +147,7 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
           {/* Collapsible advanced settings */}
           <button
             type="button"
-            className="flex items-center gap-2 text-muted-foreground text-sm hover:text-foreground"
+            className="inline-flex items-center gap-2 self-start text-[13.5px] text-muted-foreground transition-colors hover:text-foreground"
             onClick={() => setShowAdvanced(!showAdvanced)}
           >
             {showAdvanced ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
@@ -155,7 +155,7 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
           </button>
 
           {showAdvanced && (
-            <Card>
+            <Card className="bg-surface-2">
               <CardContent className="grid grid-cols-2 gap-4 pt-6">
                 <div className="flex flex-col gap-1">
                   <Label className="text-xs">{t("tokenPerMatch")}</Label>

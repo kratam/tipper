@@ -35,16 +35,17 @@ export function PublicGroupsSection({ groups }: PublicGroupsSectionProps) {
   const [selectedGroup, setSelectedGroup] = useState<PublicGroup | null>(null);
 
   return (
-    <div>
-      <div className="mb-4">
-        <div className="mb-1 flex items-center gap-2">
-          <Globe className="size-4.5 text-muted-foreground" />
-          <h2 className="font-semibold text-lg">{t("publicGroups")}</h2>
-        </div>
-        <p className="ml-6.5 text-muted-foreground text-sm">{t("publicGroupsSubtitle")}</p>
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <Globe className="size-4 text-muted-foreground" />
+        <h2 className="font-bold text-[13px] text-muted-foreground uppercase tracking-[0.08em]">
+          {t("publicGroups")}
+        </h2>
+        <span className="h-px flex-1 bg-border" />
       </div>
+      <p className="-mt-1 text-muted-foreground text-sm">{t("publicGroupsSubtitle")}</p>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
         {groups.map((group) => (
           <GroupCard
             key={group.id}

@@ -1,10 +1,9 @@
-import { Plus } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ArchivedGroupsSection } from "@/components/archived-groups-section";
 import { GroupCard } from "@/components/group-card";
 import { PublicGroupsSection } from "@/components/public-groups-section";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import {
@@ -50,8 +49,8 @@ export default async function GroupsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="font-bold font-mono text-2xl tracking-tight">{t("title")}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="font-bold font-heading text-2xl tracking-tight">{t("title")}</h1>
         <Button size="sm" asChild>
           <Link href="/groups/new" className="gap-2">
             <Plus className="size-4" />
@@ -63,32 +62,31 @@ export default async function GroupsPage() {
       {activeGroups.length === 0 ? (
         <p className="text-muted-foreground">{t("noGroups")}</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {activeGroups.map((gm) => (
-            <GroupCard
-              key={gm.group.id}
-              group={gm.group}
-              memberCount={gm.memberCount}
-              profit={gm.profit}
-              variant="own"
-            />
-          ))}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <Users className="size-4 text-muted-foreground" />
+            <h2 className="font-bold text-[13px] text-muted-foreground uppercase tracking-[0.08em]">
+              {t("title")}
+            </h2>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
+            {activeGroups.map((gm) => (
+              <GroupCard
+                key={gm.group.id}
+                group={gm.group}
+                memberCount={gm.memberCount}
+                profit={gm.profit}
+                variant="own"
+              />
+            ))}
+          </div>
         </div>
       )}
 
-      {publicGroups.length > 0 && (
-        <>
-          <Separator />
-          <PublicGroupsSection groups={publicGroups} />
-        </>
-      )}
+      {publicGroups.length > 0 && <PublicGroupsSection groups={publicGroups} />}
 
-      {archivedGroups.length > 0 && (
-        <>
-          <Separator />
-          <ArchivedGroupsSection items={archivedGroups} />
-        </>
-      )}
+      {archivedGroups.length > 0 && <ArchivedGroupsSection items={archivedGroups} />}
     </div>
   );
 }

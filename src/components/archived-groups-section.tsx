@@ -34,18 +34,18 @@ export function ArchivedGroupsSection({ items }: ArchivedGroupsSectionProps) {
 
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="flex flex-col gap-3">
-      <CollapsibleTrigger className="group flex items-center gap-2 text-left text-muted-foreground text-sm transition-colors hover:text-foreground">
+      <CollapsibleTrigger className="group inline-flex items-center gap-2 self-start text-[13.5px] text-muted-foreground transition-colors hover:text-foreground">
         <Archive className="size-4" />
         <span>
           {t("archivedTournaments")} ({items.length})
         </span>
         <ChevronDown
-          className={`size-4 transition-transform ${open ? "rotate-180" : ""}`}
+          className="size-4 transition-transform group-data-[state=open]:rotate-180"
           aria-hidden
         />
       </CollapsibleTrigger>
       <CollapsibleContent className="data-[state=closed]:hidden">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
           {items.map((item) => (
             <GroupCard
               key={item.group.id}
