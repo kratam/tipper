@@ -17,7 +17,8 @@
     "admin": "Admin",
     "displayName": "Becenév",
     "locale": "Nyelv",
-    "toggleTheme": "Téma váltása"
+    "toggleTheme": "Téma váltása",
+    "help": "Súgó"
   },
   "landing": {
     "title": "TippCasino",

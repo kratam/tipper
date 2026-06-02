@@ -17,17 +17,27 @@ interface HelpSection {
   items: string[];
 }
 
-export function HelpDialog() {
+interface HelpDialogProps {
+  /** Controlled open state (e.g. when triggered from the mobile menu). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Render the built-in icon trigger. Default true; set false when controlled externally. */
+  showTrigger?: boolean;
+}
+
+export function HelpDialog({ open, onOpenChange, showTrigger = true }: HelpDialogProps = {}) {
   const t = useTranslations("help");
   const sections = t.raw("sections") as HelpSection[];
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-8" aria-label={t("title")}>
-          <HelpCircle className="size-4" />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {showTrigger && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="icon" className="size-8" aria-label={t("title")}>
+            <HelpCircle className="size-4" />
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-h-[85dvh] gap-0 overflow-hidden p-0 sm:max-w-lg">
         {/* Hero header — gold gradient wash + crown disc */}
         <DialogHeader className="flex flex-row items-center gap-3.5 border-border border-b bg-linear-to-br from-gold-soft to-transparent p-5 pr-12 text-left">

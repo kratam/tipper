@@ -17,7 +17,8 @@
     "admin": "Admin",
     "displayName": "Display name",
     "locale": "Language",
-    "toggleTheme": "Toggle theme"
+    "toggleTheme": "Toggle theme",
+    "help": "Help"
   },
   "landing": {
     "title": "TippCasino",

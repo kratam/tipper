@@ -1,6 +1,17 @@
 "use client";
 
-import { Ellipsis, Globe, LogOut, Menu, Pencil, Shield, Trophy, Users, X } from "lucide-react";
+import {
+  Ellipsis,
+  Globe,
+  HelpCircle,
+  LogOut,
+  Menu,
+  Pencil,
+  Shield,
+  Trophy,
+  Users,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
@@ -47,6 +58,7 @@ export function Nav({ user, activeTournaments }: NavProps) {
   const [isPending, startTransition] = useTransition();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [displayNameOpen, setDisplayNameOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   function switchLocale(newLocale: "hu" | "en") {
     startTransition(() => {
@@ -87,7 +99,7 @@ export function Nav({ user, activeTournaments }: NavProps) {
               height={30}
               className="size-[30px]"
             />
-            <span className="bg-linear-to-r from-white via-gold to-gold-2 bg-clip-text font-brand text-[21px] text-transparent tracking-tight max-[700px]:hidden">
+            <span className="bg-linear-to-r from-white via-gold to-gold-2 bg-clip-text font-brand text-[21px] text-transparent tracking-tight max-[360px]:hidden">
               TippCasino
             </span>
           </Link>
@@ -116,8 +128,8 @@ export function Nav({ user, activeTournaments }: NavProps) {
 
           {/* Right side */}
           <div className="flex items-center gap-1.5">
-            {/* Help */}
-            <span className="max-[400px]:hidden">
+            {/* Help — desktop only; on mobile it lives in the hamburger menu */}
+            <span className="hidden md:inline-flex">
               <HelpDialog />
             </span>
 
@@ -280,6 +292,18 @@ export function Nav({ user, activeTournaments }: NavProps) {
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="justify-start"
+                  onClick={() => {
+                    setHelpOpen(true);
+                    setMobileOpen(false);
+                  }}
+                >
+                  <HelpCircle className="mr-2 size-4" />
+                  {t("help")}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="justify-start text-destructive"
                   onClick={handleSignOut}
                 >
@@ -288,9 +312,23 @@ export function Nav({ user, activeTournaments }: NavProps) {
                 </Button>
               </div>
             ) : (
-              <Button size="sm" className="w-full" onClick={handleSignIn}>
-                {tc("login")}
-              </Button>
+              <div className="flex flex-col gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start"
+                  onClick={() => {
+                    setHelpOpen(true);
+                    setMobileOpen(false);
+                  }}
+                >
+                  <HelpCircle className="mr-2 size-4" />
+                  {t("help")}
+                </Button>
+                <Button size="sm" className="w-full" onClick={handleSignIn}>
+                  {tc("login")}
+                </Button>
+              </div>
             )}
           </div>
         )}
@@ -302,6 +340,8 @@ export function Nav({ user, activeTournaments }: NavProps) {
           currentDisplayName={user.displayName}
         />
       )}
+      {/* Controlled help dialog opened from the mobile hamburger menu */}
+      <HelpDialog open={helpOpen} onOpenChange={setHelpOpen} showTrigger={false} />
     </>
   );
 }
