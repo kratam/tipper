@@ -30,7 +30,7 @@ export function InviteCodeBadge({ inviteCode }: { inviteCode: string }) {
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-6" onClick={handleCopy}>
               {copied ? (
-                <Check className="size-3 text-green-500" />
+                <Check className="size-3 text-win" />
               ) : (
                 <ClipboardCopy className="size-3" />
               )}

@@ -41,7 +41,7 @@ export function TeamLogo({ name, logoUrl, size = 28, shape = "square", className
         className={cn(
           rounding,
           "object-contain",
-          isPlainFlag(logoUrl) && "ring-1 ring-black/10 dark:ring-white/15",
+          isPlainFlag(logoUrl) && "ring-1 ring-border",
           className,
         )}
       />

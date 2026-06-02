@@ -14,7 +14,7 @@ export function TokenIcon({ size = 12, className }: TokenIconProps) {
       width={size}
       height={size}
       aria-hidden
-      className={cn("inline-block shrink-0 align-[-0.125em]", className)}
+      className={cn("inline-block shrink-0 rounded-full align-[-0.125em]", className)}
     />
   );
 }
