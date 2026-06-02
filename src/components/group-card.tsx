@@ -56,7 +56,7 @@ function CardInner({ group, memberCount, profit, variant = "own" }: GroupCardPro
   return (
     <div
       className={cn(
-        "w-full overflow-hidden rounded-lg border border-border bg-card text-left shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_12px_28px_-22px_rgba(0,0,0,0.9)] transition-all hover:-translate-y-[3px] hover:border-gold-line",
+        "w-full overflow-hidden rounded-lg border border-border bg-card text-left shadow-card transition-all hover:-translate-y-[3px] hover:border-gold-line",
         variant === "public" && "border-dashed",
       )}
     >

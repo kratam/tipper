@@ -134,7 +134,7 @@ export function GroupTokenSummary({
           <Link
             key={g.groupId}
             href={`/tournaments/${g.tournamentSlug}/groups/${g.groupSlug}`}
-            className="flex flex-col gap-[11px] rounded-lg border border-border bg-card p-[15px] text-left shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_12px_28px_-22px_rgba(0,0,0,0.9)] transition-all hover:-translate-y-0.5 hover:border-gold-line"
+            className="flex flex-col gap-[11px] rounded-lg border border-border bg-card p-[15px] text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-gold-line"
           >
             {/* Top: icon + name + rank */}
             <div className="flex items-start gap-2.5">

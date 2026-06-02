@@ -52,6 +52,10 @@
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.2);
+
+  /* theme-aware card shadows (values in :root/.dark) → shadow-card / shadow-card-hover */
+  --shadow-card: var(--card-shadow);
+  --shadow-card-hover: var(--card-shadow-hover);
 }
 
 :root {
@@ -91,6 +95,8 @@
   --gold-soft: color-mix(in oklab, #f0b850 16%, transparent);
   --gold-line: color-mix(in oklab, #f0b850 38%, transparent);
   --nav-bg: #0e1320;
+  --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 10px 22px -20px rgba(60, 45, 15, 0.45);
+  --card-shadow-hover: 0 16px 30px -22px rgba(60, 45, 15, 0.4), 0 0 0 1px var(--gold-line) inset;
   color-scheme: light;
 }
 
@@ -129,6 +135,8 @@
   --gold-soft: color-mix(in oklab, #f0b850 16%, transparent);
   --gold-line: color-mix(in oklab, #f0b850 38%, transparent);
   --nav-bg: #0a0f1a;
+  --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 28px -22px rgba(0, 0, 0, 0.9);
+  --card-shadow-hover: 0 16px 30px -22px rgba(0, 0, 0, 0.9), 0 0 0 1px var(--gold-line) inset;
   color-scheme: dark;
 }
 
