@@ -125,7 +125,7 @@ export function Nav({ user, activeTournaments }: NavProps) {
             <ThemeToggle />
 
             {/* Locale switcher */}
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
@@ -144,7 +144,7 @@ export function Nav({ user, activeTournaments }: NavProps) {
 
             {/* User menu or login */}
             {user ? (
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
