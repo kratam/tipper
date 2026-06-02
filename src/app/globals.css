@@ -223,3 +223,18 @@
 .tc-live-dot {
   animation: livepulse 1.4s ease-out infinite;
 }
+
+/*
+ * A Radix modális scroll-lock (react-remove-scroll) futásidőben ezt injektálja:
+ *   body[data-scroll-locked] { margin-right: <scrollbar>px !important }
+ * hogy az elrejtett scrollbart kompenzálja. Mivel a `scrollbar-gutter: stable` (lásd fent) már
+ * fenntartja ezt a helyet, ez dupla kompenzáció lenne, és jobbra tolná a full-bleed headert
+ * (pl. tipp-modal nyitásakor). Magasabb specificitású (`html body[...]`) + !important szabály
+ * felülírja a könyvtár `body[...]` szelektorát, forrássorrendtől függetlenül.
+ */
+html body[data-scroll-locked] {
+  /* biome-ignore lint/complexity/noImportantStyles: must beat react-remove-scroll's injected !important margin */
+  margin-right: 0 !important;
+  /* biome-ignore lint/complexity/noImportantStyles: must beat react-remove-scroll's injected !important padding */
+  padding-right: 0 !important;
+}
