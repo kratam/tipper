@@ -16,7 +16,8 @@
     "groups": "Csoportjaim",
     "admin": "Admin",
     "displayName": "Becenév",
-    "locale": "Nyelv"
+    "locale": "Nyelv",
+    "toggleTheme": "Téma váltása"
   },
   "landing": {
     "title": "TippCasino",

@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { DisplayNameDialog } from "@/components/display-name-dialog";
 import { HelpDialog } from "@/components/help-dialog";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -120,6 +121,9 @@ export function Nav({ user, activeTournaments }: NavProps) {
               <HelpDialog />
             </span>
 
+            {/* Theme toggle */}
+            <ThemeToggle />
+
             {/* Locale switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -153,7 +157,7 @@ export function Nav({ user, activeTournaments }: NavProps) {
                     <span className="max-w-30 truncate font-semibold text-[13.5px] max-[700px]:hidden">
                       {displayedName}
                     </span>
-                    <LogOut className="size-4 text-white/55" />
+                    <Menu className="size-4 text-white/55" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-auto">

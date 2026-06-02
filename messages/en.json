@@ -16,7 +16,8 @@
     "groups": "My Groups",
     "admin": "Admin",
     "displayName": "Display name",
-    "locale": "Language"
+    "locale": "Language",
+    "toggleTheme": "Toggle theme"
   },
   "landing": {
     "title": "TippCasino",
