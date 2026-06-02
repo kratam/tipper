@@ -1,3 +1,4 @@
+import { Crown } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { TournamentLogo } from "@/components/tournament-logo";
@@ -242,11 +243,17 @@ export default async function TournamentDetailPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        {tournament.logoUrl && (
-          <TournamentLogo src={tournament.logoUrl} alt={tournament.name} size={40} />
+      <div className="mt-1.5 mb-2 flex items-center gap-3.5">
+        {tournament.logoUrl ? (
+          <span className="grid size-[46px] place-items-center rounded-xl bg-linear-to-br from-gold to-gold-2 shadow-[0_8px_20px_-8px_var(--gold-2)]">
+            <TournamentLogo src={tournament.logoUrl} alt={tournament.name} size={32} />
+          </span>
+        ) : (
+          <span className="grid size-[46px] place-items-center rounded-xl bg-linear-to-br from-gold to-gold-2 text-gold-ink shadow-[0_8px_20px_-8px_var(--gold-2)]">
+            <Crown className="size-6" />
+          </span>
         )}
-        <h1 className="font-bold font-mono text-2xl tracking-tight">{tournament.name}</h1>
+        <h1 className="font-bold font-mono text-[27px] tracking-[0.01em]">{tournament.name}</h1>
       </div>
       <TournamentTabs
         matches={matchesData}

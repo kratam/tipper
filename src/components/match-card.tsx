@@ -1,6 +1,6 @@
 "use client";
 
-import { Circle } from "lucide-react";
+import { Target } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { TeamLogo } from "@/components/team-logo";
@@ -78,41 +78,21 @@ interface MatchCardProps {
   onClick: () => void;
 }
 
-function isTodayOrTomorrow(dateStr: string, timeZone: string): boolean {
-  const fmt = (d: Date) =>
-    new Intl.DateTimeFormat("en-CA", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      timeZone,
-    }).format(d);
-
-  const matchDay = fmt(new Date(dateStr));
-  const today = fmt(new Date());
-
-  // Add 1 day to today
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowDay = fmt(tomorrow);
-
-  return matchDay === today || matchDay === tomorrowDay;
-}
-
 function StakePill({ bet, isFinished }: { bet: UserBet; isFinished: boolean }) {
   const net = isFinished && bet.payout != null ? bet.payout - bet.stake : null;
 
   const pillStyle =
     net === null
-      ? "bg-muted text-muted-foreground"
+      ? "bg-surface-3 text-muted-foreground border-border"
       : net > 0
-        ? "bg-emerald-500/10 text-emerald-600"
+        ? "bg-win-soft text-win border-transparent"
         : net < 0
-          ? "bg-destructive/8 text-destructive"
-          : "bg-muted text-muted-foreground";
+          ? "bg-loss-soft text-loss border-transparent"
+          : "bg-surface-3 text-muted-foreground border-border";
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] ${pillStyle}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[11px] ${pillStyle}`}
     >
       <span className="font-medium">{bet.groupName}</span>
       {net !== null ? (
@@ -122,7 +102,7 @@ function StakePill({ bet, isFinished }: { bet: UserBet; isFinished: boolean }) {
       ) : (
         <span>{bet.stake}</span>
       )}
-      <TokenIcon size={10} />
+      <TokenIcon size={11} />
     </span>
   );
 }
@@ -134,27 +114,20 @@ function BetSection({ bets, isFinished }: { bets: UserBet[]; isFinished: boolean
   const isWin = first.result1x2Correct === true;
   const isLoss = first.result1x2Correct === false;
 
-  const borderColor = isWin
-    ? "border-emerald-500/15"
-    : isLoss
-      ? "border-destructive/10"
-      : "border-border";
-
   return (
-    <div
-      className={`col-span-full mt-1 flex flex-col items-center gap-1 border-t pt-1.5 ${borderColor}`}
-    >
+    <div className="flex flex-col items-center gap-1.5 border-border border-t pt-[9px]">
       {/* Tipp (egyszer) */}
       <span
-        className={`font-mono font-semibold text-[13px] ${
-          isWin ? "text-emerald-500" : isLoss ? "text-destructive line-through" : "text-foreground"
+        className={`flex items-center gap-1 font-bold font-mono text-[15px] ${
+          isWin ? "text-win" : isLoss ? "text-loss line-through" : "text-foreground"
         }`}
       >
-        🎯 {first.predictedHome} – {first.predictedAway}
+        <Target className="size-3.5" />
+        {first.predictedHome} – {first.predictedAway}
       </span>
 
       {/* Csoport tokenek pill-ekben */}
-      <div className="flex flex-wrap justify-center gap-1">
+      <div className="flex flex-wrap justify-center gap-1.5">
         {bets.map((bet) => (
           <StakePill key={bet.id} bet={bet} isFinished={isFinished} />
         ))}
@@ -193,134 +166,117 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
   const isScheduled = match.status === "scheduled";
   const participantsUnknown = !match.participantsKnown;
   const hasNoBet = isScheduled && match.userBets.length === 0 && !participantsUnknown;
-  const isUrgent = hasNoBet && isTodayOrTomorrow(match.scheduledAt, timezone);
   const localTime = useLocalTime(match.scheduledAt, timezone);
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full flex-col rounded-lg border px-3 py-2.5 text-left transition-all hover:bg-accent hover:ring-1 hover:ring-foreground/15 ${
-        isUrgent
-          ? "border-amber-500/40 border-l-[3px] border-l-amber-500 bg-amber-100 dark:bg-amber-950/40"
-          : hasNoBet
-            ? "border-border border-l-[3px] border-l-amber-400 bg-card"
-            : "border-border bg-card"
+      className={`flex w-full flex-col gap-2 rounded-lg border border-border bg-card p-[15px] text-left shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_12px_28px_-22px_rgba(0,0,0,0.9)] transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-gold-line hover:shadow-[0_16px_30px_-22px_rgba(0,0,0,0.9),0_0_0_1px_var(--gold-line)_inset] ${
+        isLive ? "border-l-[3px] border-l-loss" : hasNoBet ? "border-l-[3px] border-l-gold" : ""
       }`}
     >
-      <div className="grid w-full grid-cols-[1fr_auto_1fr] gap-x-2">
-        {/* ── Sor 1: Idő / státusz ── */}
-        <div className="col-span-full flex flex-col items-center">
-          {isLive ? (
-            <span className="flex items-center gap-1 font-semibold text-[10px] text-red-500 leading-none">
-              <Circle className="size-1.5 animate-pulse fill-red-500 text-red-500" />
-              {t("live")}
-            </span>
-          ) : isFinished ? (
-            <span className="font-medium text-[9px] text-muted-foreground/50 uppercase leading-none tracking-wider">
-              {t("finished")}
-            </span>
-          ) : (
-            <>
-              {/* Primary = viewer's local time (when it differs from the venue
-                  tz); the venue/match time moves to the small secondary line.
-                  localTime is null on SSR and until mount, so the venue time is
-                  the deterministic fallback and there is no hydration mismatch. */}
-              <span className="font-mono font-semibold text-sm tabular-nums leading-none">
-                {localTime ?? formatTime(match.scheduledAt, timezone)}
-              </span>
-              {localTime && (
-                <span className="text-[9px] text-muted-foreground/50">
-                  {t("venueTime", { time: formatTime(match.scheduledAt, timezone) })}
-                </span>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* ── Sor 2: Csapatok + eredmény/vs ── */}
-        {/* Hazai csapat */}
-        <div className="flex min-w-0 items-center gap-2 py-0.5">
-          <TeamLogo name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} />
-          <span className="truncate font-medium text-sm">{match.homeTeam.name}</span>
-        </div>
-
-        {/* Középső: vs vagy eredmény */}
-        <div className="flex items-center justify-center px-2">
-          {isFinished || isLive ? (
-            <span className="font-bold font-mono text-[22px] tabular-nums leading-tight">
+      {/* ── Idő / státusz ── */}
+      <div className="flex flex-col items-center leading-[1.1]">
+        {isLive ? (
+          <span className="inline-flex items-center gap-1.5 font-bold font-mono text-[13px] text-loss">
+            <span className="tc-live-dot size-[9px] rounded-full bg-loss" />
+            {t("live")}
+          </span>
+        ) : isFinished ? (
+          <>
+            <span className="font-bold font-mono text-[15px] tabular-nums">
               {match.homeScore}–{match.awayScore}
             </span>
-          ) : (
-            <span className="text-[9px] text-muted-foreground/40 tracking-[0.15em]">vs</span>
-          )}
-        </div>
-
-        {/* Vendég csapat */}
-        <div className="flex min-w-0 items-center justify-end gap-2 py-0.5">
-          <span className="truncate font-medium text-sm">{match.awayTeam.name}</span>
-          <TeamLogo name={match.awayTeam.name} logoUrl={match.awayTeam.logoUrl} />
-        </div>
-
-        {/* ── Sor 2: Odds ── */}
-        {match.odds && (
+            <span className="text-[10px] text-faint">{t("finished")}</span>
+          </>
+        ) : (
           <>
-            <div className="flex items-baseline gap-1 pb-0.5">
-              <span className="font-semibold text-[9px] text-muted-foreground/50">1</span>
-              <span
-                className={`font-medium font-mono text-[11px] ${isScheduled ? "" : "text-muted-foreground/60"}`}
-                style={isScheduled ? { color: oddsColor(match.odds.homeOdds) } : undefined}
-              >
-                {match.odds.homeOdds}
+            {/* Primary = viewer's local time (when it differs from the venue
+                tz); the venue/match time moves to the small secondary line.
+                localTime is null on SSR and until mount, so the venue time is
+                the deterministic fallback and there is no hydration mismatch. */}
+            <span className="font-bold font-mono text-[15px] tabular-nums">
+              {localTime ?? formatTime(match.scheduledAt, timezone)}
+            </span>
+            {localTime && (
+              <span className="text-[10px] text-faint">
+                {t("venueTime", { time: formatTime(match.scheduledAt, timezone) })}
               </span>
-            </div>
-            <div className="flex items-baseline justify-center gap-1 pb-0.5">
-              <span className="font-semibold text-[9px] text-muted-foreground/50">X</span>
-              <span
-                className={`font-medium font-mono text-[11px] ${isScheduled ? "" : "text-muted-foreground/60"}`}
-                style={isScheduled ? { color: oddsColor(match.odds.drawOdds) } : undefined}
-              >
-                {match.odds.drawOdds}
-              </span>
-            </div>
-            <div className="flex items-baseline justify-end gap-1 pb-0.5">
-              <span className="font-semibold text-[9px] text-muted-foreground/50">2</span>
-              <span
-                className={`font-medium font-mono text-[11px] ${isScheduled ? "" : "text-muted-foreground/60"}`}
-                style={isScheduled ? { color: oddsColor(match.odds.awayOdds) } : undefined}
-              >
-                {match.odds.awayOdds}
-              </span>
-            </div>
+            )}
           </>
         )}
-
-        {/* ── Sor 3: Tipp ── */}
-        {match.userBets.length > 0 ? (
-          <BetSection bets={match.userBets} isFinished={isFinished} />
-        ) : participantsUnknown ? (
-          <div className="col-span-full mt-1 flex justify-center border-border border-t pt-1.5">
-            <span className="text-muted-foreground/50 text-xs italic">
-              {t("participantsUnknown")}
-            </span>
-          </div>
-        ) : (
-          isScheduled && (
-            <div
-              className={`col-span-full mt-1 flex justify-center border-t pt-1.5 ${
-                isUrgent ? "border-amber-500/15" : "border-border"
-              }`}
-            >
-              <span
-                className={`text-xs ${isUrgent ? "font-medium text-amber-600" : "text-muted-foreground/40"}`}
-              >
-                {isUrgent ? "🎯 " : ""}
-                {t("noBet")}
-              </span>
-            </div>
-          )
-        )}
       </div>
+
+      {/* ── Csapat-sor ── */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        {/* Hazai csapat */}
+        <div className="flex min-w-0 items-center gap-2">
+          <TeamLogo
+            name={match.homeTeam.name}
+            logoUrl={match.homeTeam.logoUrl}
+            size={26}
+            className="h-[19px] w-[26px] object-cover shadow-[0_0_0_1px_var(--border)]"
+          />
+          <span className="truncate font-semibold text-[14px]">{match.homeTeam.name}</span>
+        </div>
+
+        {/* Középső: VS (eredmény az idő-blokkban jelenik meg) */}
+        <span className="text-[10px] text-faint tracking-[0.2em]">
+          {isFinished || isLive ? "" : "VS"}
+        </span>
+
+        {/* Vendég csapat */}
+        <div className="flex min-w-0 items-center justify-end gap-2">
+          <span className="truncate font-semibold text-[14px]">{match.awayTeam.name}</span>
+          <TeamLogo
+            name={match.awayTeam.name}
+            logoUrl={match.awayTeam.logoUrl}
+            size={26}
+            className="h-[19px] w-[26px] object-cover shadow-[0_0_0_1px_var(--border)]"
+          />
+        </div>
+      </div>
+
+      {/* ── Odds 1/X/2 (csak közelgőnél, ahogy a prototípus) ── */}
+      {match.odds && isScheduled && (
+        <div className="grid grid-cols-3 gap-1">
+          <span className="flex items-baseline justify-center gap-1.5 rounded-[7px] bg-surface-2 py-[3px] font-mono text-[12px]">
+            <span className="font-bold text-[9px] text-faint">1</span>
+            <span className="font-semibold" style={{ color: oddsColor(match.odds.homeOdds) }}>
+              {match.odds.homeOdds}
+            </span>
+          </span>
+          <span className="flex items-baseline justify-center gap-1.5 rounded-[7px] bg-surface-2 py-[3px] font-mono text-[12px]">
+            <span className="font-bold text-[9px] text-faint">X</span>
+            <span className="font-semibold" style={{ color: oddsColor(match.odds.drawOdds) }}>
+              {match.odds.drawOdds}
+            </span>
+          </span>
+          <span className="flex items-baseline justify-center gap-1.5 rounded-[7px] bg-surface-2 py-[3px] font-mono text-[12px]">
+            <span className="font-bold text-[9px] text-faint">2</span>
+            <span className="font-semibold" style={{ color: oddsColor(match.odds.awayOdds) }}>
+              {match.odds.awayOdds}
+            </span>
+          </span>
+        </div>
+      )}
+
+      {/* ── Tipp-sáv ── */}
+      {match.userBets.length > 0 ? (
+        <BetSection bets={match.userBets} isFinished={isFinished} />
+      ) : participantsUnknown ? (
+        <div className="flex justify-center border-border border-t pt-[9px]">
+          <span className="text-[12.5px] text-faint italic">{t("participantsUnknown")}</span>
+        </div>
+      ) : (
+        isScheduled && (
+          <div className="flex items-center justify-center gap-1 border-border border-t pt-[9px] font-semibold text-[12.5px] text-gold">
+            <Target className="size-3.5" />
+            {t("noBet")}
+          </div>
+        )
+      )}
     </button>
   );
 }

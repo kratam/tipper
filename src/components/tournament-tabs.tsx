@@ -346,35 +346,41 @@ export function TournamentTabs({
           <p className="py-8 text-center text-muted-foreground">{tMatches("noMatches")}</p>
         ) : (
           <Accordion type="multiple" defaultValue={initialOpen} className="flex flex-col gap-2">
-            {filteredDays.map((day) => (
-              <AccordionItem key={day.dateKey} value={day.dateKey} className="border-none">
-                <AccordionTrigger className="rounded-lg bg-muted px-4 py-2.5 hover:no-underline">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm">{day.label}</span>
-                    <span className="text-muted-foreground text-xs">
-                      {t("betProgress", {
-                        betCount: day.matches.filter((m) =>
-                          sortedGroupInfosByMatch[m.id]?.some((g) => g.existingBet),
-                        ).length,
-                        total: day.matches.length,
-                      })}
+            {filteredDays.map((day) => {
+              const betCount = day.matches.filter((m) =>
+                sortedGroupInfosByMatch[m.id]?.some((g) => g.existingBet),
+              ).length;
+              const isFull = betCount === day.matches.length && day.matches.length > 0;
+              return (
+                <AccordionItem key={day.dateKey} value={day.dateKey} className="border-none">
+                  <AccordionTrigger className="h-10 gap-2.5 rounded-[calc(var(--radius)*0.85)] border border-border bg-surface-2 px-4 transition-[border-color,box-shadow] hover:bg-surface-3 hover:no-underline">
+                    <span className="flex items-center gap-2.5">
+                      <span className="font-[650] text-[14px]">{day.label}</span>
+                      <span
+                        className={`font-mono text-[12px] ${isFull ? "text-win" : "text-faint"}`}
+                      >
+                        {t("betProgress", {
+                          betCount,
+                          total: day.matches.length,
+                        })}
+                      </span>
                     </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-2">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {day.matches.map((match) => (
-                      <MatchCard
-                        key={match.id}
-                        match={match}
-                        timezone={timezone}
-                        onClick={() => handleMatchClick(match)}
-                      />
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-3 pb-0">
+                    <div className="grid grid-cols-1 gap-3 min-[560px]:grid-cols-2 min-[880px]:grid-cols-3">
+                      {day.matches.map((match) => (
+                        <MatchCard
+                          key={match.id}
+                          match={match}
+                          timezone={timezone}
+                          onClick={() => handleMatchClick(match)}
+                        />
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
           </Accordion>
         )}
       </div>
