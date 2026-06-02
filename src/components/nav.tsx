@@ -75,18 +75,18 @@ export function Nav({ user, activeTournaments }: NavProps) {
 
   return (
     <>
-      <nav className="nav-header sticky top-0 z-50 bg-background/95 shadow-black/10 shadow-lg backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
+      <nav className="sticky top-0 z-40 border-white/[0.07] border-b bg-[color-mix(in_oklab,var(--nav-bg)_92%,transparent)] shadow-[0_10px_30px_-20px_rgba(0,0,0,0.9)] backdrop-blur-[14px] backdrop-saturate-150">
+        <div className="mx-auto flex h-[60px] max-w-[1024px] items-center justify-between gap-3 px-4 text-[#f2f5fb]">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2.5">
             <Image
               src="/tippcasino-logo.png"
               alt="TippCasino"
-              width={32}
-              height={32}
-              className="size-8"
+              width={30}
+              height={30}
+              className="size-[30px]"
             />
-            <span className="bg-linear-to-r from-white via-(--brand-gold-light) to-(--brand-gold) bg-clip-text font-brand text-transparent text-xl tracking-tight">
+            <span className="bg-linear-to-r from-white via-gold to-gold-2 bg-clip-text font-brand text-[21px] text-transparent tracking-tight max-[700px]:hidden">
               TippCasino
             </span>
           </Link>
@@ -95,31 +95,42 @@ export function Nav({ user, activeTournaments }: NavProps) {
           <div className="hidden items-center gap-1 md:flex">
             {user &&
               activeTournaments.slice(0, MAX_HEADER_TOURNAMENTS).map((tournament) => (
-                <Button key={tournament.id} variant="ghost" size="sm" asChild>
-                  <Link href={`/tournaments/${tournament.slug}`}>{tournament.name}</Link>
-                </Button>
+                <Link
+                  key={tournament.id}
+                  href={`/tournaments/${tournament.slug}`}
+                  className="inline-flex h-[34px] items-center rounded-[9px] px-3 font-semibold text-[13px] text-white/60 transition hover:bg-white/[0.07] hover:text-white"
+                >
+                  {tournament.name}
+                </Link>
               ))}
             {user && activeTournaments.length > MAX_HEADER_TOURNAMENTS && (
-              <Button variant="ghost" size="icon" className="size-8" asChild>
-                <Link href="/tournaments">
-                  <Ellipsis className="size-4" />
-                </Link>
-              </Button>
+              <Link
+                href="/tournaments"
+                className="inline-flex size-[34px] items-center justify-center rounded-[9px] text-white/60 transition hover:bg-white/[0.07] hover:text-white"
+              >
+                <Ellipsis className="size-4" />
+              </Link>
             )}
           </div>
 
           {/* Right side */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {/* Help */}
-            <HelpDialog />
+            <span className="max-[400px]:hidden">
+              <HelpDialog />
+            </span>
 
             {/* Locale switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1.5" disabled={isPending}>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  className="inline-flex h-[34px] items-center gap-1.5 rounded-[10px] border border-white/[0.13] bg-white/[0.07] px-[11px] font-semibold text-[12px] text-white/90 transition hover:bg-white/[0.14] disabled:opacity-50"
+                >
                   <Globe className="size-4" />
-                  <span className="text-xs uppercase">{locale}</span>
-                </Button>
+                  <span className="uppercase max-[700px]:hidden">{locale}</span>
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => switchLocale("hu")}>Magyar</DropdownMenuItem>
@@ -131,14 +142,19 @@ export function Nav({ user, activeTournaments }: NavProps) {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="hidden gap-2 md:flex">
-                    <Avatar className="size-6">
+                  <button
+                    type="button"
+                    className="hidden h-[38px] items-center gap-2 rounded-sm border border-white/[0.09] bg-white/[0.06] py-1 pr-2 pl-1 text-[#f2f5fb] transition hover:bg-white/[0.11] md:flex"
+                  >
+                    <Avatar className="size-7">
                       <AvatarImage src={user.avatarUrl ?? undefined} />
                       <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                     </Avatar>
-                    <span className="max-w-30 truncate text-sm">{displayedName}</span>
-                    <Menu className="size-4 text-muted-foreground" />
-                  </Button>
+                    <span className="max-w-30 truncate font-semibold text-[13.5px] max-[700px]:hidden">
+                      {displayedName}
+                    </span>
+                    <LogOut className="size-4 text-white/55" />
+                  </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-auto">
                   <DropdownMenuItem asChild>
@@ -180,8 +196,8 @@ export function Nav({ user, activeTournaments }: NavProps) {
             {/* Mobile hamburger */}
             <Button
               variant="ghost"
-              size="sm"
-              className="md:hidden"
+              size="icon-sm"
+              className="text-white/78 hover:bg-white/[0.08] hover:text-white md:hidden"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
               {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -191,7 +207,7 @@ export function Nav({ user, activeTournaments }: NavProps) {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="border-white/10 border-t bg-background px-4 pt-2 pb-4 md:hidden">
+          <div className="border-white/[0.07] border-t bg-nav-bg px-4 pt-2 pb-4 md:hidden">
             {user ? (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 px-2 py-2">

@@ -37,12 +37,12 @@ async function MissingTipsLink({
     .filter((d): d is UpcomingDaySummary => !!d && d.missingBets > 0)
     .map((d) => `${d.label}: ${d.missingBets}`);
 
-  const colorClass = hasUrgent ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground";
+  const colorClass = hasUrgent ? "text-gold" : "text-muted-foreground";
 
   return (
     <Link
       href={`/tournaments/${tournamentSlug}`}
-      className={`group inline-flex shrink-0 items-center gap-1.5 font-medium text-sm hover:underline ${colorClass}`}
+      className={`group inline-flex shrink-0 items-center gap-1.5 font-semibold text-[12.5px] hover:underline ${colorClass}`}
     >
       <CircleAlert className="size-4" />
       <span>{t("totalMissing", { count: totalMissing })}</span>
@@ -63,20 +63,22 @@ export function GroupPageHeader({
   days,
 }: GroupPageHeaderProps) {
   return (
-    <div className="flex items-start justify-between gap-3">
-      <div className="flex min-w-0 flex-col gap-0.5">
+    <div className="mt-1 mb-[18px] flex items-start justify-between gap-3">
+      <div className="flex min-w-0 flex-col">
         <Link
           href={`/tournaments/${tournamentSlug}`}
-          className="group inline-flex items-center gap-1.5 text-muted-foreground text-xs uppercase tracking-wider hover:text-foreground"
+          className="group inline-flex items-center gap-[7px] text-[11px] text-muted-foreground uppercase tracking-[0.12em] transition-colors hover:text-foreground"
         >
           {tournamentLogoUrl && (
-            <TournamentLogo src={tournamentLogoUrl} alt={tournamentName} size={14} />
+            <TournamentLogo src={tournamentLogoUrl} alt={tournamentName} size={16} />
           )}
           <span className="truncate">{tournamentName}</span>
         </Link>
-        <h1 className="truncate font-bold font-mono text-2xl tracking-tight">{groupName}</h1>
+        <h1 className="mt-1 truncate font-bold font-heading text-[26px] tracking-[0.01em] max-[700px]:text-[21px]">
+          {groupName}
+        </h1>
       </div>
-      <div className="flex shrink-0 items-center gap-1 pt-2">
+      <div className="flex shrink-0 items-center gap-2 pt-1">
         <MissingTipsLink tournamentSlug={tournamentSlug} days={days} />
         <GroupRulesDialog groupName={groupName} rules={rules} iconOnly />
       </div>
