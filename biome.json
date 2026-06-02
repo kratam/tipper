@@ -51,7 +51,8 @@
       "!*.min.js",
       "!.superpowers",
       "!.worktrees",
-      "!drizzle"
+      "!drizzle",
+      "!docs/assets"
     ]
   }
 }
