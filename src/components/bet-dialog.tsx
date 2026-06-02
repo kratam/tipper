@@ -123,16 +123,16 @@ export function BetDialog({
   );
 
   const scoreboardCenter = showScore ? (
-    <span className="font-bold font-mono text-2xl tabular-nums">
+    <span className="font-extrabold font-mono text-[32px] tabular-nums">
       {match.homeScore} : {match.awayScore}
     </span>
   ) : match.status === "live" ? (
-    <span className="flex items-center gap-1.5 font-semibold text-base text-red-500">
-      <Circle className="size-2 animate-pulse fill-red-500 text-red-500" />
+    <span className="flex items-center gap-1.5 font-bold text-[15px] text-loss">
+      <Circle className="size-2 animate-pulse fill-loss text-loss" />
       {t("live")}
     </span>
   ) : (
-    <span className="text-muted-foreground/40 text-xs tracking-[0.15em]">{t("vs")}</span>
+    <span className="text-faint text-xs tracking-[0.15em]">{t("vs")}</span>
   );
 
   return (
@@ -146,7 +146,7 @@ export function BetDialog({
             <MatchDateTime
               scheduledAt={match.scheduledAt}
               timeZone={timeZone}
-              className="font-mono text-[11px] text-muted-foreground"
+              className="font-mono text-[12px] text-muted-foreground"
             />
             <DialogDescription className="sr-only">
               {match.homeTeam.name} vs {match.awayTeam.name}

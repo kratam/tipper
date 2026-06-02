@@ -54,25 +54,25 @@ interface BetFormProps {
 function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const t = useTranslations("betting");
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1.5">
       <button
         type="button"
         onClick={() => onChange(Math.min(99, value + 1))}
-        className="flex h-5 w-8 items-center justify-center rounded-md bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
+        className="grid h-6 w-[38px] place-items-center rounded-lg border border-border bg-surface-2 text-muted-foreground transition-all hover:bg-surface-3 hover:text-foreground active:scale-90"
         aria-label={t("increaseScore")}
       >
-        <Plus className="size-3" />
+        <Plus className="size-3.5" />
       </button>
-      <span className="w-7 text-center font-bold font-mono text-2xl tabular-nums leading-none">
+      <span className="w-11 text-center font-extrabold font-mono text-[34px] tabular-nums leading-none">
         {value}
       </span>
       <button
         type="button"
         onClick={() => onChange(Math.max(0, value - 1))}
-        className="flex h-5 w-8 items-center justify-center rounded-md bg-muted/80 text-muted-foreground transition-all hover:bg-accent hover:text-foreground active:scale-90"
+        className="grid h-6 w-[38px] place-items-center rounded-lg border border-border bg-surface-2 text-muted-foreground transition-all hover:bg-surface-3 hover:text-foreground active:scale-90"
         aria-label={t("decreaseScore")}
       >
-        <Minus className="size-3" />
+        <Minus className="size-3.5" />
       </button>
     </div>
   );
@@ -82,14 +82,14 @@ function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number
 function OddCell({ label, value, selected }: { label: string; value: string; selected: boolean }) {
   return (
     <div
-      className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-mono text-sm transition-colors ${
+      className={`flex items-center justify-center gap-1.5 rounded-lg border p-[7px] font-mono text-sm transition-colors ${
         selected
-          ? "bg-amber-500/20 text-amber-700 ring-1 ring-amber-500/40"
-          : "bg-muted text-muted-foreground"
+          ? "border-gold-line bg-gold-soft font-bold text-gold"
+          : "border-border bg-surface-2 text-muted-foreground"
       }`}
     >
-      <span className="text-[10px] opacity-50">{label}</span>
-      <span className="font-semibold">{value}</span>
+      <span className="text-[10px] opacity-60">{label}</span>
+      <span>{value}</span>
     </div>
   );
 }
@@ -117,7 +117,7 @@ function BalanceInfoTooltip({
             className="inline-flex cursor-pointer"
             aria-label={label}
           >
-            <Info className="size-3.5 text-muted-foreground/50" />
+            <Info className="size-3.5 text-faint" />
           </button>
         </TooltipTrigger>
         <TooltipContent side="top" className={contentClassName}>
@@ -220,7 +220,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
             center={
               <div className="flex items-center gap-2">
                 <ScoreStepper value={homeScore} onChange={setHomeScore} />
-                <span className="font-mono text-lg text-muted-foreground">:</span>
+                <span className="font-mono text-[22px] text-faint">:</span>
                 <ScoreStepper value={awayScore} onChange={setAwayScore} />
               </div>
             }
@@ -252,9 +252,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
                 : undefined
             }
           />
-          {!odds && (
-            <p className="text-center text-amber-500 text-xs">{tMatches("oddsNotAvailable")}</p>
-          )}
+          {!odds && <p className="text-center text-gold text-xs">{tMatches("oddsNotAvailable")}</p>}
         </div>
 
         {/* Per-group stake + submit */}
@@ -276,8 +274,8 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
             <div key={group.groupId} className="border-border border-t px-5 py-4">
               {/* Csoport meta: név + tippelhető egyenleg */}
               <div className="flex items-baseline justify-between gap-2">
-                <span className="truncate font-medium text-sm">{group.groupName}</span>
-                <span className="flex shrink-0 items-center gap-1 font-mono text-muted-foreground text-xs">
+                <span className="truncate font-semibold text-sm">{group.groupName}</span>
+                <span className="flex shrink-0 items-center gap-1 font-mono text-faint text-xs">
                   {t("projectedBalance")} {effectiveBalance}
                   <BalanceInfoTooltip label={t("balanceDetails")}>
                     <div className="flex flex-col gap-0.5">
@@ -303,7 +301,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
                         <span>{t("lockedStakes")}:</span>
                         <span>{group.otherActiveStakes === 0 ? 0 : -group.otherActiveStakes}</span>
                       </div>
-                      <div className="my-0.5 border-primary-foreground/20 border-t" />
+                      <div className="my-0.5 border-border border-t" />
                       <div className="flex justify-between gap-4 font-bold">
                         <span>{t("projectedBalance")}:</span>
                         <span>{effectiveBalance}</span>
@@ -315,8 +313,8 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
               {/* Odds: lock-olt érték, és ha eltér, az újrakötéskori aktuális */}
               {lockedOdds ? (
                 <div className="mt-0.5 flex items-center gap-1 font-mono text-muted-foreground text-xs">
-                  <Lock className="size-3 text-amber-500" />
-                  <span className="text-amber-500">{lockedOdds}</span>
+                  <Lock className="size-3 text-gold" />
+                  <span className="text-gold">{lockedOdds}</span>
                   {currentOdds && currentOdds !== lockedOdds && (
                     <span>
                       · {t("currentOddsShort")} {currentOdds}
@@ -324,9 +322,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
                   )}
                 </div>
               ) : currentOdds ? (
-                <span className="mt-0.5 block font-mono text-amber-500 text-xs">
-                  @ {currentOdds}
-                </span>
+                <span className="mt-0.5 block font-mono text-gold text-xs">@ {currentOdds}</span>
               ) : null}
 
               {/* Tét: érték-mező + gyors preset gombok (rácsban, hogy mobilon se fusson ki) */}
@@ -359,7 +355,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
                         });
                       }
                     }}
-                    className="w-24 rounded-md border border-input bg-background px-2 py-1 text-center font-mono text-sm"
+                    className="w-24 rounded-lg border border-border bg-surface-2 px-2 py-1 text-center font-mono text-foreground text-sm"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
@@ -376,10 +372,10 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
                         setStakes({ ...stakes, [group.groupId]: preset.value });
                         setStakeInputs({ ...stakeInputs, [group.groupId]: String(preset.value) });
                       }}
-                      className={`flex items-center justify-center gap-1 rounded-md px-2 py-1.5 font-medium font-mono text-xs transition-colors ${
+                      className={`flex items-center justify-center gap-1 rounded-lg border px-1 py-2 font-mono font-semibold text-[13px] transition-colors ${
                         stakes[group.groupId] === preset.value
-                          ? "bg-foreground text-card"
-                          : "bg-muted text-muted-foreground hover:text-foreground"
+                          ? "border-transparent bg-foreground text-card"
+                          : "border-border bg-surface-2 text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       {preset.isPerMatch ? (
@@ -422,7 +418,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
                     onClick={() => handleCancel(group.existingBet?.id ?? "")}
                     disabled={isPending}
                     aria-label={t("cancel")}
-                    className="text-muted-foreground hover:text-destructive"
+                    className="text-faint hover:text-loss"
                   >
                     {isPending ? (
                       <Loader2 className="size-4 animate-spin" />
