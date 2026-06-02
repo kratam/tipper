@@ -1,6 +1,10 @@
 # TippCasino — Teendők
 
-> **Utolsó frissítés:** 2026-04-05
+> **Utolsó frissítés:** 2026-06-02
+
+## Kész
+
+- [x] **Prémium redesign (Fázis 0–9)** — Teljes UI újraépítés a `docs/assets/design_handoff_tippcasino_redesign` hifi handoff szerint: sötét-alapértelmezett „kaszinó" token-rendszer (`globals.css @theme`), Sora + JetBrains Mono fontok, egységes Segmented tab + Button rendszer, minden képernyő tiszta Tailwind utility rebuild-del. Részletek: `ARCHITECTURE.md` → Design system; terv: `docs/superpowers/plans/2026-06-02-tippcasino-redesign.md`. Auth-mögötti képernyők vizuális finomhangolása élő bejelentkezéssel még ajánlott.
 
 ## Deploy előtt
 

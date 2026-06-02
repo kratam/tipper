@@ -55,6 +55,33 @@ scripts/
   seed-dev-odds.sh         — Shell wrapper (.env.local-ból olvas, véd prod ellen)
 ```
 
+## Design system (UI)
+
+Prémium, **sötét-alapértelmezett „kaszinó" esztétika** arany kiemeléssel. A `<html>` fixen `dark` ([src/app/layout.tsx](src/app/layout.tsx)); a light tokenek a `:root`-ban készen állnak, de jelenleg nincs téma-váltó UI. Fontok: **Sora** (UI), **JetBrains Mono** (számok/odds/idő/címek), **Russo One** (logó/landing). Forrás-referencia: `docs/assets/design_handoff_tippcasino_redesign/` (hifi handoff + `styles.css` pixel-igazság), implementációs terv: `docs/superpowers/plans/2026-06-02-tippcasino-redesign.md`.
+
+### Token-rendszer ([src/app/globals.css](src/app/globals.css))
+
+Tiszta Tailwind v4 `@theme` + CSS custom property rendszer. A shadcn semantic tokenek értékét a dark designra hangoltuk (így minden shadcn primitív és `bg-card`/`text-muted-foreground` használat adaptál), plusz design-specifikus tokeneket adtunk:
+
+| Fogalom | Utility | Megjegyzés |
+|---|---|---|
+| oldal háttér | `bg-background` | `#0e1320` + glow/textúra `body::before/::after` |
+| felület / kártya | `bg-card` v. `bg-surface` | `#182135` |
+| másod-/harmad-felület | `bg-surface-2` / `bg-surface-3` | mezők / aktív-hover |
+| szöveg | `text-foreground` / `text-muted-foreground` / `text-faint` | |
+| keret | `border-border` / `border-border-strong` | |
+| **arany brand** | `text-gold` / `bg-gold` / `from-gold to-gold-2` / `text-gold-ink` / `bg-gold-soft` / `border-gold-line` | `primary` is erre mutat |
+| nyer / veszít | `text-win`/`bg-win-soft` · `text-loss`/`bg-loss-soft` | `destructive` = loss |
+
+**Névütközés (FONTOS):** a shadcn **`accent` token a halvány hover-háttér** (`surface-3`), NEM az arany. Az arany brandet a **`primary` / `*-gold`** utilityk hordozzák. Arany szöveg → `text-gold`/`text-primary`; arany gomb → `Button` default variáns.
+
+### Egységes komponensek
+
+- **Egyetlen tab-vezérlő:** `ui/tabs.tsx` (Segmented — arany alsó-vonal aktív tabon). Minden tab-felület ezt használja.
+- **Egyetlen gombrendszer:** `ui/button.tsx` (variánsok: `default`=arany gradiens, `secondary`, `ghost`, `outline`, `destructive`, `google`, `link`; méretek: `default`=38px, `sm`, `lg`=50px, `icon`, `icon-sm`).
+- `ui/badge.tsx` pill-variánsok: `win`/`loss`/`active`/`upcoming`/`finished`.
+- A többi shadcn primitív (`card`, `switch`, `input`, `textarea`, `dialog`) a fenti tokenekre van hangolva.
+
 ## DB séma
 
 **11 tábla, 3 enum.** Forrás: `src/db/schema.ts`

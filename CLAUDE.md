@@ -50,6 +50,7 @@ Token-alapú tippjáték ahol játékosok versenysorozatok meccseire fogadnak cs
 
 - Magyar nyelvű szövegek mindig ékezetekkel
 - Minden UI szöveg `useTranslations()` / `getTranslations()` — nincs hardcoded string
+- **Design system:** sötét-alapértelmezett „kaszinó" téma, tokenek a `globals.css @theme`-ben (részletek: `ARCHITECTURE.md` → Design system). **Egyetlen** Segmented tab (`ui/tabs.tsx`) és **egyetlen** Button-rendszer (`ui/button.tsx`) — ne hozz létre ad-hoc tabot/gombot. Arany brand = `text-gold`/`bg-gold`/`primary`; a shadcn `accent` token a halvány hover-háttér (nem arany). Új UI mindig ezeket a tokeneket/utilityket használja, ne raw hexet.
 - Server Actions: `"use server"`, mindig `getCurrentUser()` ellenőrzés
 - DB műveletek: Drizzle query API, nem raw SQL
 - Commit: conventional commits (feat/fix/chore/docs)
