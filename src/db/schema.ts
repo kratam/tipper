@@ -268,6 +268,37 @@ export const matchScheduleOverrides = pgTable("match_schedule_overrides", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const circles = pgTable(
+  "circles",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    inviteCode: text("invite_code").unique().notNull(),
+    ownerId: uuid("owner_id")
+      .references(() => users.id)
+      .notNull(),
+    description: text("description"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("circle_slug_idx").on(table.slug)],
+);
+
+export const circleMembers = pgTable(
+  "circle_members",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    circleId: uuid("circle_id")
+      .references(() => circles.id)
+      .notNull(),
+    userId: uuid("user_id")
+      .references(() => users.id)
+      .notNull(),
+    joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("circle_user_idx").on(table.circleId, table.userId)],
+);
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   groupMemberships: many(groupMembers),
@@ -332,4 +363,14 @@ export const matchScheduleOverridesRelations = relations(matchScheduleOverrides,
     fields: [matchScheduleOverrides.matchId],
     references: [matches.id],
   }),
+}));
+
+export const circlesRelations = relations(circles, ({ one, many }) => ({
+  owner: one(users, { fields: [circles.ownerId], references: [users.id] }),
+  members: many(circleMembers),
+}));
+
+export const circleMembersRelations = relations(circleMembers, ({ one }) => ({
+  circle: one(circles, { fields: [circleMembers.circleId], references: [circles.id] }),
+  user: one(users, { fields: [circleMembers.userId], references: [users.id] }),
 }));
