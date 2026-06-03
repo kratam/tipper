@@ -4,6 +4,7 @@ import { Check, Lock } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { BetDialog } from "@/components/bet-dialog";
+import { CircleSummary } from "@/components/circle-summary";
 import { GroupTokenSummary } from "@/components/group-token-summary";
 import { MatchCard, type MatchCardData } from "@/components/match-card";
 import { OfficialGroupRibbon } from "@/components/official-group-ribbon";
@@ -106,6 +107,21 @@ interface TournamentTabsProps {
   currentUserId: string;
   topPublicGroups?: PublicGroupSuggestion[];
   officialCard: OfficialCardData | null;
+  circleCards: {
+    circleId: string;
+    circleName: string;
+    circleSlug: string;
+    tournamentSlug: string;
+    myProfit: number;
+    myRank: number | null;
+    miniLeaderboard: {
+      rank: number;
+      userId: string;
+      userName: string;
+      userAvatarUrl: string | null;
+      profit: number;
+    }[];
+  }[];
 }
 
 type MatchFilter = "upcoming" | "played" | "all" | "podium";
@@ -152,6 +168,7 @@ export function TournamentTabs({
   currentUserId,
   topPublicGroups = [],
   officialCard,
+  circleCards,
 }: TournamentTabsProps) {
   const t = useTranslations("tournaments");
   const tMatches = useTranslations("matches");
@@ -308,6 +325,10 @@ export function TournamentTabs({
             topPublicGroups={topPublicGroups}
             hasOfficialGroup={!!officialCard}
           />
+        )}
+
+        {filter !== "podium" && (
+          <CircleSummary circles={circleCards} currentUserId={currentUserId} />
         )}
 
         {/* Unified filter row: upcoming / played / all / podium */}

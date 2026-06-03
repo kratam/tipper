@@ -5,9 +5,11 @@ import { TournamentLogo } from "@/components/tournament-logo";
 import { TournamentTabs } from "@/components/tournament-tabs";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { filterAndRerankLeaderboard } from "@/lib/circle-leaderboard";
 import { pickMiniLeaderboard } from "@/lib/leaderboard-utils";
 import { ensureOfficialMembership } from "@/lib/official-group";
 import { getUserBetsForTournament } from "@/queries/bets";
+import { getUserCircles } from "@/queries/circles";
 import {
   getBatchProjectedBalances,
   getTopPublicGroupsForTournament,
@@ -44,12 +46,15 @@ export default async function TournamentDetailPage({
   await ensureOfficialMembership(user.id, tournament.id, tournament.timezone);
 
   // Phase 2: all independent data in parallel
-  const [matches, userBets, userGroupMemberships, tournamentTeams] = await Promise.all([
-    getMatchesForTournament(tournament.id, tournament.useFlagFallback),
-    getUserBetsForTournament(user.id, tournament.id, tournament.useFlagFallback),
-    getUserGroups(user.id),
-    getTournamentTeams(tournament.id, tournament.useFlagFallback),
-  ]);
+  const [matches, userBets, userGroupMemberships, tournamentTeams, userCircles] = await Promise.all(
+    [
+      getMatchesForTournament(tournament.id, tournament.useFlagFallback),
+      getUserBetsForTournament(user.id, tournament.id, tournament.useFlagFallback),
+      getUserGroups(user.id),
+      getTournamentTeams(tournament.id, tournament.useFlagFallback),
+      getUserCircles(user.id),
+    ],
+  );
 
   const relevantGroups = userGroupMemberships.filter(
     (gm) => gm.group.tournamentId === tournament.id,
@@ -204,6 +209,36 @@ export default async function TournamentDetailPage({
       })()
     : null;
 
+  // Kör-kártyák: a hivatalos csoport teljes ranglistáját a kör tagjaira szűrjük.
+  // A teljes ranglistát csak akkor kérjük le, ha van köröm és van hivatalos csoport.
+  const officialGroup = officialGroupMembership?.group;
+  const officialFullLeaderboard =
+    userCircles.length > 0 && officialGroup ? await getGroupLeaderboard(officialGroup.id) : [];
+
+  const circleCards = officialGroup
+    ? userCircles.map((circle) => {
+        const memberIds = new Set(circle.members.map((m) => m.userId));
+        const filtered = filterAndRerankLeaderboard(officialFullLeaderboard, memberIds);
+        const mini = pickMiniLeaderboard(filtered, user.id, 3);
+        const myEntry = filtered.find((e) => e.userId === user.id);
+        return {
+          circleId: circle.id,
+          circleName: circle.name,
+          circleSlug: circle.slug,
+          tournamentSlug: tournament.slug,
+          myProfit: myEntry?.profit ?? 0,
+          myRank: myEntry?.rank ?? null,
+          miniLeaderboard: mini.map((e) => ({
+            rank: e.rank,
+            userId: e.userId,
+            userName: e.userName,
+            userAvatarUrl: e.userAvatarUrl,
+            profit: e.profit,
+          })),
+        };
+      })
+    : [];
+
   // Serialize matches for client component
   const matchesData = matches.map((m) => ({
     id: m.id,
@@ -267,6 +302,7 @@ export default async function TournamentDetailPage({
         currentUserId={user.id}
         topPublicGroups={topPublicGroups}
         officialCard={officialCard}
+        circleCards={circleCards}
       />
     </div>
   );
