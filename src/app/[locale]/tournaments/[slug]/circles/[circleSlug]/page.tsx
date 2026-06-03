@@ -1,10 +1,10 @@
-import { Users } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { CircleDetailTabs } from "@/components/circle-detail-tabs";
 import { InviteCodeBadge } from "@/components/invite-code-badge";
 import { TournamentLogo } from "@/components/tournament-logo";
-import { redirect } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { filterAndRerankLeaderboard } from "@/lib/circle-leaderboard";
 import { ensureOfficialMembership } from "@/lib/official-group";
@@ -42,25 +42,26 @@ export default async function CircleDetailPage({
   const isOwner = circle.ownerId === user.id;
 
   const header = (
-    <div className="flex flex-col gap-2">
-      <div className="mt-1.5 flex items-center gap-3.5">
-        {tournament.logoUrl ? (
-          <span className="grid size-[42px] place-items-center rounded-xl bg-surface-2">
-            <TournamentLogo src={tournament.logoUrl} alt={tournament.name} size={28} />
-          </span>
-        ) : (
-          <span className="grid size-[42px] place-items-center rounded-xl bg-surface-2 text-muted-foreground">
-            <Users className="size-5" />
-          </span>
-        )}
-        <div className="min-w-0">
-          <h1 className="truncate font-bold font-heading text-2xl tracking-tight">{circle.name}</h1>
-          <p className="truncate font-mono text-muted-foreground text-xs">
-            {tournament.name} · {t("filteredFrom")}
-          </p>
-        </div>
+    <div className="mt-1 mb-[18px] flex items-start justify-between gap-3">
+      <div className="flex min-w-0 flex-col">
+        <Link
+          href={`/tournaments/${tournament.slug}`}
+          className="group inline-flex items-center gap-[7px] self-start rounded-md text-[11px] text-gold-text uppercase tracking-[0.12em] transition-opacity hover:opacity-75"
+        >
+          {tournament.logoUrl && (
+            <TournamentLogo src={tournament.logoUrl} alt={tournament.name} size={16} />
+          )}
+          <span className="truncate font-semibold">{tournament.name}</span>
+          <ChevronRight className="size-3.5 shrink-0 opacity-70 transition-transform group-hover:translate-x-0.5" />
+        </Link>
+        <h1 className="mt-1 truncate font-bold font-heading text-[26px] tracking-[0.01em] max-[700px]:text-[21px]">
+          {circle.name}
+        </h1>
+        <p className="mt-0.5 truncate font-mono text-muted-foreground text-xs">
+          {t("filteredFrom")}
+        </p>
       </div>
-      <div className="flex justify-end">
+      <div className="flex shrink-0 items-center gap-2 pt-1">
         <InviteCodeBadge inviteCode={circle.inviteCode} />
       </div>
     </div>
