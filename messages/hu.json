@@ -313,7 +313,11 @@
     "title": "Csatlakozás",
     "joining": "Csatlakozás folyamatban...",
     "notFound": "A meghívókód nem található",
-    "error": "Hiba történt a csatlakozás során"
+    "error": "Hiba történt a csatlakozás során",
+    "signInCircleLabel": "Meghívtak a körbe",
+    "signInGroupLabel": "Meghívtak a csoportba",
+    "signInPrompt": "Jelentkezz be a csatlakozáshoz — utána automatikusan bekerülsz.",
+    "signInCta": "Bejelentkezés Google-fiókkal"
   },
   "circles": {
     "badge": "Kör",

@@ -148,6 +148,16 @@ Kezelés: `/circles` (létrehozás, meghívókód, tagok, kilépés/törlés). C
 `/join/[code]` — előbb csoport-, majd kör-kódként. A kör nem ír token-ledgert, így a
 tét/scoring/token logikára nincs hatása.
 
+**Meghívó kód megőrzése login-on át:** a `/join/[code]` oldal előbb feloldja a kódot
+(user nélkül is), és ha a látogató ki van jelentkezve, **nem** a `/`-ra redirektál (ami
+eldobná a kódot), hanem a [`JoinSignIn`](src/components/join-sign-in.tsx) képernyőt mutatja
+a kör/csoport nevével. A Google gomb `callbackURL`-je a [`buildJoinCallbackUrl`](src/lib/join-url.ts)
+locale-helyes `/join/[code]` útvonala, így a login után a böngésző visszatér ide, és a
+belépés egyetlen kattintással, automatikusan megtörténik. A Google bejelentkező gomb egységes
+([`GoogleSignInButton`](src/components/google-sign-in-button.tsx), `callbackURL` prop) — a
+landing is ezt használja. Korlát: két **külön** böngésző közt (pl. Messenger in-app webview →
+Chrome) a kódot csak maga a link viszi át, szerver-oldalról nem áthidalható.
+
 **Csoport vs. kör magyarázat:** a két fogalom különbségét közérthetően a
 [`GroupVsCircleNote`](src/components/group-vs-circle-note.tsx) komponens írja le (kör = csak
 szűri a hivatalos ranglistát; csoport = külön szabály → külön token és külön tét). A

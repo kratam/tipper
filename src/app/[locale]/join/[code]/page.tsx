@@ -1,9 +1,11 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { joinCircle } from "@/actions/circles";
 import { joinGroup } from "@/actions/groups";
+import { JoinSignIn } from "@/components/join-sign-in";
 import { Card, CardContent } from "@/components/ui/card";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { buildJoinCallbackUrl } from "@/lib/join-url";
 import { getCircleByInviteCode } from "@/queries/circles";
 import { getGroupByInviteCode } from "@/queries/groups";
 
@@ -13,12 +15,43 @@ export default async function JoinPage({
   params: Promise<{ code: string; locale: string }>;
 }) {
   const { code } = await params;
-  const [user, locale] = await Promise.all([getCurrentUser(), getLocale()]);
-  if (!user) return redirect({ href: "/", locale });
+  const [user, locale, t] = await Promise.all([
+    getCurrentUser(),
+    getLocale(),
+    getTranslations("join"),
+  ]);
 
-  const t = await getTranslations("join");
+  // A kódot bejelentkezés nélkül is feloldjuk, hogy a sign-in képernyőn
+  // megmutathassuk, mibe lép be a meghívott.
+  const [group, circle] = await Promise.all([
+    getGroupByInviteCode(code),
+    getCircleByInviteCode(code),
+  ]);
 
-  const group = await getGroupByInviteCode(code);
+  // Ismeretlen kód
+  if (!group && !circle) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <Card>
+          <CardContent className="p-6 text-center text-muted-foreground">
+            {t("notFound")}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Kijelentkezett meghívott: bejelentkező képernyő, ami a login után
+  // visszatér ide (callbackURL), így a belépés automatikusan megtörténik.
+  if (!user) {
+    return (
+      <JoinSignIn
+        targetName={group?.name ?? circle?.name ?? ""}
+        kind={group ? "group" : "circle"}
+        callbackURL={buildJoinCallbackUrl(locale, code)}
+      />
+    );
+  }
 
   // 1) Csoport-kód
   if (group) {
@@ -41,7 +74,6 @@ export default async function JoinPage({
   }
 
   // 2) Kör-kód
-  const circle = await getCircleByInviteCode(code);
   if (circle) {
     try {
       await joinCircle(code);
@@ -60,13 +92,4 @@ export default async function JoinPage({
     }
     redirect({ href: "/circles", locale });
   }
-
-  // 3) Egyik sem
-  return (
-    <div className="flex flex-1 items-center justify-center">
-      <Card>
-        <CardContent className="p-6 text-center text-muted-foreground">{t("notFound")}</CardContent>
-      </Card>
-    </div>
-  );
 }

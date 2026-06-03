@@ -313,7 +313,11 @@
     "title": "Join",
     "joining": "Joining...",
     "notFound": "Invite code not found",
-    "error": "An error occurred while joining"
+    "error": "An error occurred while joining",
+    "signInCircleLabel": "You've been invited to the circle",
+    "signInGroupLabel": "You've been invited to the group",
+    "signInPrompt": "Sign in to join — you'll be added automatically afterwards.",
+    "signInCta": "Sign in with Google"
   },
   "circles": {
     "badge": "Circle",
