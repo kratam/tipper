@@ -42,6 +42,7 @@
   --color-loss: var(--loss);
   --color-loss-soft: var(--loss-soft);
   --color-gold: var(--gold);
+  --color-gold-text: var(--gold-text);
   --color-gold-2: var(--gold-2);
   --color-gold-ink: var(--gold-ink);
   --color-gold-soft: var(--gold-soft);
@@ -90,6 +91,8 @@
   --loss: #d64560;
   --loss-soft: rgba(214, 69, 96, 0.1);
   --gold: #f0b850;
+  /* readable gold for text on light surfaces (bright gold fails contrast on cream) */
+  --gold-text: #8a5e0c;
   --gold-2: #d99a2e;
   --gold-ink: #2a1c05;
   --gold-soft: color-mix(in oklab, #f0b850 16%, transparent);
@@ -130,6 +133,7 @@
   --loss: #ff6b81;
   --loss-soft: rgba(255, 107, 129, 0.14);
   --gold: #f0b850;
+  --gold-text: #f0b850;
   --gold-2: #d99a2e;
   --gold-ink: #2a1c05;
   --gold-soft: color-mix(in oklab, #f0b850 16%, transparent);

@@ -71,6 +71,7 @@ Tiszta Tailwind v4 `@theme` + CSS custom property rendszer. A shadcn semantic to
 | szöveg | `text-foreground` / `text-muted-foreground` / `text-faint` | |
 | keret | `border-border` / `border-border-strong` | |
 | **arany brand** | `text-gold` / `bg-gold` / `from-gold to-gold-2` / `text-gold-ink` / `bg-gold-soft` / `border-gold-line` | `primary` is erre mutat |
+| **arany szöveg (olvasható)** | `text-gold-text` | téma-érzékeny: dark-ban a fényes `#f0b850`, light-ban sötétebb borostyán (`#8a5e0c`) — a fényes arany a krém háttéren megbukik kontraszton. Sima háttéren lévő arany **szövegnél** ezt használd, ne `text-gold`-ot |
 | nyer / veszít | `text-win`/`bg-win-soft` · `text-loss`/`bg-loss-soft` | `destructive` = loss |
 
 **Névütközés (FONTOS):** a shadcn **`accent` token a halvány hover-háttér** (`surface-3`), NEM az arany. Az arany brandet a **`primary` / `*-gold`** utilityk hordozzák. Arany szöveg → `text-gold`/`text-primary`; arany gomb → `Button` default variáns.

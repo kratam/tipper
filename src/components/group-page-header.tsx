@@ -67,7 +67,7 @@ export function GroupPageHeader({
       <div className="flex min-w-0 flex-col">
         <Link
           href={`/tournaments/${tournamentSlug}`}
-          className="group inline-flex items-center gap-[7px] self-start rounded-md text-[11px] text-gold/80 uppercase tracking-[0.12em] transition-colors hover:text-gold"
+          className="group inline-flex items-center gap-[7px] self-start rounded-md text-[11px] text-gold-text uppercase tracking-[0.12em] transition-opacity hover:opacity-75"
         >
           {tournamentLogoUrl && (
             <TournamentLogo src={tournamentLogoUrl} alt={tournamentName} size={16} />
