@@ -16,6 +16,7 @@ interface LeaderboardRow {
   userName: string;
   userAvatarUrl: string | null;
   profit: number;
+  officialRank?: number;
 }
 
 interface FinishedMatch {
@@ -73,6 +74,7 @@ export function GroupLeaderboardContent({
   oddsBoost,
 }: GroupLeaderboardContentProps) {
   const t = useTranslations("groups");
+  const tCircles = useTranslations("circles");
   const tBetting = useTranslations("betting");
   const [openItems, setOpenItems] = useState<string[]>([]);
 
@@ -169,6 +171,11 @@ export function GroupLeaderboardContent({
                     <AvatarFallback className="text-xs">{initials(row.userName)}</AvatarFallback>
                   </Avatar>
                   <span className="flex-1 truncate font-semibold text-[14px]">{row.userName}</span>
+                  {row.officialRank != null && (
+                    <span className="flex-none rounded-full bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-faint">
+                      {tCircles("officialRankBadge", { rank: row.officialRank })}
+                    </span>
+                  )}
                   <span
                     className={`font-bold font-mono text-[14px] ${
                       row.profit > 0 ? "text-win" : row.profit < 0 ? "text-loss" : "text-faint"
