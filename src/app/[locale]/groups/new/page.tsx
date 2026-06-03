@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { CreateGroupForm } from "@/components/create-group-form";
+import { GroupVsCircleNote } from "@/components/group-vs-circle-note";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { getTournaments } from "@/queries/tournaments";
@@ -19,6 +20,7 @@ export default async function CreateGroupPage() {
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
       <h1 className="font-bold font-heading text-2xl tracking-tight">{t("create")}</h1>
+      <GroupVsCircleNote />
       <CreateGroupForm
         tournaments={availableTournaments.map((t) => ({
           id: t.id,

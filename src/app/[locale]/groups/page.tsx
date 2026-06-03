@@ -2,6 +2,7 @@ import { Plus, Users } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ArchivedGroupsSection } from "@/components/archived-groups-section";
 import { GroupCard } from "@/components/group-card";
+import { GroupVsCircleNote } from "@/components/group-vs-circle-note";
 import { PublicGroupsSection } from "@/components/public-groups-section";
 import { Button } from "@/components/ui/button";
 import { Link, redirect } from "@/i18n/navigation";
@@ -58,6 +59,8 @@ export default async function GroupsPage() {
           </Link>
         </Button>
       </div>
+
+      <GroupVsCircleNote />
 
       {activeGroups.length === 0 ? (
         <p className="text-muted-foreground">{t("noGroups")}</p>

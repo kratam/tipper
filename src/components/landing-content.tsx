@@ -85,6 +85,11 @@ export function LandingContent() {
         ))}
       </div>
 
+      {/* Csoport vs kör — közérthető magyarázat */}
+      <p className="-mt-4 max-w-[560px] text-[13.5px] text-muted-foreground leading-relaxed max-[680px]:-mt-2">
+        {t("groupVsCircleNote")}
+      </p>
+
       {/* Footer */}
       <footer className="flex items-center gap-3 text-[12.5px] text-faint">
         <Link href="/privacy" className="hover:text-muted-foreground hover:underline">

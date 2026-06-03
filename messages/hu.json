@@ -31,6 +31,7 @@
     "featureCompeteDesc": "Hozz létre csoportokat és hívd meg barátaidat a versenyre.",
     "featureWin": "Nyerj",
     "featureWinDesc": "Gyűjts pontokat a pontos tippekért és kerülj a ranglista élére.",
+    "groupVsCircleNote": "A kör a barátaidra szűri a hivatalos ranglistát — itt látod, ki vezet köztetek. A csoport külön játék: saját szabályokat állítotok be, és külön tokennel, külön tippekkel játszotok.",
     "privacy": "Adatvédelem",
     "terms": "Felhasználási feltételek"
   },
@@ -484,7 +485,24 @@
           "Minden csoportban külön token-egyenleged van, és külön ranglista megy.",
           "A csoport készítője testreszabhatja a szabályokat: token mennyiség, odds szorzó, bónuszok."
         ]
+      },
+      {
+        "heading": "Mi a különbség a csoport és a kör között?",
+        "items": [
+          "Kör: itt nem tippelsz külön. A hivatalos ranglistát szűri le a kör tagjaira — így látod, hol állsz a barátaid között.",
+          "Csoport: külön játék, saját szabályokkal. Te állítod be az odds-szorzót (mennyivel több a nyeremény a hivatalos oddsnál), és hogy mennyit ér a gólkülönbség vagy a pontos eredmény eltalálása.",
+          "Mivel a csoportnak saját szabályai vannak, külön token-egyenleged van benne, és külön kell leadnod a tippeket — lehet, hogy az egyik csoportban van tokened, a másikban nincs.",
+          "A hivatalos Ranglista is egy csoport, ebbe mindenki automatikusan bekerül."
+        ]
       }
     ]
+  },
+  "groupVsCircle": {
+    "title": "Mi a különbség a csoport és a kör között?",
+    "circleLabel": "Kör",
+    "circleText": "itt nem tippelsz külön. A hivatalos ranglistát szűri le a kör tagjaira: így látod, hol állsz a barátaid között.",
+    "groupLabel": "Csoport",
+    "groupText": "külön játék, saját szabályokkal: te állítod be az odds-szorzót (mennyivel ér többet a nyeremény a hivatalos oddsnál), és hogy mennyit ér a gólkülönbség vagy a pontos eredmény. Mivel külön szabályok vannak, külön token-egyenleged van, és külön kell leadnod a tippeket.",
+    "summary": "Röviden: a kör csak rangsorol, a csoportban külön játszol."
   }
 }

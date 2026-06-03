@@ -148,6 +148,13 @@ Kezelés: `/circles` (létrehozás, meghívókód, tagok, kilépés/törlés). C
 `/join/[code]` — előbb csoport-, majd kör-kódként. A kör nem ír token-ledgert, így a
 tét/scoring/token logikára nincs hatása.
 
+**Csoport vs. kör magyarázat:** a két fogalom különbségét közérthetően a
+[`GroupVsCircleNote`](src/components/group-vs-circle-note.tsx) komponens írja le (kör = csak
+szűri a hivatalos ranglistát; csoport = külön szabály → külön token és külön tét). A
+`groupVsCircle` i18n namespace-ből olvas, és négy helyen jelenik meg: `/groups`, `/circles`,
+`/groups/new`, `/circles/new`. Ugyanezt a help modal (`help.sections`) és a landing
+(`landing.groupVsCircleNote`) is tartalmazza saját szöveggel.
+
 ## Token rendszer
 
 ### Kiosztás

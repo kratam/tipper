@@ -31,6 +31,7 @@
     "featureCompeteDesc": "Create groups and invite your friends to compete.",
     "featureWin": "Win",
     "featureWinDesc": "Earn points for accurate predictions and climb the leaderboard.",
+    "groupVsCircleNote": "A circle filters the official leaderboard down to your friends — so you see who's leading among you. A group is a separate game: you set your own rules and play with separate tokens and separate bets.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service"
   },
@@ -484,7 +485,24 @@
           "You have a separate token balance in each group, and each runs its own leaderboard.",
           "The group's creator can customize the rules: token amounts, odds multiplier, bonuses."
         ]
+      },
+      {
+        "heading": "What's the difference between a group and a circle?",
+        "items": [
+          "Circle: you don't bet separately here. It filters the official leaderboard down to the circle's members — so you see where you stand among your friends.",
+          "Group: a separate game with its own rules. You set the odds multiplier (how much more than the official odds you win) and how much the goal difference or exact result is worth.",
+          "Because a group has its own rules, you have a separate token balance in it and place your bets separately — you might have tokens in one group but not in another.",
+          "The official Ranglista is also a group, and everyone joins it automatically."
+        ]
       }
     ]
+  },
+  "groupVsCircle": {
+    "title": "What's the difference between a group and a circle?",
+    "circleLabel": "Circle",
+    "circleText": "you don't bet separately here. It filters the official leaderboard down to the circle's members: so you see where you stand among your friends.",
+    "groupLabel": "Group",
+    "groupText": "a separate game with its own rules: you set the odds multiplier (how much more than the official odds you win) and how much the goal difference or exact result is worth. Because the rules differ, you have a separate token balance and place your bets separately.",
+    "summary": "In short: a circle only ranks you, in a group you play separately."
   }
 }

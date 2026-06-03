@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { CirclesList } from "@/components/circles-list";
+import { GroupVsCircleNote } from "@/components/group-vs-circle-note";
 import { Button } from "@/components/ui/button";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
@@ -37,6 +38,8 @@ export default async function CirclesPage() {
         </Button>
       </div>
       <p className="text-muted-foreground text-sm">{t("subtitle")}</p>
+
+      <GroupVsCircleNote />
 
       {items.length === 0 ? (
         <p className="rounded-lg border border-border border-dashed bg-muted/30 p-4 text-muted-foreground text-sm">
