@@ -18,7 +18,8 @@
     "displayName": "Display name",
     "locale": "Language",
     "toggleTheme": "Toggle theme",
-    "help": "Help"
+    "help": "Help",
+    "circles": "My circles"
   },
   "landing": {
     "title": "TippCasino",
@@ -307,10 +308,39 @@
     "unarchiveSuccess": "Tournament restored!"
   },
   "join": {
-    "title": "Join Group",
-    "joining": "Joining group...",
-    "notFound": "Group not found",
-    "error": "Failed to join group"
+    "title": "Join",
+    "joining": "Joining...",
+    "notFound": "Invite code not found",
+    "error": "An error occurred while joining"
+  },
+  "circles": {
+    "title": "My circles",
+    "nav": "My circles",
+    "create": "New circle",
+    "createTitle": "Create a new circle",
+    "name": "Circle name",
+    "namePlaceholder": "e.g. Monday football crew",
+    "nameTooShort": "Circle name must be at least 2 characters",
+    "createButton": "Create",
+    "createSuccess": "Circle created",
+    "empty": "You don't have any circles yet. Create one and invite your friends!",
+    "subtitle": "A circle shows the official leaderboard in every tournament — filtered to its members only. No extra bets, no extra rules.",
+    "memberCount": "{count} members",
+    "owner": "Owner",
+    "members": "Members",
+    "inviteCode": "Invite code",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "leave": "Leave circle",
+    "leaveConfirm": "Are you sure you want to leave this circle?",
+    "leaveSuccess": "You left the circle",
+    "delete": "Delete circle",
+    "deleteConfirm": "Delete this circle? It disappears for all members.",
+    "deleteSuccess": "Circle deleted",
+    "officialRankBadge": "overall #{rank}",
+    "filteredFrom": "Filtered from the official leaderboard",
+    "noData": "No member has placed a bet in this tournament yet.",
+    "joinSuccess": "You joined the circle"
   },
   "privacy": {
     "title": "Privacy Policy",

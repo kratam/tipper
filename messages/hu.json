@@ -18,7 +18,8 @@
     "displayName": "Becenév",
     "locale": "Nyelv",
     "toggleTheme": "Téma váltása",
-    "help": "Súgó"
+    "help": "Súgó",
+    "circles": "Köreim"
   },
   "landing": {
     "title": "TippCasino",
@@ -307,10 +308,39 @@
     "unarchiveSuccess": "Versenysorozat visszaállítva!"
   },
   "join": {
-    "title": "Csatlakozás csoporthoz",
+    "title": "Csatlakozás",
     "joining": "Csatlakozás folyamatban...",
-    "notFound": "Csoport nem található",
+    "notFound": "A meghívókód nem található",
     "error": "Hiba történt a csatlakozás során"
+  },
+  "circles": {
+    "title": "Köreim",
+    "nav": "Köreim",
+    "create": "Új kör",
+    "createTitle": "Új kör létrehozása",
+    "name": "Kör neve",
+    "namePlaceholder": "pl. Hétfői focibrigád",
+    "nameTooShort": "A kör neve legalább 2 karakter legyen",
+    "createButton": "Létrehozás",
+    "createSuccess": "Kör létrehozva",
+    "empty": "Még nincs köröd. Hozz létre egyet, és hívd meg a barátaidat!",
+    "subtitle": "A kör minden versenysorozatnál megmutatja a hivatalos ranglistát — csak a tagokra szűrve. Nincs külön tét, nincs külön szabály.",
+    "memberCount": "{count} tag",
+    "owner": "Tulajdonos",
+    "members": "Tagok",
+    "inviteCode": "Meghívókód",
+    "copyLink": "Link másolása",
+    "copied": "Másolva!",
+    "leave": "Kilépés a körből",
+    "leaveConfirm": "Biztosan kilépsz a körből?",
+    "leaveSuccess": "Kiléptél a körből",
+    "delete": "Kör törlése",
+    "deleteConfirm": "Biztosan törlöd a kört? Ez minden tagnál eltünteti.",
+    "deleteSuccess": "Kör törölve",
+    "officialRankBadge": "össz #{rank}",
+    "filteredFrom": "A hivatalos ranglistából szűrve",
+    "noData": "Ebben a versenysorozatban még egy tag sem tippelt.",
+    "joinSuccess": "Csatlakoztál a körhöz"
   },
   "privacy": {
     "title": "Adatvédelmi tájékoztató",
