@@ -21,11 +21,13 @@ src/
     admin.ts               — Tournament CRUD, sync trigger, finish with podium
     bets.ts                — Tipp leadás/módosítás, payout számítás
     groups.ts              — Csoport CRUD, token kiosztás, tag kezelés
+    circles.ts             — Kör CRUD (create/join/leave/delete/rename)
     live.ts                — Real-time polling (SWR)
     podium-bets.ts         — Dobogós tipp leadás
     profile.ts             — Felhasználói profil (displayName)
   queries/                 — Read-only DB lekérdezések
     groups.ts              — getUserGroups, projected balance, profit
+    circles.ts             — Kör read query-k + szűrt ranglista forrás
     bets.ts                — getUserBets, getGroupBets
     leaderboard.ts         — Ranglista számítás
     matches.ts             — Tournament meccsek, odds lekérdezés
@@ -33,7 +35,7 @@ src/
     tournaments.ts         — getAllTournaments, getTournamentById
   components/              — UI komponensek + Shadcn ui/
   db/
-    schema.ts              — Drizzle ORM séma (11 tábla, 3 enum)
+    schema.ts              — Drizzle ORM séma (13 tábla, 3 enum)
     index.ts               — DB client (Neon HTTP)
   lib/
     auth/server.ts         — Neon Auth inicializálás
@@ -46,6 +48,7 @@ src/
     tokens.ts              — Token számítások (pure, tesztelt)
     schedule-override.ts   — Menetrend override detektálás
     leaderboard-utils.ts   — Rangsorolás segédfüggvények
+    circle-leaderboard.ts  — Kör: szűrés + körön belüli újrarangsor (pure, tesztelt)
     utils.ts               — generateInviteCode, slugify, formatDate, cn
   i18n/                    — next-intl routing + navigation
 messages/                  — hu.json, en.json fordítások
@@ -85,7 +88,7 @@ Tiszta Tailwind v4 `@theme` + CSS custom property rendszer. A shadcn semantic to
 
 ## DB séma
 
-**11 tábla, 3 enum.** Forrás: `src/db/schema.ts`
+**13 tábla, 3 enum.** Forrás: `src/db/schema.ts`
 
 ### Enumok
 
@@ -110,6 +113,8 @@ Tiszta Tailwind v4 `@theme` + CSS custom property rendszer. A shadcn semantic to
 | `podium_bets` | userId, tournamentId, groupId, gold/silver/bronzeTeamId | Unique: (userId, tournamentId, groupId) |
 | `token_ledger` | userId, groupId, tournamentId, amount (signed), type, referenceId | Index: (userId, groupId, type) |
 | `match_schedule_overrides` | matchId (UNIQUE), scheduledAt | Kézi menetrend felülírás |
+| `circles` | name, slug (globálisan egyedi), inviteCode, ownerId, description? | Tournamenttől független baráti kör. Nincs szabály/token/tét. |
+| `circle_members` | circleId, userId | Unique: (circleId, userId). |
 
 A `neon_auth` schema külön (Better Auth által kezelt): user, session, account, verification, jwks.
 
@@ -124,6 +129,24 @@ A `neon_auth` schema külön (Better Auth által kezelt): user, session, account
 Drizzle ORM migrációk a `drizzle/` könyvtárban. **Deploy előtt kézzel kell futtatni** — a Vercel build nem futtatja (`drizzle-kit migrate` timeoutol a Neon websocket-en Vercel US → Neon EU miatt).
 
 Séma-változás **kizárólag** `npm run db:generate` → `npm run db:migrate` úton (lokálisan). Soha `drizzle-kit push`, kézi SQL a naplón kívül, vagy Neon MCP migráció — különben a `__drizzle_migrations` napló elcsúszik a tényleges sémától. A backfill UPDATE-ek a generált `.sql`-be kerülnek. Részletek: `CLAUDE.md` → Konvenciók.
+
+## Kör (baráti kör)
+
+A **Kör** tournamenttől független tagsági lista (`circles` + `circle_members`), nincs
+szabálya/tokenje/tétje. Minden tournamentnél automatikusan a hivatalos „Ranglista" csoport
+tagokra szűrt, körön belül újrarangsorolt nézetét adja:
+
+1. `getGroupLeaderboard(officialGroupId)` — teljes hivatalos ranglista (rank = összhelyezés).
+2. `filterAndRerankLeaderboard(rows, memberIds)` ([src/lib/circle-leaderboard.ts](src/lib/circle-leaderboard.ts))
+   — a kör tagjaira szűr, körön belül 1..n-re rangsorol, megőrzi az `officialRank`-et.
+
+Megjelenés: a tournament oldalon a hivatalos Ranglista alatt kör-kártyák (mini szűrt
+ranglista); rákattintva a kör-detail oldal (`tournaments/[slug]/circles/[circleSlug]`,
+Ranglista + Eredmények, csak olvasható). A Ranglista tab a körön belüli helyezést mutatja, a
+hivatalos összhelyezést pedig badge-ként (`GroupLeaderboardContent` opcionális `officialRank`).
+Kezelés: `/circles` (létrehozás, meghívókód, tagok, kilépés/törlés). Csatlakozás:
+`/join/[code]` — előbb csoport-, majd kör-kódként. A kör nem ír token-ledgert, így a
+tét/scoring/token logikára nincs hatása.
 
 ## Token rendszer
 

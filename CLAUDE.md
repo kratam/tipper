@@ -24,7 +24,7 @@ Token-alapú tippjáték ahol játékosok versenysorozatok meccseire fogadnak cs
 
 ## Fontos fájlok
 
-- **Architektúra:** `ARCHITECTURE.md` ← technikai részletek (DB séma, token rendszer, cron, scoring, auth, env vars)
+- **Architektúra:** `ARCHITECTURE.md` ← technikai részletek (DB séma, token rendszer, **Kör/baráti kör**, cron, scoring, auth, env vars)
 - **Teendők:** `TODO.md` ← EZT OLVASD EL ha feladatot kapsz
 - **Tervezési döntések:** `docs/DESIGN-DECISIONS.md` ← eredeti koncepció és Q&A
 - **Spec:** `docs/superpowers/specs/2026-04-03-tipper-design.md`
