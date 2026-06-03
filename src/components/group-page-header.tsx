@@ -1,4 +1,4 @@
-import { ArrowRight, CircleAlert } from "lucide-react";
+import { ArrowRight, ChevronRight, CircleAlert } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { GroupRulesDialog } from "@/components/group-rules-dialog";
 import { TournamentLogo } from "@/components/tournament-logo";
@@ -67,12 +67,13 @@ export function GroupPageHeader({
       <div className="flex min-w-0 flex-col">
         <Link
           href={`/tournaments/${tournamentSlug}`}
-          className="group inline-flex items-center gap-[7px] text-[11px] text-muted-foreground uppercase tracking-[0.12em] transition-colors hover:text-foreground"
+          className="group inline-flex items-center gap-[7px] self-start rounded-md text-[11px] text-gold/80 uppercase tracking-[0.12em] transition-colors hover:text-gold"
         >
           {tournamentLogoUrl && (
             <TournamentLogo src={tournamentLogoUrl} alt={tournamentName} size={16} />
           )}
-          <span className="truncate">{tournamentName}</span>
+          <span className="truncate font-semibold">{tournamentName}</span>
+          <ChevronRight className="size-3.5 shrink-0 opacity-70 transition-transform group-hover:translate-x-0.5" />
         </Link>
         <h1 className="mt-1 truncate font-bold font-heading text-[26px] tracking-[0.01em] max-[700px]:text-[21px]">
           {groupName}
