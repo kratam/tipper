@@ -319,11 +319,11 @@ export function TournamentTabs({
           />
         )}
 
-        {filter !== "podium" && groupCardData.length === 0 && (
+        {groupCardData.length === 0 && (
           <GroupTokenSummary topPublicGroups={topPublicGroups} hasOfficialGroup={!!officialCard} />
         )}
 
-        {filter !== "podium" && (groupCardData.length > 0 || circleCards.length > 0) && (
+        {(groupCardData.length > 0 || circleCards.length > 0) && (
           <Accordion type="single" collapsible defaultValue="cards" className="flex flex-col gap-2">
             <AccordionItem value="cards" className="border-none">
               <AccordionTrigger className="h-10 gap-2.5 rounded-[calc(var(--radius)*0.85)] border border-border bg-surface-2 px-4 transition-[border-color,box-shadow] hover:bg-surface-3 hover:no-underline">
