@@ -172,7 +172,7 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full flex-col gap-2 rounded-lg border border-border bg-card p-[15px] text-left shadow-card transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-gold-line hover:shadow-card-hover ${
+      className={`flex w-full flex-col gap-2 rounded-lg border border-border bg-card p-[15px] text-left shadow-card transition-all hover:-translate-y-[3px] hover:border-gold-line hover:shadow-card-hover ${
         isLive ? "border-l-[3px] border-l-loss" : hasNoBet ? "border-l-[3px] border-l-gold" : ""
       }`}
     >
