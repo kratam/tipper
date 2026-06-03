@@ -4,7 +4,8 @@ import { Check, Lock } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { BetDialog } from "@/components/bet-dialog";
-import { CircleSummary } from "@/components/circle-summary";
+import { CircleSummaryCard } from "@/components/circle-summary-card";
+import { GroupSummaryCard } from "@/components/group-summary-card";
 import { GroupTokenSummary } from "@/components/group-token-summary";
 import { MatchCard, type MatchCardData } from "@/components/match-card";
 import { OfficialGroupRibbon } from "@/components/official-group-ribbon";
@@ -318,17 +319,28 @@ export function TournamentTabs({
           />
         )}
 
-        {filter !== "podium" && (
-          <GroupTokenSummary
-            groups={groupCardData}
-            currentUserId={currentUserId}
-            topPublicGroups={topPublicGroups}
-            hasOfficialGroup={!!officialCard}
-          />
+        {filter !== "podium" && groupCardData.length === 0 && (
+          <GroupTokenSummary topPublicGroups={topPublicGroups} hasOfficialGroup={!!officialCard} />
         )}
 
-        {filter !== "podium" && (
-          <CircleSummary circles={circleCards} currentUserId={currentUserId} />
+        {filter !== "podium" && (groupCardData.length > 0 || circleCards.length > 0) && (
+          <Accordion type="single" collapsible defaultValue="cards" className="flex flex-col gap-2">
+            <AccordionItem value="cards" className="border-none">
+              <AccordionTrigger className="h-10 gap-2.5 rounded-[calc(var(--radius)*0.85)] border border-border bg-surface-2 px-4 transition-[border-color,box-shadow] hover:bg-surface-3 hover:no-underline">
+                <span className="font-[650] text-[14px]">{t("myGroupsAndCircles")}</span>
+              </AccordionTrigger>
+              <AccordionContent className="pt-3 pb-0 [&_a]:no-underline">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
+                  {groupCardData.map((g) => (
+                    <GroupSummaryCard key={g.groupId} group={g} currentUserId={currentUserId} />
+                  ))}
+                  {circleCards.map((c) => (
+                    <CircleSummaryCard key={c.circleId} circle={c} currentUserId={currentUserId} />
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         )}
 
         {/* Unified filter row: upcoming / played / all / podium */}

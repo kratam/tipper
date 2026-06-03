@@ -75,6 +75,7 @@
     "createOwnGroupHint": "Játszanál a barátaiddal is? Hozz létre saját csoportot!",
     "browseGroups": "Csoportok böngészése",
     "createGroup": "Csoport létrehozása",
+    "myGroupsAndCircles": "Csoportok és körök",
     "officialRibbon": {
       "expand": "Ranglista mutatása",
       "collapse": "Ranglista elrejtése"
@@ -314,6 +315,7 @@
     "error": "Hiba történt a csatlakozás során"
   },
   "circles": {
+    "badge": "Kör",
     "title": "Köreim",
     "nav": "Köreim",
     "create": "Új kör",

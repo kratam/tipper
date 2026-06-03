@@ -75,6 +75,7 @@
     "createOwnGroupHint": "Want to play with friends too? Create your own group!",
     "browseGroups": "Browse groups",
     "createGroup": "Create a group",
+    "myGroupsAndCircles": "Groups & circles",
     "officialRibbon": {
       "expand": "Show leaderboard",
       "collapse": "Hide leaderboard"
@@ -314,6 +315,7 @@
     "error": "An error occurred while joining"
   },
   "circles": {
+    "badge": "Circle",
     "title": "My circles",
     "nav": "My circles",
     "create": "New circle",
