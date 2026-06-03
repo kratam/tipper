@@ -10,6 +10,7 @@ import {
   Shield,
   Trophy,
   Users,
+  UsersRound,
   X,
 } from "lucide-react";
 import Image from "next/image";
@@ -185,6 +186,12 @@ export function Nav({ user, activeTournaments }: NavProps) {
                       {t("groups")}
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/circles">
+                      <UsersRound className="mr-2 size-4" />
+                      {t("circles")}
+                    </Link>
+                  </DropdownMenuItem>
                   {user.isAdmin && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin">
@@ -265,6 +272,18 @@ export function Nav({ user, activeTournaments }: NavProps) {
                   onClick={() => setMobileOpen(false)}
                 >
                   <Link href="/groups">{t("groups")}</Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start"
+                  asChild
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Link href="/circles">
+                    <UsersRound className="mr-2 size-4" />
+                    {t("circles")}
+                  </Link>
                 </Button>
                 {user.isAdmin && (
                   <Button
