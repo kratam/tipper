@@ -8,7 +8,11 @@ import { getCurrentUser } from "@/lib/auth/user-sync";
 import { getGroupBetsForFinishedMatches } from "@/queries/bets";
 import { getGroupBySlug } from "@/queries/groups";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
-import { getFinishedMatchesForTournament, getUpcomingBetSummary } from "@/queries/matches";
+import {
+  getFinishedMatchesForTournament,
+  getTournamentMatchTimes,
+  getUpcomingBetSummary,
+} from "@/queries/matches";
 
 export default async function GroupDetailPage({
   params,
@@ -26,7 +30,7 @@ export default async function GroupDetailPage({
   const group = await getGroupBySlug(tournamentSlug, groupSlug);
   if (!group) notFound();
 
-  const [leaderboard, finishedMatches, groupBetsRaw, upcomingDays] = await Promise.all([
+  const [leaderboard, finishedMatches, groupBetsRaw, upcomingDays, matchTimes] = await Promise.all([
     getGroupLeaderboard(group.id),
     getFinishedMatchesForTournament(group.tournamentId, group.tournament.useFlagFallback),
     getGroupBetsForFinishedMatches(group.id),
@@ -38,6 +42,7 @@ export default async function GroupDetailPage({
       locale,
       group.tournament.useFlagFallback,
     ),
+    getTournamentMatchTimes(group.tournamentId),
   ]);
 
   const isOwner = group.ownerId === user.id;
@@ -86,6 +91,7 @@ export default async function GroupDetailPage({
         isPublic={group.isPublic}
         description={group.description}
         tournamentStatus={group.tournament.status}
+        matchTimes={matchTimes.map((d) => d.getTime())}
         leaderboard={leaderboard.map((row) => ({
           rank: row.rank,
           userId: row.userId,

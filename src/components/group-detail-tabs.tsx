@@ -68,6 +68,7 @@ interface GroupDetailTabsProps {
   canEditSettings: boolean;
   currentUserId: string;
   tournamentStatus: string;
+  matchTimes: number[];
   isPublic: boolean;
   description: string | null;
   leaderboard: LeaderboardRow[];
@@ -84,6 +85,7 @@ export function GroupDetailTabs({
   canEditSettings,
   currentUserId,
   tournamentStatus,
+  matchTimes,
   isPublic,
   description,
   leaderboard,
@@ -100,8 +102,8 @@ export function GroupDetailTabs({
   const [isPublicState, setIsPublicState] = useState(isPublic);
   const [descriptionState, setDescriptionState] = useState(description ?? "");
 
-  // Live polling: merge fresh balance/rank data from SWR
-  const liveLeaderboard = useLeaderboardPolling(groupId, tournamentStatus, leaderboard);
+  // Live polling: merge fresh balance/rank data from SWR — csak meccs-ablakban
+  const liveLeaderboard = useLeaderboardPolling(groupId, matchTimes, leaderboard);
 
   function handleSaveSettings() {
     startTransition(async () => {

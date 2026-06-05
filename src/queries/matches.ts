@@ -23,6 +23,16 @@ export async function getMatchesForTournament(tournamentId: string, useFlagFallb
   return rows.map((row) => withMatchTeamDisplay(row, locale, useFlagFallback));
 }
 
+/** A torna összes meccsének kezdési időpontja — a leaderboard-polling
+ *  meccs-ablakának meghatározásához (lásd use-leaderboard-polling.ts). */
+export async function getTournamentMatchTimes(tournamentId: string): Promise<Date[]> {
+  const rows = await db
+    .select({ scheduledAt: matches.scheduledAt })
+    .from(matches)
+    .where(eq(matches.tournamentId, tournamentId));
+  return rows.map((r) => r.scheduledAt);
+}
+
 export async function getMatchById(matchId: string) {
   const locale = (await getLocale()) as Locale;
   const row = await db.query.matches.findFirst({
