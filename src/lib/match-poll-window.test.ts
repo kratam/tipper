@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inMatchWindow, POLL_LEAD_MS, POLL_WINDOW_MS } from "@/lib/leaderboard-poll-window";
+import { inMatchWindow, POLL_LEAD_MS, POLL_WINDOW_MS } from "@/lib/match-poll-window";
 
 const KICKOFF = 1_700_000_000_000; // tetszőleges fix epoch-ms
 

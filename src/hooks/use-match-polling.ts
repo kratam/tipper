@@ -1,24 +1,22 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import type { LiveMatchData } from "@/actions/live";
 import { getLiveMatchData } from "@/actions/live";
 import type { MatchCardData } from "@/components/match-card";
+import { inMatchWindow } from "@/lib/match-poll-window";
 
 const TWO_MINUTES = 2 * 60 * 1000;
 const FIVE_MINUTES = 5 * 60 * 1000;
+const TICK_MS = 60 * 1000;
 
 function hasLiveMatch(matches: readonly MatchCardData[]): boolean {
   return matches.some((m) => m.status === "live");
 }
 
-function hasTodayMatch(matches: readonly MatchCardData[]): boolean {
-  const today = new Date().toISOString().split("T")[0];
-  return matches.some((m) => m.scheduledAt.startsWith(today));
-}
-
-function getPollingInterval(matches: readonly MatchCardData[]): number {
+function getPollingInterval(matches: readonly MatchCardData[], now: number): number {
   if (hasLiveMatch(matches)) return TWO_MINUTES;
-  if (hasTodayMatch(matches)) return FIVE_MINUTES;
+  const matchTimes = matches.map((m) => Date.parse(m.scheduledAt));
+  if (inMatchWindow(matchTimes, now)) return FIVE_MINUTES;
   return 0;
 }
 
@@ -55,7 +53,15 @@ function mergeMatchData(
 }
 
 export function useMatchPolling(tournamentId: string, matches: readonly MatchCardData[]) {
-  const pollingInterval = useMemo(() => getPollingInterval(matches), [matches]);
+  // A meccs-ablakot percenként újraértékeljük, hogy egy nyitva felejtett tab
+  // DB-hívás nélkül le-/felpörögjön, amikor az ablak be-/kinyílik.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), TICK_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  const pollingInterval = useMemo(() => getPollingInterval(matches, now), [matches, now]);
 
   const { data: liveData } = useSWR(
     pollingInterval > 0 ? ["live-matches", tournamentId] : null,

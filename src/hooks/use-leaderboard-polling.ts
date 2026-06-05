@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import type { LiveLeaderboardRow } from "@/actions/live";
 import { getLiveLeaderboard } from "@/actions/live";
-import { inMatchWindow } from "@/lib/leaderboard-poll-window";
+import { inMatchWindow } from "@/lib/match-poll-window";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 const TICK_MS = 60 * 1000;
