@@ -2,7 +2,6 @@
 
 import { HelpCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -33,9 +32,14 @@ export function HelpDialog({ open, onOpenChange, showTrigger = true }: HelpDialo
     <Dialog open={open} onOpenChange={onOpenChange}>
       {showTrigger && (
         <DialogTrigger asChild>
-          <Button variant="ghost" size="icon" className="size-8" aria-label={t("title")}>
+          <button
+            type="button"
+            aria-label={t("title")}
+            title={t("title")}
+            className="inline-flex size-[34px] items-center justify-center rounded-[10px] text-white/78 transition hover:bg-white/[0.08] hover:text-white"
+          >
             <HelpCircle className="size-4" />
-          </Button>
+          </button>
         </DialogTrigger>
       )}
       <DialogContent className="max-h-[85dvh] gap-0 overflow-hidden p-0 sm:max-w-lg">
