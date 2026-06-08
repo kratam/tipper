@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { bets, groupMembers, groups, tokenLedger, tournaments } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { joinGroupIdempotent } from "@/lib/invite/claim-invite";
 import { isReservedOfficialSlug } from "@/lib/official-group";
 import { distributeInitialTokens } from "@/lib/tokens";
 import { generateInviteCode, slugify } from "@/lib/utils";
@@ -95,26 +96,7 @@ export async function joinGroup(inviteCode: string) {
   const group = await getGroupByInviteCode(inviteCode);
   if (!group) throw new Error("Group not found");
 
-  const existing = await db.query.groupMembers.findFirst({
-    where: and(eq(groupMembers.groupId, group.id), eq(groupMembers.userId, user.id)),
-  });
-  if (existing) throw new Error("Already a member of this group");
-
-  await db.insert(groupMembers).values({
-    groupId: group.id,
-    userId: user.id,
-  });
-
-  // Distribute initial tokens for the current round
-  await distributeInitialTokens(
-    user.id,
-    group.id,
-    group.tournamentId,
-    group.initialTokens,
-    group.tokenPerMatch,
-    group.tournament.timezone,
-  );
-
+  await joinGroupIdempotent(user.id, group);
   redirect(`/tournaments/${group.tournament.slug}/groups/${group.slug}`);
 }
 

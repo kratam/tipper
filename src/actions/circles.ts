@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { circleMembers, circles } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { joinCircleIdempotent } from "@/lib/invite/claim-invite";
 import { generateInviteCode, slugify } from "@/lib/utils";
 import { getCircleByInviteCode } from "@/queries/circles";
 
@@ -45,12 +46,7 @@ export async function joinCircle(inviteCode: string) {
   const circle = await getCircleByInviteCode(inviteCode);
   if (!circle) throw new Error("Circle not found");
 
-  const existing = await db.query.circleMembers.findFirst({
-    where: and(eq(circleMembers.circleId, circle.id), eq(circleMembers.userId, user.id)),
-  });
-  if (existing) throw new Error("Already a member of this circle");
-
-  await db.insert(circleMembers).values({ circleId: circle.id, userId: user.id });
+  await joinCircleIdempotent(user.id, circle);
   return circle;
 }
 
