@@ -20,11 +20,16 @@ function cookieHeader(request: NextRequest): string {
 }
 
 function hasSession(request: NextRequest): boolean {
+  // Substring match (nem exact `.has()`): a Neon Auth session cookie HTTPS-en
+  // `__Secure-` prefixet kaphat (vö. a `__Secure-neon-auth.session_challange`
+  // challenge cookie-val), ezért prefix-toleráns illesztés kell.
   return cookieHeader(request).includes(SESSION_COOKIE);
 }
 
 function hasPending(request: NextRequest): boolean {
-  return cookieHeader(request).includes(PENDING_INVITE_COOKIE);
+  // Exact név-illesztés — a saját cookie-nk neve fix (`tc_pending_invite`, nincs
+  // prefix), így nincs substring false-positive egy esetleges testvér-cookie-ra.
+  return request.cookies.has(PENDING_INVITE_COOKIE);
 }
 
 function setPendingCookie(response: NextResponse, code: string): void {
@@ -40,6 +45,8 @@ function setPendingCookie(response: NextResponse, code: string): void {
 function claimRedirect(request: NextRequest, extraSetCookies?: string[]): NextResponse {
   const url = request.nextUrl.clone();
   url.pathname = CLAIM_PATH;
+  // Minden query param eldobása — a `neon_auth_session_verifier` nem szivároghat
+  // át a claim endpointra.
   url.search = "";
   const response = NextResponse.redirect(url);
   if (extraSetCookies) {
