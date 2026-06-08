@@ -1,5 +1,4 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { circleMembers, groupMembers } from "@/db/schema";
 import { localizePath } from "@/lib/join-url";
@@ -10,14 +9,15 @@ import { getGroupByInviteCode } from "@/queries/groups";
 type InviteGroup = NonNullable<Awaited<ReturnType<typeof getGroupByInviteCode>>>;
 type InviteCircle = NonNullable<Awaited<ReturnType<typeof getCircleByInviteCode>>>;
 
-/** Idempotens csoport-belépés adott userrel; nincs redirect. Már tag → no-op. */
+/** Idempotens csoport-belépés adott userrel; nincs redirect. */
 export async function joinGroupIdempotent(userId: string, group: InviteGroup): Promise<void> {
-  const existing = await db.query.groupMembers.findFirst({
-    where: and(eq(groupMembers.groupId, group.id), eq(groupMembers.userId, userId)),
-  });
-  if (existing) return;
+  // Race-safe: a (group_id, user_id) unique index miatt párhuzamos hívás sem
+  // duplikál; a már létező tagság némán kimarad.
+  await db.insert(groupMembers).values({ groupId: group.id, userId }).onConflictDoNothing();
 
-  await db.insert(groupMembers).values({ groupId: group.id, userId });
+  // distributeInitialTokens maga idempotens (kihagyja a meglévő ledger-sorokat),
+  // ezért MINDIG lefuttatjuk — így egy korábbi, token-osztás közben elhalt belépés
+  // újrapróbálkozáskor pótolja a hiányzó tokeneket.
   await distributeInitialTokens(
     userId,
     group.id,
@@ -28,14 +28,10 @@ export async function joinGroupIdempotent(userId: string, group: InviteGroup): P
   );
 }
 
-/** Idempotens kör-belépés adott userrel; nincs redirect. Már tag → no-op. */
+/** Idempotens kör-belépés adott userrel; nincs redirect. */
 export async function joinCircleIdempotent(userId: string, circle: InviteCircle): Promise<void> {
-  const existing = await db.query.circleMembers.findFirst({
-    where: and(eq(circleMembers.circleId, circle.id), eq(circleMembers.userId, userId)),
-  });
-  if (existing) return;
-
-  await db.insert(circleMembers).values({ circleId: circle.id, userId });
+  // Race-safe idempotens belépés a (circle_id, user_id) unique index alapján.
+  await db.insert(circleMembers).values({ circleId: circle.id, userId }).onConflictDoNothing();
 }
 
 export type ClaimResult = { ok: true; redirectPath: string } | { ok: false; reason: "not_found" };
