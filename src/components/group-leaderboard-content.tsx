@@ -205,9 +205,9 @@ export function GroupLeaderboardContent({
                         <span className="w-12 text-right">{t("payout")}</span>
                       </div>
                       {orderedUserBets.map(({ bet, match }) => {
-                        const won = bet.result1x2Correct === true && bet.payout != null;
-                        const netProfit =
-                          won && bet.payout != null ? bet.payout - bet.stake : -bet.stake;
+                        // payout már tartalmazza a vesztés-visszatérítést (vesztésnél a tét egy
+                        // hányada), így a nettó mindig payout - stake.
+                        const netProfit = bet.payout != null ? bet.payout - bet.stake : -bet.stake;
                         const lockedOdds = formatEffectiveOdds(bet.oddsAtBet, oddsBoost);
 
                         return (
