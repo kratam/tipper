@@ -4,7 +4,7 @@ import { ChevronDown, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Accordion as AccordionPrimitive } from "radix-ui";
 import { useMemo, useState } from "react";
-import { BetBonusLine } from "@/components/bet-bonus-line";
+import { BetBonusCell } from "@/components/bet-bonus-cell";
 import { TeamLogo } from "@/components/team-logo";
 import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -193,24 +193,25 @@ export function GroupLeaderboardContent({
                 {orderedUserBets.length === 0 ? (
                   <p className="text-faint text-xs">{t("noBetsForPlayer")}</p>
                 ) : (
-                  <div className="flex flex-col">
-                    {/* Sub-header */}
-                    <div className="flex items-center gap-2 pb-1 font-medium text-[11px] text-muted-foreground">
-                      <span className="flex-1">{/* match column */}</span>
-                      <span className="w-10 text-center">{t("prediction")}</span>
-                      <span className="w-10 text-right">{t("odds")}</span>
-                      <span className="w-10 text-right">{tBetting("stake")}</span>
-                      <span className="w-12 text-right">{t("payout")}</span>
-                    </div>
-                    {orderedUserBets.map(({ bet, match }) => {
-                      const won = bet.result1x2Correct === true && bet.payout != null;
-                      const netProfit =
-                        won && bet.payout != null ? bet.payout - bet.stake : -bet.stake;
-                      const lockedOdds = formatEffectiveOdds(bet.oddsAtBet, oddsBoost);
+                  <div className="overflow-x-auto">
+                    <div className="flex min-w-[360px] flex-col">
+                      {/* Sub-header */}
+                      <div className="flex items-center gap-2 pb-1 font-medium text-[11px] text-muted-foreground">
+                        <span className="flex-1">{/* match column */}</span>
+                        <span className="w-10 text-center">{t("prediction")}</span>
+                        <span className="w-10 text-right">{t("odds")}</span>
+                        <span className="w-10 text-right">{tBetting("stake")}</span>
+                        <span className="w-10 text-right">{t("bonusColumn")}</span>
+                        <span className="w-12 text-right">{t("payout")}</span>
+                      </div>
+                      {orderedUserBets.map(({ bet, match }) => {
+                        const won = bet.result1x2Correct === true && bet.payout != null;
+                        const netProfit =
+                          won && bet.payout != null ? bet.payout - bet.stake : -bet.stake;
+                        const lockedOdds = formatEffectiveOdds(bet.oddsAtBet, oddsBoost);
 
-                      return (
-                        <div key={bet.matchId} className="flex flex-col py-1.5">
-                          <div className="flex items-center gap-2">
+                        return (
+                          <div key={bet.matchId} className="flex items-center gap-2 py-1.5">
                             {/* Match */}
                             <div className="flex flex-1 items-center gap-1.5 overflow-hidden">
                               <TeamLogo
@@ -241,6 +242,8 @@ export function GroupLeaderboardContent({
                             <span className="w-10 text-right font-mono text-muted-foreground text-xs">
                               {bet.stake}
                             </span>
+                            {/* Bonus */}
+                            <BetBonusCell bet={bet} oddsBoost={oddsBoost} />
                             {/* Net profit */}
                             <span
                               className={`w-12 text-right font-bold font-mono text-xs ${
@@ -251,10 +254,9 @@ export function GroupLeaderboardContent({
                               {netProfit}
                             </span>
                           </div>
-                          <BetBonusLine bet={bet} oddsBoost={oddsBoost} />
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </AccordionContent>

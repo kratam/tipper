@@ -4,7 +4,7 @@ import { ChevronDown, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Accordion as AccordionPrimitive } from "radix-ui";
 import { useState } from "react";
-import { BetBonusLine } from "@/components/bet-bonus-line";
+import { BetBonusCell } from "@/components/bet-bonus-cell";
 import { TeamLogo } from "@/components/team-logo";
 import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -137,31 +137,32 @@ export function GroupResultsContent({
                 {sortedBets.length === 0 ? (
                   <p className="text-faint text-xs">{t("noBetsYet")}</p>
                 ) : (
-                  <div className="flex flex-col">
-                    {/* Header */}
-                    <div className="flex items-center gap-2 pb-1 font-medium text-[11px] text-muted-foreground">
-                      <span className="flex-1">{/* player column */}</span>
-                      <span className="w-10 text-center">{t("prediction")}</span>
-                      <span className="w-10 text-right">{t("odds")}</span>
-                      <span className="w-10 text-right">{tBetting("stake")}</span>
-                      <span className="w-12 text-right">{t("payout")}</span>
-                    </div>
-                    {/* Rows */}
-                    {sortedBets.map((bet) => {
-                      const isCurrentUser = bet.userId === currentUserId;
-                      const won = bet.result1x2Correct === true && bet.payout != null;
-                      const netProfit =
-                        won && bet.payout != null ? bet.payout - bet.stake : -bet.stake;
-                      const lockedOdds = formatEffectiveOdds(bet.oddsAtBet, oddsBoost);
+                  <div className="overflow-x-auto">
+                    <div className="flex min-w-[360px] flex-col">
+                      {/* Header */}
+                      <div className="flex items-center gap-2 pb-1 font-medium text-[11px] text-muted-foreground">
+                        <span className="flex-1">{/* player column */}</span>
+                        <span className="w-10 text-center">{t("prediction")}</span>
+                        <span className="w-10 text-right">{t("odds")}</span>
+                        <span className="w-10 text-right">{tBetting("stake")}</span>
+                        <span className="w-10 text-right">{t("bonusColumn")}</span>
+                        <span className="w-12 text-right">{t("payout")}</span>
+                      </div>
+                      {/* Rows */}
+                      {sortedBets.map((bet) => {
+                        const isCurrentUser = bet.userId === currentUserId;
+                        const won = bet.result1x2Correct === true && bet.payout != null;
+                        const netProfit =
+                          won && bet.payout != null ? bet.payout - bet.stake : -bet.stake;
+                        const lockedOdds = formatEffectiveOdds(bet.oddsAtBet, oddsBoost);
 
-                      return (
-                        <div
-                          key={bet.userId}
-                          className={`flex flex-col rounded-sm px-1 py-1.5 ${
-                            isCurrentUser ? "bg-gold-soft" : ""
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
+                        return (
+                          <div
+                            key={bet.userId}
+                            className={`flex items-center gap-2 rounded-sm px-1 py-1.5 ${
+                              isCurrentUser ? "bg-gold-soft" : ""
+                            }`}
+                          >
                             {/* Player */}
                             <div className="flex flex-1 items-center gap-1.5 overflow-hidden">
                               <Avatar className="size-5">
@@ -186,6 +187,8 @@ export function GroupResultsContent({
                             <span className="w-10 text-right font-mono text-muted-foreground text-xs">
                               {bet.stake}
                             </span>
+                            {/* Bonus */}
+                            <BetBonusCell bet={bet} oddsBoost={oddsBoost} />
                             {/* Net profit */}
                             <span
                               className={`w-12 text-right font-bold font-mono text-xs ${
@@ -196,10 +199,9 @@ export function GroupResultsContent({
                               {netProfit}
                             </span>
                           </div>
-                          <BetBonusLine bet={bet} oddsBoost={oddsBoost} />
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </AccordionContent>

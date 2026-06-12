@@ -209,6 +209,7 @@
     "noBetsForPlayer": "No bets on finished matches yet",
     "prediction": "Prediction",
     "odds": "Odds",
+    "bonusColumn": "Bonus",
     "payout": "Pay",
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",

@@ -225,8 +225,9 @@ Pure függvények: `src/lib/scoring.ts` (tesztelve)
 4. **Pontos eredmény bónusz**: `+bonusExactScore` (default: 10) ha pontos találat
 5. Bónuszok additívak (nem szorzódnak)
 
-**Bónusz a UI-ban:** a csoport-oldal Ranglista/Eredmények tipplistái a bónuszt
-külön arany sorban írják ki a tipp sora alatt (`src/components/bet-bonus-line.tsx`).
+**Bónusz a UI-ban:** a csoport-oldal Ranglista/Eredmények tipplistáiban külön
+**Bónusz oszlop** van a Tét és a Nye. között (`src/components/bet-bonus-cell.tsx`);
+mobilon a lista vízszintesen görgethető, ha nem fér ki (`overflow-x-auto` + min szélesség).
 Az összeg a tárolt payoutból van visszaszámolva — `payout − round(stake × oddsAtBet
 × oddsBoost)` (`src/lib/bet-display.ts`, tesztelve) —, így nem kell a bónusz-beállításokat
 átfűzni; viszont a számítás az *aktuális* `oddsBoost`-ot használja (ugyanaz a feltevés,
