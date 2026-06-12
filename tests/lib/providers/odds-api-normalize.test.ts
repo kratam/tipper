@@ -6,6 +6,8 @@ import {
   selectOddsApiOdds,
 } from "@/lib/providers/odds-api/normalize";
 
+// A valós odds-api válaszban a periods kulcs `ft` (nem `fulltime`) — lásd
+// 2026-06-12 WC incidens: {'home': 2, 'away': 0, 'periods': {'ft': {...}, 'p1': {...}}}
 const settled: OddsApiEvent = {
   id: 1,
   home: "Hungary",
@@ -14,7 +16,7 @@ const settled: OddsApiEvent = {
   awayId: 20,
   date: "2026-06-01T18:00:00Z",
   status: "settled",
-  scores: { home: 1, away: 3, periods: { fulltime: { home: 1, away: 3 } } },
+  scores: { home: 1, away: 3, periods: { ft: { home: 1, away: 3 } } },
 };
 
 describe("normalizeOddsApiEvent", () => {
@@ -25,6 +27,22 @@ describe("normalizeOddsApiEvent", () => {
     expect(g.homeScore).toBe(1);
     expect(g.awayScore).toBe(3);
     expect(g.home).toEqual({ externalId: "10", name: "Hungary", logoUrl: null });
+  });
+  it("prefers the ft period score over the top-level (extra-time inclusive) score", () => {
+    const g = normalizeOddsApiEvent({
+      ...settled,
+      scores: { home: 2, away: 1, periods: { ft: { home: 1, away: 1 } } },
+    });
+    expect(g.homeScore).toBe(1);
+    expect(g.awayScore).toBe(1);
+  });
+  it("falls back to the top-level score when periods is missing", () => {
+    const g = normalizeOddsApiEvent({
+      ...settled,
+      scores: { home: 2, away: 0 },
+    });
+    expect(g.homeScore).toBe(2);
+    expect(g.awayScore).toBe(0);
   });
   it("maps pending to scheduled and ignores the {0,0} placeholder score", () => {
     const g = normalizeOddsApiEvent({

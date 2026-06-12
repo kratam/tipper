@@ -11,7 +11,7 @@ const STATUS_MAP: Record<OddsApiEvent["status"], MatchStatus> = {
 
 export function normalizeOddsApiEvent(e: OddsApiEvent): NormalizedGame {
   const status = STATUS_MAP[e.status] ?? "scheduled";
-  const ft = e.scores?.periods?.fulltime;
+  const ft = e.scores?.periods?.ft ?? e.scores?.periods?.fulltime;
   const home = status === "finished" ? (ft?.home ?? e.scores?.home ?? null) : null;
   const away = status === "finished" ? (ft?.away ?? e.scores?.away ?? null) : null;
   return {

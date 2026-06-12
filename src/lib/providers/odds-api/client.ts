@@ -11,7 +11,11 @@ export interface OddsApiEvent {
   scores: {
     home: number;
     away: number;
-    periods?: { fulltime?: { home: number; away: number } };
+    // A valós API a `ft` kulcsot küldi; a `fulltime` a régi/dokumentált alak.
+    periods?: {
+      ft?: { home: number; away: number };
+      fulltime?: { home: number; away: number };
+    };
   } | null;
 }
 
