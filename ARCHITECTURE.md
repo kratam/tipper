@@ -225,6 +225,15 @@ Pure függvények: `src/lib/scoring.ts` (tesztelve)
 4. **Pontos eredmény bónusz**: `+bonusExactScore` (default: 10) ha pontos találat
 5. Bónuszok additívak (nem szorzódnak)
 
+**Bónusz a UI-ban:** a csoport-oldal Ranglista/Eredmények tipplistái a bónuszt
+külön arany sorban írják ki a tipp sora alatt (`src/components/bet-bonus-line.tsx`).
+Az összeg a tárolt payoutból van visszaszámolva — `payout − round(stake × oddsAtBet
+× oddsBoost)` (`src/lib/bet-display.ts`, tesztelve) —, így nem kell a bónusz-beállításokat
+átfűzni; viszont a számítás az *aktuális* `oddsBoost`-ot használja (ugyanaz a feltevés,
+mint a `formatEffectiveOdds` kijelzésnél). A tipp színe a találat pontossága szerint
+(`predictionToneClass`): telitalálat **félkövér zöld**, gólkülönbség semibold zöld,
+csak 1X2 halvány zöld, rossz tipp halvány piros — az arany szín a bónusz-soré.
+
 ### Dobogós tipp
 
 - Említett csapat (bármelyik dobogós helyen): `+bonusPodiumMention` (default: 20)

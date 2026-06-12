@@ -4,11 +4,13 @@ import { ChevronDown, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Accordion as AccordionPrimitive } from "radix-ui";
 import { useState } from "react";
+import { BetBonusLine } from "@/components/bet-bonus-line";
 import { TeamLogo } from "@/components/team-logo";
 import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { predictionToneClass } from "@/lib/bet-display";
 import { formatEffectiveOdds } from "@/lib/odds-display";
 
 interface FinishedMatch {
@@ -155,51 +157,46 @@ export function GroupResultsContent({
                       return (
                         <div
                           key={bet.userId}
-                          className={`flex items-center gap-2 rounded-sm px-1 py-1.5 ${
+                          className={`flex flex-col rounded-sm px-1 py-1.5 ${
                             isCurrentUser ? "bg-gold-soft" : ""
                           }`}
                         >
-                          {/* Player */}
-                          <div className="flex flex-1 items-center gap-1.5 overflow-hidden">
-                            <Avatar className="size-5">
-                              <AvatarImage src={bet.userAvatarUrl ?? undefined} />
-                              <AvatarFallback className="text-[9px]">
-                                {initials(bet.userName)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="truncate text-xs">{bet.userName}</span>
+                          <div className="flex items-center gap-2">
+                            {/* Player */}
+                            <div className="flex flex-1 items-center gap-1.5 overflow-hidden">
+                              <Avatar className="size-5">
+                                <AvatarImage src={bet.userAvatarUrl ?? undefined} />
+                                <AvatarFallback className="text-[9px]">
+                                  {initials(bet.userName)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="truncate text-xs">{bet.userName}</span>
+                            </div>
+                            {/* Prediction */}
+                            <span
+                              className={`w-10 text-center font-mono text-xs ${predictionToneClass(bet)}`}
+                            >
+                              {bet.predictedHome}-{bet.predictedAway}
+                            </span>
+                            {/* Odds */}
+                            <span className="w-10 text-right font-mono text-muted-foreground text-xs">
+                              {lockedOdds ?? "—"}
+                            </span>
+                            {/* Stake */}
+                            <span className="w-10 text-right font-mono text-muted-foreground text-xs">
+                              {bet.stake}
+                            </span>
+                            {/* Net profit */}
+                            <span
+                              className={`w-12 text-right font-bold font-mono text-xs ${
+                                netProfit > 0 ? "text-win" : "text-loss"
+                              }`}
+                            >
+                              {netProfit > 0 ? "+" : ""}
+                              {netProfit}
+                            </span>
                           </div>
-                          {/* Prediction */}
-                          <span
-                            className={`w-10 text-center font-medium font-mono text-xs ${
-                              bet.exactScoreCorrect
-                                ? "text-gold"
-                                : bet.goalDiffCorrect
-                                  ? "text-win"
-                                  : bet.result1x2Correct
-                                    ? "text-win/70"
-                                    : "text-loss/70"
-                            }`}
-                          >
-                            {bet.predictedHome}-{bet.predictedAway}
-                          </span>
-                          {/* Odds */}
-                          <span className="w-10 text-right font-mono text-muted-foreground text-xs">
-                            {lockedOdds ?? "—"}
-                          </span>
-                          {/* Stake */}
-                          <span className="w-10 text-right font-mono text-muted-foreground text-xs">
-                            {bet.stake}
-                          </span>
-                          {/* Net profit */}
-                          <span
-                            className={`w-12 text-right font-bold font-mono text-xs ${
-                              netProfit > 0 ? "text-win" : "text-loss"
-                            }`}
-                          >
-                            {netProfit > 0 ? "+" : ""}
-                            {netProfit}
-                          </span>
+                          <BetBonusLine bet={bet} oddsBoost={oddsBoost} />
                         </div>
                       );
                     })}
