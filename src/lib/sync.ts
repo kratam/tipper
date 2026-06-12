@@ -37,6 +37,22 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<string, 
   const games = await getProvider(cfg.provider).fetchFixtures(cfg, ["hu", "en"]);
   const apiGameDates = new Map<string, string>();
 
+  // Az odds-api league-átnevezéskor üres listát ad hiba helyett (2026-06-12 WC
+  // incidens: international-world-cup → international-fifa-world-cup), így a
+  // sync napokig némán no-op marad. Hangos log, hogy a Vercel logban látszódjon.
+  if (games.length === 0) {
+    const [{ count: existingCount }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(matches)
+      .where(eq(matches.tournamentId, tournament.id));
+    if (Number(existingCount) > 0) {
+      console.error(
+        `[sync] Provider returned 0 games for tournament ${tournament.id} but DB has ${existingCount} matches — possible league slug rename or API outage`,
+      );
+    }
+    return apiGameDates;
+  }
+
   for (const game of games) {
     const homeTeamId = await upsertTeam(
       cfg.provider,
