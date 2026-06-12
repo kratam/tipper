@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/accordion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMatchPolling } from "@/hooks/use-match-polling";
+import { usePersistedDisclosure } from "@/hooks/use-persisted-disclosure";
 import type { PublicGroupSuggestion } from "@/queries/groups";
 
 interface GroupBetInfo {
@@ -179,6 +180,9 @@ export function TournamentTabs({
   const [selectedMatch, setSelectedMatch] = useState<MatchCardData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  // Remember whether the "groups & circles" cards are expanded (open by default)
+  const [cardsOpen, setCardsOpen] = usePersistedDisclosure("tipper:groupCards:open", true);
+
   // Live polling: merge fresh score/status/bet data from SWR
   const liveMatches = useMatchPolling(tournamentId, matches);
 
@@ -324,7 +328,13 @@ export function TournamentTabs({
         )}
 
         {(groupCardData.length > 0 || circleCards.length > 0) && (
-          <Accordion type="single" collapsible defaultValue="cards" className="flex flex-col gap-2">
+          <Accordion
+            type="single"
+            collapsible
+            value={cardsOpen ? "cards" : ""}
+            onValueChange={(value) => setCardsOpen(value === "cards")}
+            className="flex flex-col gap-2"
+          >
             <AccordionItem value="cards" className="border-none">
               <AccordionTrigger className="h-10 gap-2.5 rounded-[calc(var(--radius)*0.85)] border border-border bg-surface-2 px-4 transition-[border-color,box-shadow] hover:bg-surface-3 hover:no-underline">
                 <span className="font-[650] text-[14px]">{t("myGroupsAndCircles")}</span>

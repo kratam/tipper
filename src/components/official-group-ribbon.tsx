@@ -2,9 +2,9 @@
 
 import { ChevronDown, ChevronUp, CircleAlert, CircleCheck, Crown } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
 import { GroupRulesDialog } from "@/components/group-rules-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePersistedDisclosure } from "@/hooks/use-persisted-disclosure";
 import { Link } from "@/i18n/navigation";
 import type { GroupRules } from "@/lib/group-rules";
 
@@ -49,24 +49,7 @@ export function OfficialGroupRibbon({
   const t = useTranslations("groups");
   const tTournaments = useTranslations("tournaments");
 
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "true") setOpen(true);
-  }, []);
-
-  function toggle() {
-    setOpen((prev) => {
-      const next = !prev;
-      try {
-        window.localStorage.setItem(STORAGE_KEY, String(next));
-      } catch {
-        // ignore quota / disabled storage
-      }
-      return next;
-    });
-  }
+  const [open, , toggle] = usePersistedDisclosure(STORAGE_KEY, false);
 
   const rankDisplay = myRank ? `#${myRank}` : "—";
 
