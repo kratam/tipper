@@ -18,6 +18,7 @@ export function clampPerMatch(tokenPerMatch: number, balance: number): number {
  * The per-match allowance (`perMatchValue`, label `perMatchLabel`) is always the
  * first chip as long as its value is >= 1. The percentage presets (even share,
  * double share, MAX) follow it, skipping any whose value OR label already appears.
+ * Every preset value is capped at the bettable balance.
  */
 export function computeStakePresets(
   balance: number,
@@ -26,7 +27,7 @@ export function computeStakePresets(
   perMatchLabel: string,
 ): StakePreset[] {
   const evenShare = Math.floor(balance / matchCount);
-  const doubleShare = Math.floor((balance * 2) / matchCount);
+  const doubleShare = Math.min(balance, Math.floor((balance * 2) / matchCount));
   const evenPct = Math.round(100 / matchCount);
   const doublePct = Math.min(100, evenPct * 2);
   const presets: StakePreset[] = [];
