@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   bets,
@@ -80,10 +80,13 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<string, 
       const teamsSwapped =
         existingMatch.homeTeamId === awayTeamId && existingMatch.awayTeamId === homeTeamId;
 
+      // Update the mutable fields (scores, teams, schedule) but NOT the status.
+      // The finished/cancelled transitions are claimed atomically below so two
+      // concurrent syncs (overlapping cron ticks) can't both fire scoring or
+      // refunds — see the compare-and-set updates with `ne(status, ...)`.
       await db
         .update(matches)
         .set({
-          status: newStatus,
           homeTeamId,
           awayTeamId,
           homeScore: game.homeScore,
@@ -98,12 +101,30 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<string, 
         await flipBetsForMatch(existingMatch.id);
       }
 
-      if (!wasFinished && newStatus === "finished") {
-        await scoreMatch(existingMatch.id, game.homeScore ?? 0, game.awayScore ?? 0);
-      }
-
-      if (!wasCancelled && newStatus === "cancelled") {
-        await refundMatch(existingMatch.id);
+      if (newStatus === "finished") {
+        // Atomic claim: flip scheduled→finished exactly once. Only the winning
+        // run gets a returned row and proceeds to score; concurrent runs (and
+        // re-syncs of an already-finished match) get zero rows and skip.
+        const claimed = await db
+          .update(matches)
+          .set({ status: "finished" })
+          .where(and(eq(matches.id, existingMatch.id), ne(matches.status, "finished")))
+          .returning({ id: matches.id });
+        if (claimed.length > 0) {
+          await scoreMatch(existingMatch.id, game.homeScore ?? 0, game.awayScore ?? 0);
+        }
+      } else if (newStatus === "cancelled") {
+        const claimed = await db
+          .update(matches)
+          .set({ status: "cancelled" })
+          .where(and(eq(matches.id, existingMatch.id), ne(matches.status, "cancelled")))
+          .returning({ id: matches.id });
+        if (claimed.length > 0) {
+          await refundMatch(existingMatch.id);
+        }
+      } else if (newStatus !== existingMatch.status) {
+        // Non-scoring transition (e.g. scheduled→live): just reflect the status.
+        await db.update(matches).set({ status: newStatus }).where(eq(matches.id, existingMatch.id));
       }
     } else {
       await db.insert(matches).values({
@@ -372,7 +393,12 @@ async function scoreMatch(matchId: string, homeScore: number, awayScore: number)
       },
     });
 
-    await db
+    // Atomic claim: only the run that flips `payout` from NULL gets to write
+    // the `win` ledger row. Two concurrent scoreMatch passes (e.g. overlapping
+    // cron ticks) both read this bet with payout IS NULL, but the `WHERE
+    // payout IS NULL` guard means exactly one UPDATE returns a row — the others
+    // get zero and skip, so no duplicate `win` entries can be inserted.
+    const claimed = await db
       .update(bets)
       .set({
         payout: result.payout,
@@ -381,7 +407,10 @@ async function scoreMatch(matchId: string, homeScore: number, awayScore: number)
         exactScoreCorrect: result.exactScoreCorrect,
         updatedAt: new Date(),
       })
-      .where(eq(bets.id, bet.id));
+      .where(and(eq(bets.id, bet.id), isNull(bets.payout)))
+      .returning({ id: bets.id });
+
+    if (claimed.length === 0) continue;
 
     if (result.payout > 0) {
       const group = await db.query.groups.findFirst({
