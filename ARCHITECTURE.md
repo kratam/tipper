@@ -293,6 +293,8 @@ QStash-ből hívva, POST. Csak fixtures sync (1 API hívás/tournament, odds né
 - `distributeTokensForTournament()` — token kiosztás
 - `backfillTournamentLogos()` — logo feltöltés
 
+**Race-safe kiértékelés (idempotencia):** a 6 órás cron és a QStash match-finish check átfedhet ugyanarra a meccsre, így a `syncFixtures` UPDATE ága párhuzamosan futhat. A scheduled→finished / scheduled→cancelled átmenet ezért **atomi compare-and-set** (`UPDATE … WHERE status <> 'finished' RETURNING`), és csak a visszakapott sort nyerő futás hívja a `scoreMatch`/`refundMatch`-et. A `scoreMatch` ezen felül soronként is claim-el (`UPDATE bets SET payout=… WHERE payout IS NULL RETURNING`), így minden tippre pontosan egy `win` ledger sor keletkezik. (Ezen védelem előtt a duplikált `win` sorok felülszámolták a ranglista-pontot — `SUM(token_ledger.amount)` — lásd `git log` `fix(scoring): race-safe…`.)
+
 **Home/away flip kezelése:** az api-sports `/games` időnként megfordítja a `teams.home`/`teams.away` értékeket az eredeti import után. A `syncFixtures` UPDATE ága a `homeTeamId`/`awayTeamId` mezőket is frissíti (nem csak az insertnél), és scheduled/live meccsen flip-eli a nyitott (még nem pontozott) tippek `predicted_home`/`predicted_away` értékeit + újraszámolja az `oddsAtBet`-et. Ezzel a csapat-szándék megőrződik, és az odds szinkronban marad az API jelenlegi `Home`/`Away` konvenciójával.
 
 ### QStash (`src/lib/qstash.ts`)
