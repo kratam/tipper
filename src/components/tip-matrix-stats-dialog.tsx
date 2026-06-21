@@ -11,7 +11,6 @@ interface TipMatrixStatsDialogProps {
   matchId: string;
   title: string;
   isFinished: boolean;
-  oddsBoost: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -21,7 +20,6 @@ export function TipMatrixStatsDialog({
   matchId,
   title,
   isFinished,
-  oddsBoost: _oddsBoost,
   open,
   onOpenChange,
 }: TipMatrixStatsDialogProps) {
