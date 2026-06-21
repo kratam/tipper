@@ -244,6 +244,10 @@ export function buildMatrixRows(
   const scoreByUser = new Map<string, number>();
   for (const b of bets) {
     const net = betNet(b.payout, b.stake);
+    // A null (még le nem pontozott) tipp kimarad — ez egyben az adatvédelmi
+    // garancia is: lepontozott tipp csak lockolt (befejezett) meccsen van, amit
+    // minden néző lát; a más-felhasználó jövőbeli tippje (null payout) sosem
+    // kerülhet a forduló-pontba (lásd filterRoundBetsForViewer).
     if (net == null) continue;
     scoreByUser.set(b.userId, (scoreByUser.get(b.userId) ?? 0) + net);
   }
