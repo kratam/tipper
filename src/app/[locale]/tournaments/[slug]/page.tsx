@@ -1,6 +1,7 @@
 import { Crown } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
+import type { BoardTab } from "@/components/tournament-board-panel";
 import { TournamentLogo } from "@/components/tournament-logo";
 import { TournamentTabs } from "@/components/tournament-tabs";
 import { redirect } from "@/i18n/navigation";
@@ -20,6 +21,7 @@ import { getGroupLeaderboard } from "@/queries/leaderboard";
 import { getMatchesForTournament } from "@/queries/matches";
 import { getPodiumBet, getTournamentTeams } from "@/queries/podium";
 import { matchParticipantsKnown } from "@/queries/team-display";
+import { getTipMatrixRound, type TipMatrixRound } from "@/queries/tip-matrix";
 import { getTournamentBySlug } from "@/queries/tournaments";
 
 export default async function TournamentDetailPage({
@@ -97,8 +99,16 @@ export default async function TournamentDetailPage({
           groupName: gm.group.name,
           groupSlug: gm.group.slug,
           tournamentSlug: tournament.slug,
+          isOfficial: gm.group.isOfficial,
           myProfit: myEntry?.profit ?? 0,
           myRank: myEntry?.rank ?? null,
+          fullLeaderboard: leaderboard.map((e) => ({
+            rank: e.rank,
+            userId: e.userId,
+            userName: e.userName,
+            userAvatarUrl: e.userAvatarUrl,
+            profit: e.profit,
+          })),
           miniLeaderboard: mini.map((e) => ({
             rank: e.rank,
             userId: e.userId,
@@ -212,6 +222,17 @@ export default async function TournamentDetailPage({
   // Kör-kártyák: a hivatalos csoport teljes ranglistáját a kör tagjaira szűrjük.
   // A teljes ranglistát csak akkor kérjük le, ha van köröm és van hivatalos csoport.
   const officialGroup = officialGroupMembership?.group;
+
+  const officialInitialRound: TipMatrixRound | null = officialGroup
+    ? await getTipMatrixRound(
+        officialGroup.id,
+        tournament.id,
+        tournament.useFlagFallback,
+        user.id,
+        null,
+      )
+    : null;
+
   const officialFullLeaderboard =
     userCircles.length > 0 && officialGroup ? await getGroupLeaderboard(officialGroup.id) : [];
 
@@ -238,6 +259,78 @@ export default async function TournamentDetailPage({
         };
       })
     : [];
+
+  // BoardTab összeállítása: hivatalos → saját csoportok → körök
+  const groupTabs: BoardTab[] = [];
+  // Hivatalos elsőként
+  if (officialGroup) {
+    const og = groupLeaderboards.find((l) => l.groupId === officialGroup.id);
+    groupTabs.push({
+      key: "official",
+      label: officialGroup.name,
+      groupId: officialGroup.id,
+      leaderboard: og?.fullLeaderboard ?? [],
+      detailHref: `/tournaments/${tournament.slug}/groups/${officialGroup.slug}`,
+      readOnly: false,
+      rules: {
+        tokenPerMatch: officialGroup.tokenPerMatch,
+        initialTokens: officialGroup.initialTokens,
+        bonusGoalDiff: officialGroup.bonusGoalDiff,
+        bonusExactScore: officialGroup.bonusExactScore,
+        bonusPodiumMention: officialGroup.bonusPodiumMention,
+        bonusPodiumExact: officialGroup.bonusPodiumExact,
+        oddsBoost: officialGroup.oddsBoost,
+        lossPercentage: officialGroup.lossPercentage,
+      },
+      rulesGroupName: officialGroup.name,
+    });
+  }
+  // Saját csoportok
+  for (const gm of userOnlyGroupMemberships) {
+    const gl = groupLeaderboards.find((l) => l.groupId === gm.group.id);
+    groupTabs.push({
+      key: `group-${gm.group.id}`,
+      label: gm.group.name,
+      groupId: gm.group.id,
+      leaderboard: gl?.fullLeaderboard ?? [],
+      detailHref: `/tournaments/${tournament.slug}/groups/${gm.group.slug}`,
+      readOnly: false,
+      rules: {
+        tokenPerMatch: gm.group.tokenPerMatch,
+        initialTokens: gm.group.initialTokens,
+        bonusGoalDiff: gm.group.bonusGoalDiff,
+        bonusExactScore: gm.group.bonusExactScore,
+        bonusPodiumMention: gm.group.bonusPodiumMention,
+        bonusPodiumExact: gm.group.bonusPodiumExact,
+        oddsBoost: gm.group.oddsBoost,
+        lossPercentage: gm.group.lossPercentage,
+      },
+      rulesGroupName: gm.group.name,
+    });
+  }
+  // Körök (a hivatalos csoport tippjeire épülnek, read-only)
+  if (officialGroup) {
+    for (const circle of userCircles) {
+      const memberIds = new Set(circle.members.map((m) => m.userId));
+      const filtered = filterAndRerankLeaderboard(officialFullLeaderboard, memberIds);
+      groupTabs.push({
+        key: `circle-${circle.id}`,
+        label: circle.name,
+        groupId: officialGroup.id,
+        leaderboard: filtered.map((e) => ({
+          rank: e.rank,
+          userId: e.userId,
+          userName: e.userName,
+          userAvatarUrl: e.userAvatarUrl,
+          profit: e.profit,
+        })),
+        detailHref: `/tournaments/${tournament.slug}/circles/${circle.slug}`,
+        readOnly: true,
+        rules: null,
+        rulesGroupName: null,
+      });
+    }
+  }
 
   // Serialize matches for client component
   const matchesData = matches.map((m) => ({
@@ -303,6 +396,8 @@ export default async function TournamentDetailPage({
         topPublicGroups={topPublicGroups}
         officialCard={officialCard}
         circleCards={circleCards}
+        boardTabs={groupTabs}
+        officialInitialRound={officialInitialRound}
       />
     </div>
   );

@@ -4,12 +4,10 @@ import { Check, Lock } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { BetDialog } from "@/components/bet-dialog";
-import { CircleSummaryCard } from "@/components/circle-summary-card";
-import { GroupSummaryCard } from "@/components/group-summary-card";
 import { GroupTokenSummary } from "@/components/group-token-summary";
 import { MatchCard, type MatchCardData } from "@/components/match-card";
-import { OfficialGroupRibbon } from "@/components/official-group-ribbon";
 import { PodiumForm } from "@/components/podium-form";
+import { TournamentBoardPanel } from "@/components/tournament-board-panel";
 import {
   Accordion,
   AccordionContent,
@@ -18,7 +16,6 @@ import {
 } from "@/components/ui/accordion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMatchPolling } from "@/hooks/use-match-polling";
-import { usePersistedDisclosure } from "@/hooks/use-persisted-disclosure";
 import type { PublicGroupSuggestion } from "@/queries/groups";
 
 interface GroupBetInfo {
@@ -124,6 +121,8 @@ interface TournamentTabsProps {
       profit: number;
     }[];
   }[];
+  boardTabs: import("@/components/tournament-board-panel").BoardTab[];
+  officialInitialRound: import("@/queries/tip-matrix").TipMatrixRound | null;
 }
 
 type MatchFilter = "upcoming" | "played" | "all" | "podium";
@@ -170,7 +169,9 @@ export function TournamentTabs({
   currentUserId,
   topPublicGroups = [],
   officialCard,
-  circleCards,
+  circleCards: _circleCards,
+  boardTabs,
+  officialInitialRound,
 }: TournamentTabsProps) {
   const t = useTranslations("tournaments");
   const tMatches = useTranslations("matches");
@@ -179,9 +180,6 @@ export function TournamentTabs({
   const [filter, setFilter] = useState<MatchFilter>("upcoming");
   const [selectedMatch, setSelectedMatch] = useState<MatchCardData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-
-  // Remember whether the "groups & circles" cards are expanded (open by default)
-  const [cardsOpen, setCardsOpen] = usePersistedDisclosure("tipper:groupCards:open", true);
 
   // Live polling: merge fresh score/status/bet data from SWR
   const liveMatches = useMatchPolling(tournamentId, matches);
@@ -301,56 +299,19 @@ export function TournamentTabs({
     <>
       <div className="flex flex-col gap-3">
         {officialCard && (
-          <OfficialGroupRibbon
-            groupName={officialCard.groupName}
-            groupSlug={officialCard.groupSlug}
-            tournamentSlug={officialCard.tournamentSlug}
-            rules={{
-              tokenPerMatch: officialCard.tokenPerMatch,
-              initialTokens: officialCard.initialTokens,
-              bonusGoalDiff: officialCard.bonusGoalDiff,
-              bonusExactScore: officialCard.bonusExactScore,
-              bonusPodiumMention: officialCard.bonusPodiumMention,
-              bonusPodiumExact: officialCard.bonusPodiumExact,
-              oddsBoost: officialCard.oddsBoost,
-              lossPercentage: officialCard.lossPercentage,
-            }}
-            myProfit={officialCard.myProfit}
-            myRank={officialCard.myRank}
-            miniLeaderboard={officialCard.miniLeaderboard}
+          <TournamentBoardPanel
             currentUserId={currentUserId}
+            timeZone={timezone}
+            officialRank={officialCard.myRank}
+            officialProfit={officialCard.myProfit}
             next3Days={officialNext3Days}
+            tabs={boardTabs}
+            officialInitialRound={officialInitialRound}
           />
         )}
 
         {groupCardData.length === 0 && (
           <GroupTokenSummary topPublicGroups={topPublicGroups} hasOfficialGroup={!!officialCard} />
-        )}
-
-        {(groupCardData.length > 0 || circleCards.length > 0) && (
-          <Accordion
-            type="single"
-            collapsible
-            value={cardsOpen ? "cards" : ""}
-            onValueChange={(value) => setCardsOpen(value === "cards")}
-            className="flex flex-col gap-2"
-          >
-            <AccordionItem value="cards" className="border-none">
-              <AccordionTrigger className="h-10 gap-2.5 rounded-[calc(var(--radius)*0.85)] border border-border bg-surface-2 px-4 transition-[border-color,box-shadow] hover:bg-surface-3 hover:no-underline">
-                <span className="font-[650] text-[14px]">{t("myGroupsAndCircles")}</span>
-              </AccordionTrigger>
-              <AccordionContent className="pt-3 pb-0 [&_a]:no-underline">
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
-                  {groupCardData.map((g) => (
-                    <GroupSummaryCard key={g.groupId} group={g} currentUserId={currentUserId} />
-                  ))}
-                  {circleCards.map((c) => (
-                    <CircleSummaryCard key={c.circleId} circle={c} currentUserId={currentUserId} />
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
         )}
 
         {/* Unified filter row: upcoming / played / all / podium */}
