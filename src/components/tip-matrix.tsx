@@ -178,7 +178,7 @@ export function TipMatrix({
   }
 
   return (
-    <div className="rounded-[14px] border border-border bg-surface">
+    <div className="overflow-hidden rounded-[14px] border border-border bg-surface">
       {/* Round nav */}
       <div className="flex items-center justify-between border-border border-b bg-surface-2 px-3 py-2">
         <Button
