@@ -219,8 +219,7 @@ export default async function TournamentDetailPage({
       })()
     : null;
 
-  // Kör-kártyák: a hivatalos csoport teljes ranglistáját a kör tagjaira szűrjük.
-  // A teljes ranglistát csak akkor kérjük le, ha van köröm és van hivatalos csoport.
+  // Körök a hivatalos csoport tippjeire épülnek — a teljes ranglista már megvan a groupLeaderboards-ban.
   const officialGroup = officialGroupMembership?.group;
 
   const officialInitialRound: TipMatrixRound | null = officialGroup
@@ -233,31 +232,8 @@ export default async function TournamentDetailPage({
       )
     : null;
 
-  const officialFullLeaderboard =
-    userCircles.length > 0 && officialGroup ? await getGroupLeaderboard(officialGroup.id) : [];
-
-  const circleCards = officialGroup
-    ? userCircles.map((circle) => {
-        const memberIds = new Set(circle.members.map((m) => m.userId));
-        const filtered = filterAndRerankLeaderboard(officialFullLeaderboard, memberIds);
-        const mini = pickMiniLeaderboard(filtered, user.id, 3);
-        const myEntry = filtered.find((e) => e.userId === user.id);
-        return {
-          circleId: circle.id,
-          circleName: circle.name,
-          circleSlug: circle.slug,
-          tournamentSlug: tournament.slug,
-          myProfit: myEntry?.profit ?? 0,
-          myRank: myEntry?.rank ?? null,
-          miniLeaderboard: mini.map((e) => ({
-            rank: e.rank,
-            userId: e.userId,
-            userName: e.userName,
-            userAvatarUrl: e.userAvatarUrl,
-            profit: e.profit,
-          })),
-        };
-      })
+  const officialFullLeaderboard = officialGroup
+    ? (groupLeaderboards.find((l) => l.groupId === officialGroup.id)?.fullLeaderboard ?? [])
     : [];
 
   // BoardTab összeállítása: hivatalos → saját csoportok → körök
@@ -395,7 +371,6 @@ export default async function TournamentDetailPage({
         currentUserId={user.id}
         topPublicGroups={topPublicGroups}
         officialCard={officialCard}
-        circleCards={circleCards}
         boardTabs={groupTabs}
         officialInitialRound={officialInitialRound}
       />

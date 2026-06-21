@@ -106,21 +106,6 @@ interface TournamentTabsProps {
   currentUserId: string;
   topPublicGroups?: PublicGroupSuggestion[];
   officialCard: OfficialCardData | null;
-  circleCards: {
-    circleId: string;
-    circleName: string;
-    circleSlug: string;
-    tournamentSlug: string;
-    myProfit: number;
-    myRank: number | null;
-    miniLeaderboard: {
-      rank: number;
-      userId: string;
-      userName: string;
-      userAvatarUrl: string | null;
-      profit: number;
-    }[];
-  }[];
   boardTabs: import("@/components/tournament-board-panel").BoardTab[];
   officialInitialRound: import("@/queries/tip-matrix").TipMatrixRound | null;
 }
@@ -169,7 +154,6 @@ export function TournamentTabs({
   currentUserId,
   topPublicGroups = [],
   officialCard,
-  circleCards: _circleCards,
   boardTabs,
   officialInitialRound,
 }: TournamentTabsProps) {
@@ -198,7 +182,7 @@ export function TournamentTabs({
   }, [groupBetInfosByMatch, officialCard?.groupId]);
 
   // Per-group card data: merge leaderboard info with next-3-days bet progress and balance.
-  // The official group is rendered separately (OfficialGroupRibbon), so we filter it out here.
+  // The official group is rendered separately (TournamentBoardPanel), so we filter it out here.
   // "next 3 days" = rolling 72h window from now (matches getUpcomingBetSummary semantics).
   const { groupCardData, officialNext3Days } = useMemo(() => {
     const cutoff = Date.now() + 3 * 24 * 60 * 60 * 1000;
