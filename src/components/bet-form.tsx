@@ -14,7 +14,7 @@ import { useRouter } from "@/i18n/navigation";
 import { formatEffectiveOdds } from "@/lib/odds-display";
 import { clampPerMatch, computeStakePresets } from "@/lib/stake-presets";
 
-interface GroupBetInfo {
+export interface GroupBetInfo {
   groupId: string;
   groupName: string;
   balance: number;

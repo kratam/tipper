@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { deleteGroup, leaveGroup, removeMember, updateGroupSettings } from "@/actions/groups";
 import { GroupLeaderboardContent } from "@/components/group-leaderboard-content";
 import { GroupResultsContent } from "@/components/group-results-content";
+import { TipMatrix } from "@/components/tip-matrix";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLeaderboardPolling } from "@/hooks/use-leaderboard-polling";
 import { useRouter } from "@/i18n/navigation";
 import type { GroupRules } from "@/lib/group-rules";
+import type { TipMatrixRound } from "@/queries/tip-matrix";
 
 interface LeaderboardRow {
   rank: number;
@@ -76,6 +78,8 @@ interface GroupDetailTabsProps {
   settings: GroupSettings;
   finishedMatches: FinishedMatch[];
   groupBets: GroupBet[];
+  timeZone: string;
+  initialMatrixRound: TipMatrixRound | null;
 }
 
 export function GroupDetailTabs({
@@ -93,6 +97,8 @@ export function GroupDetailTabs({
   settings: initialSettings,
   finishedMatches,
   groupBets,
+  timeZone,
+  initialMatrixRound,
 }: GroupDetailTabsProps) {
   const t = useTranslations("groups");
   const tc = useTranslations("common");
@@ -162,12 +168,24 @@ export function GroupDetailTabs({
   }
 
   return (
-    <Tabs defaultValue="leaderboard">
+    <Tabs defaultValue="matrix">
       <TabsList className="w-full">
+        <TabsTrigger value="matrix">{t("tipMatrix")}</TabsTrigger>
         <TabsTrigger value="leaderboard">{t("leaderboard")}</TabsTrigger>
         <TabsTrigger value="results">{t("results")}</TabsTrigger>
         {canEditSettings && <TabsTrigger value="settings">{t("settings")}</TabsTrigger>}
       </TabsList>
+
+      {/* Tipp-tábla */}
+      <TabsContent value="matrix" className="mt-4">
+        <TipMatrix
+          groupId={groupId}
+          currentUserId={currentUserId}
+          timeZone={timeZone}
+          leaderboard={liveLeaderboard}
+          initialRound={initialMatrixRound}
+        />
+      </TabsContent>
 
       {/* Leaderboard */}
       <TabsContent value="leaderboard" className="mt-4 flex flex-col gap-4">

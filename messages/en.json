@@ -204,6 +204,7 @@
     "carryoverPercent": "Carryover",
     "defaultsApplied": "Defaults applied. Edit after creation in group settings.",
     "results": "Results",
+    "tipMatrix": "Tip table",
     "betCount": "{count}/{total} bet",
     "noBetsYet": "No finished matches yet",
     "noBetsForPlayer": "No bets on finished matches yet",
@@ -509,5 +510,26 @@
     "groupLabel": "Group",
     "groupText": "a separate game with its own rules: you set the odds multiplier (how much more than the official odds you win) and how much the goal difference or exact result is worth. Because the rules differ, you have a separate token balance and place your bets separately.",
     "summary": "In short: a circle only ranks you, in a group you play separately."
+  },
+  "tipMatrix": {
+    "player": "Player",
+    "live": "LIVE",
+    "cancelled": "cancelled",
+    "hidden": "Hidden tip (until kickoff)",
+    "empty": "No round to display.",
+    "noTips": "No tips for this match in this group.",
+    "loading": "Loading…",
+    "prevRound": "Previous round",
+    "nextRound": "Next round",
+    "jumpToMe": "Jump to my row",
+    "youName": "{name} (you)",
+    "roundLabel": "Round {n}",
+    "stage": {
+      "final": "Final",
+      "sf": "Semi-final",
+      "qf": "Quarter-final",
+      "r16": "Round of 16",
+      "roundOf": "Round of {n}"
+    }
   }
 }

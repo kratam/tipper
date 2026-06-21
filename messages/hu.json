@@ -204,6 +204,7 @@
     "carryoverPercent": "Átvitel",
     "defaultsApplied": "Alapértékek. Létrehozás után a csoport beállításaiban módosítható.",
     "results": "Eredmények",
+    "tipMatrix": "Tipp-tábla",
     "betCount": "{count}/{total} tippelt",
     "noBetsYet": "Még nincs befejezett meccs",
     "noBetsForPlayer": "Még nem tippelt lezárult meccsre",
@@ -509,5 +510,26 @@
     "groupLabel": "Csoport",
     "groupText": "külön játék, saját szabályokkal: te állítod be az odds-szorzót (mennyivel ér többet a nyeremény a hivatalos oddsnál), és hogy mennyit ér a gólkülönbség vagy a pontos eredmény. Mivel külön szabályok vannak, külön token-egyenleged van, és külön kell leadnod a tippeket.",
     "summary": "Röviden: a kör csak rangsorol, a csoportban külön játszol."
+  },
+  "tipMatrix": {
+    "player": "Játékos",
+    "live": "ÉLŐ",
+    "cancelled": "törölve",
+    "hidden": "Rejtett tipp (kezdésig)",
+    "empty": "Nincs megjeleníthető forduló.",
+    "noTips": "Ebben a csoportban nincs tipp erre a meccsre.",
+    "loading": "Betöltés…",
+    "prevRound": "Előző forduló",
+    "nextRound": "Következő forduló",
+    "jumpToMe": "Ugorj a soromra",
+    "youName": "{name} (te)",
+    "roundLabel": "{n}. forduló",
+    "stage": {
+      "final": "Döntő",
+      "sf": "Elődöntő",
+      "qf": "Negyeddöntő",
+      "r16": "Nyolcaddöntő",
+      "roundOf": "Legjobb {n}"
+    }
   }
 }
