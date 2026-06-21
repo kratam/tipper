@@ -11,6 +11,7 @@ interface TipMatrixStatsDialogProps {
   matchId: string;
   title: string;
   isFinished: boolean;
+  locked: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -20,6 +21,7 @@ export function TipMatrixStatsDialog({
   matchId,
   title,
   isFinished,
+  locked,
   open,
   onOpenChange,
 }: TipMatrixStatsDialogProps) {
@@ -27,7 +29,7 @@ export function TipMatrixStatsDialog({
   const tm = useTranslations("matches");
 
   const { data, isLoading } = useSWR(
-    open ? ["tip-matrix-stats", groupId, matchId] : null,
+    open && locked ? ["tip-matrix-stats", groupId, matchId] : null,
     () => getMatchGroupBets(matchId),
     { revalidateOnFocus: false, dedupingInterval: 30_000 },
   );

@@ -56,6 +56,7 @@ export function TipMatrix({
     matchId: string;
     title: string;
     isFinished: boolean;
+    locked: boolean;
   } | null>(null);
 
   const [bet, setBet] = useState<{ matchId: string } | null>(null);
@@ -170,7 +171,7 @@ export function TipMatrix({
   function onMatchClick(m: TipMatrixMatch) {
     const title = `${m.homeTeam.name} – ${m.awayTeam.name}`;
     if (m.locked) {
-      setStats({ matchId: m.id, title, isFinished: m.status === "finished" });
+      setStats({ matchId: m.id, title, isFinished: m.status === "finished", locked: true });
     } else if (!readOnly) {
       setBet({ matchId: m.id });
     }
@@ -296,6 +297,7 @@ export function TipMatrix({
           matchId={stats.matchId}
           title={stats.title}
           isFinished={stats.isFinished}
+          locked={stats.locked}
           open={!!stats}
           onOpenChange={(o) => !o && setStats(null)}
         />

@@ -72,6 +72,9 @@ describe("isMatchLocked", () => {
   it("cancelled => locked", () => {
     expect(isMatchLocked("cancelled", d("2026-06-20T20:00:00Z"), now)).toBe(true);
   });
+  it("live status => locked even if scheduledAt is future", () => {
+    expect(isMatchLocked("live", d("2026-06-20T20:00:00Z"), now)).toBe(true);
+  });
 });
 
 describe("filterRoundBetsForViewer", () => {

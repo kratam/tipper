@@ -134,7 +134,7 @@ export async function getTipMatrixBetInfoAction(
           oddsAtBet: existing.oddsAtBet,
         }
       : null,
-    unbettedMatchCountOnDay: 1,
+    unbettedMatchCountOnDay: 1, // egyszerűsítés: csak a stake-preset címkét érinti, nem a tét/egyenleget
   };
 
   return { match: matchCard, group: groupInfo };
