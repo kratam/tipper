@@ -4,6 +4,7 @@ import { ArrowDownToLine, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useMemo, useRef, useState, useTransition } from "react";
 import { getTipMatrixRoundAction } from "@/actions/tip-matrix";
+import { TipMatrixBetDialog } from "@/components/tip-matrix-bet-dialog";
 import { TipMatrixStatsDialog } from "@/components/tip-matrix-stats-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,8 @@ export function TipMatrix({
     title: string;
     isFinished: boolean;
   } | null>(null);
+
+  const [bet, setBet] = useState<{ matchId: string } | null>(null);
 
   const meRowRef = useRef<HTMLTableRowElement | null>(null);
 
@@ -168,8 +171,9 @@ export function TipMatrix({
     const title = `${m.homeTeam.name} – ${m.awayTeam.name}`;
     if (m.locked) {
       setStats({ matchId: m.id, title, isFinished: m.status === "finished" });
+    } else if (!readOnly) {
+      setBet({ matchId: m.id });
     }
-    // Phase 2 (Task 8): not-locked → bet dialog
   }
 
   return (
@@ -294,6 +298,17 @@ export function TipMatrix({
           isFinished={stats.isFinished}
           open={!!stats}
           onOpenChange={(o) => !o && setStats(null)}
+        />
+      )}
+
+      {bet && (
+        <TipMatrixBetDialog
+          groupId={groupId}
+          matchId={bet.matchId}
+          currentUserId={currentUserId}
+          timeZone={timeZone}
+          open={!!bet}
+          onOpenChange={(o) => !o && setBet(null)}
         />
       )}
     </div>
