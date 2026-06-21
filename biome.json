@@ -46,6 +46,7 @@
     "includes": [
       "**",
       "!.next",
+      "!.vercel",
       "!node_modules",
       "!dist",
       "!*.min.js",
