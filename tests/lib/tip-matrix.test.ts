@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   betNet,
+  buildMatrixRows,
   deriveRounds,
   filterRoundBetsForViewer,
   isMatchLocked,
   knockoutBucketSizes,
+  type MatrixRowInput,
   pickDefaultRoundKey,
   type RoundGroup,
   type RoundMatchInput,
@@ -221,5 +223,48 @@ describe("betNet", () => {
   });
   it("returns null when payout is null (not scored)", () => {
     expect(betNet(null, 100)).toBeNull();
+  });
+});
+
+describe("buildMatrixRows", () => {
+  const lb: MatrixRowInput[] = [
+    { rank: 1, userId: "u1", userName: "Anna", userAvatarUrl: null, profit: 42 },
+    { rank: 2, userId: "u2", userName: "Béla", userAvatarUrl: null, profit: 30 },
+    { rank: 3, userId: "u3", userName: "Cili", userAvatarUrl: null, profit: 10 },
+  ];
+
+  it("total scope: unchanged order, value=profit, original rank", () => {
+    const out = buildMatrixRows(lb, [], "total");
+    expect(out.map((r) => r.userId)).toEqual(["u1", "u2", "u3"]);
+    expect(out.map((r) => r.value)).toEqual([42, 30, 10]);
+    expect(out.map((r) => r.rank)).toEqual([1, 2, 3]);
+  });
+
+  it("round scope: sums net per user, skips unscored, reorders desc, ranks 1..n", () => {
+    const bets = [
+      { userId: "u1", payout: 5, stake: 10 }, // net -5
+      { userId: "u2", payout: 28, stake: 10 }, // net +18
+      { userId: "u3", payout: null, stake: 10 }, // unscored => skip
+      { userId: "u2", payout: 12, stake: 10 }, // net +2 => u2 total +20
+    ];
+    const out = buildMatrixRows(lb, bets, "round");
+    expect(out.map((r) => r.userId)).toEqual(["u2", "u3", "u1"]);
+    expect(out.map((r) => r.value)).toEqual([20, 0, -5]);
+    expect(out.map((r) => r.rank)).toEqual([1, 2, 3]);
+  });
+
+  it("round scope: ties keep global leaderboard order (stable sort)", () => {
+    const bets = [{ userId: "u2", payout: 9, stake: 10 }]; // u2 -1, u1=0, u3=0
+    const out = buildMatrixRows(lb, bets, "round");
+    expect(out.map((r) => r.userId)).toEqual(["u1", "u3", "u2"]);
+    expect(out.map((r) => r.value)).toEqual([0, 0, -1]);
+    expect(out.map((r) => r.rank)).toEqual([1, 2, 3]);
+  });
+
+  it("round scope: no scored tips => everyone 0, global order preserved", () => {
+    const out = buildMatrixRows(lb, [], "round");
+    expect(out.map((r) => r.userId)).toEqual(["u1", "u2", "u3"]);
+    expect(out.map((r) => r.value)).toEqual([0, 0, 0]);
+    expect(out.map((r) => r.rank)).toEqual([1, 2, 3]);
   });
 });

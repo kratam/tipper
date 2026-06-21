@@ -194,3 +194,67 @@ export function filterRoundBetsForViewer<T extends { matchId: string; userId: st
 export function betNet(payout: number | null, stake: number): number | null {
   return payout == null ? null : payout - stake;
 }
+
+export type MatrixScope = "total" | "round";
+
+/** A ranglista egy sora a mátrix-megjelenítéshez (globális adatok). */
+export interface MatrixRowInput {
+  rank: number;
+  userId: string;
+  userName: string;
+  userAvatarUrl: string | null;
+  profit: number;
+}
+
+/** A mátrix egy megjelenítendő sora — `value`/`rank` a választott `scope` szerint. */
+export interface MatrixRowDisplay {
+  rank: number;
+  userId: string;
+  userName: string;
+  userAvatarUrl: string | null;
+  value: number;
+}
+
+/**
+ * A Tipp-tábla sorait állítja össze a választott hatókör szerint.
+ *
+ * - `"total"`: a bemeneti (globális) sorrend és helyezés változatlan, az érték a
+ *   teljes `profit`.
+ * - `"round"`: az érték az adott forduló nettó pontja userenként (`betNet`
+ *   összege a `payout != null` tippekre; lepontozatlan tipp kimarad), a sorok
+ *   csökkenő pont szerint újrarendezve. Holtversenynél a stabil rendezés a
+ *   bemeneti globális sorrendet tartja; a helyezés az új sorrend `index + 1`-e
+ *   (megegyezik a globális leaderboard szekvenciális rank-konvenciójával).
+ */
+export function buildMatrixRows(
+  rows: readonly MatrixRowInput[],
+  bets: readonly { userId: string; payout: number | null; stake: number }[],
+  scope: MatrixScope,
+): MatrixRowDisplay[] {
+  if (scope === "total") {
+    return rows.map((r) => ({
+      rank: r.rank,
+      userId: r.userId,
+      userName: r.userName,
+      userAvatarUrl: r.userAvatarUrl,
+      value: r.profit,
+    }));
+  }
+
+  const scoreByUser = new Map<string, number>();
+  for (const b of bets) {
+    const net = betNet(b.payout, b.stake);
+    if (net == null) continue;
+    scoreByUser.set(b.userId, (scoreByUser.get(b.userId) ?? 0) + net);
+  }
+
+  return rows
+    .map((r) => ({
+      userId: r.userId,
+      userName: r.userName,
+      userAvatarUrl: r.userAvatarUrl,
+      value: scoreByUser.get(r.userId) ?? 0,
+    }))
+    .sort((a, b) => b.value - a.value)
+    .map((r, index) => ({ ...r, rank: index + 1 }));
+}
