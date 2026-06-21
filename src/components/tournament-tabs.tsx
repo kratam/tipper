@@ -291,6 +291,10 @@ export function TournamentTabs({
             next3Days={officialNext3Days}
             tabs={boardTabs}
             officialInitialRound={officialInitialRound}
+            onMatchSelect={(matchId) => {
+              const m = liveMatches.find((x) => x.id === matchId);
+              if (m) handleMatchClick(m);
+            }}
           />
         )}
 

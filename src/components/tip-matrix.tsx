@@ -37,6 +37,13 @@ interface TipMatrixProps {
   initialRound: TipMatrixRound | null;
   readOnly?: boolean;
   curated?: boolean;
+  /**
+   * Ha meg van adva, meccs-kattintáskor (fejléc vagy cella) NEM a mátrix saját
+   * dialógusai nyílnak, hanem ezt hívjuk a meccs id-jével — így a hívó a
+   * meccs-kártyával AZONOS popupot (BetDialog) nyithatja. Megadás nélkül a
+   * mátrix a saját stats/bet dialógusait használja (detail oldalak).
+   */
+  onMatchSelect?: (matchId: string) => void;
 }
 
 const cellKey = (userId: string, matchId: string) => `${userId}__${matchId}`;
@@ -50,6 +57,7 @@ export function TipMatrix({
   initialRound,
   readOnly = false,
   curated = false,
+  onMatchSelect,
 }: TipMatrixProps) {
   const t = useTranslations("tipMatrix");
   const format = useFormatter();
@@ -255,6 +263,10 @@ export function TipMatrix({
   }
 
   function onMatchClick(m: TipMatrixMatch) {
+    if (onMatchSelect) {
+      onMatchSelect(m.id);
+      return;
+    }
     const title = `${m.homeTeam.name} – ${m.awayTeam.name}`;
     if (m.locked) {
       setStats({ matchId: m.id, title, isFinished: m.status === "finished", locked: true });
