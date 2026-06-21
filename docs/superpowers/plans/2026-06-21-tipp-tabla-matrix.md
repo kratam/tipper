@@ -650,7 +650,7 @@ A fő kliens komponens: sticky név-oszlop (mobilon csak avatar), `Σ`, forduló
 - Consumes (existing): `predictionToneClass` (`@/lib/bet-display`); `Avatar`, `AvatarFallback`, `AvatarImage` (`@/components/ui/avatar`); `Button` (`@/components/ui/button`); `cn` (`@/lib/utils`); `useTranslations`, `useFormatter` (next-intl).
 - Produces:
   - `interface TipMatrixLeaderboardRow { rank: number; userId: string; userName: string; userAvatarUrl: string | null; profit: number }`
-  - `TipMatrix({ groupId, currentUserId, oddsBoost, timeZone, leaderboard, initialRound, readOnly }: TipMatrixProps)`
+  - `TipMatrix({ groupId, currentUserId, timeZone, leaderboard, initialRound, readOnly }: TipMatrixProps)`
 
 - [ ] **Step 1: Write the file**
 
@@ -682,7 +682,6 @@ export interface TipMatrixLeaderboardRow {
 interface TipMatrixProps {
   groupId: string;
   currentUserId: string;
-  oddsBoost: number;
   timeZone: string;
   leaderboard: TipMatrixLeaderboardRow[];
   initialRound: TipMatrixRound | null;
@@ -695,7 +694,6 @@ const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 export function TipMatrix({
   groupId,
   currentUserId,
-  oddsBoost,
   timeZone,
   leaderboard,
   initialRound,
@@ -944,7 +942,6 @@ export function TipMatrix({
           matchId={stats.matchId}
           title={stats.title}
           isFinished={stats.isFinished}
-          oddsBoost={oddsBoost}
           open={!!stats}
           onOpenChange={(o) => !o && setStats(null)}
         />
@@ -1149,7 +1146,6 @@ A `return (<Tabs defaultValue="leaderboard">` sort cseréld:
         <TipMatrix
           groupId={groupId}
           currentUserId={currentUserId}
-          oddsBoost={settings.oddsBoost}
           timeZone={timeZone}
           leaderboard={liveLeaderboard}
           initialRound={initialMatrixRound}
