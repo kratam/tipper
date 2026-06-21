@@ -10,9 +10,12 @@ import {
 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useMemo, useRef, useState, useTransition } from "react";
-import { getTipMatrixRoundAction } from "@/actions/tip-matrix";
-import { TipMatrixBetDialog } from "@/components/tip-matrix-bet-dialog";
-import { TipMatrixStatsDialog } from "@/components/tip-matrix-stats-dialog";
+import {
+  getTipMatrixBetInfoAction,
+  getTipMatrixRoundAction,
+  type TipMatrixBetInfo,
+} from "@/actions/tip-matrix";
+import { BetDialog } from "@/components/bet-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { predictionToneClass } from "@/lib/bet-display";
@@ -72,14 +75,10 @@ export function TipMatrix({
 
   const round = roundKey ? cache[roundKey] : null;
 
-  const [stats, setStats] = useState<{
-    matchId: string;
-    title: string;
-    isFinished: boolean;
-    locked: boolean;
-  } | null>(null);
-
-  const [bet, setBet] = useState<{ matchId: string } | null>(null);
+  // Meccs-kattintáskor (ha nincs onMatchSelect) a meccs-kártyával AZONOS
+  // BetDialog-ot nyitjuk, lustán betöltve az adott meccs bet-infóját.
+  const [betMatchId, setBetMatchId] = useState<string | null>(null);
+  const [betInfo, setBetInfo] = useState<TipMatrixBetInfo | null>(null);
 
   const meRowRef = useRef<HTMLTableRowElement | null>(null);
 
@@ -262,17 +261,18 @@ export function TipMatrix({
     );
   }
 
-  function onMatchClick(m: TipMatrixMatch) {
+  async function onMatchClick(m: TipMatrixMatch) {
     if (onMatchSelect) {
       onMatchSelect(m.id);
       return;
     }
-    const title = `${m.homeTeam.name} – ${m.awayTeam.name}`;
-    if (m.locked) {
-      setStats({ matchId: m.id, title, isFinished: m.status === "finished", locked: true });
-    } else if (!readOnly) {
-      setBet({ matchId: m.id });
-    }
+    // Lusta betöltés: a kattintott meccs bet-infója, majd a meccs-kártyával
+    // AZONOS BetDialog. (A BetDialog lejátszott/élő meccsre belül maga is
+    // lazy-zi a csoport-tippeket.)
+    setBetMatchId(m.id);
+    setBetInfo(null);
+    const info = await getTipMatrixBetInfoAction(groupId, m.id);
+    setBetInfo(info);
   }
 
   return (
@@ -418,26 +418,19 @@ export function TipMatrix({
         </div>
       )}
 
-      {stats && (
-        <TipMatrixStatsDialog
-          groupId={groupId}
-          matchId={stats.matchId}
-          title={stats.title}
-          isFinished={stats.isFinished}
-          locked={stats.locked}
-          open={!!stats}
-          onOpenChange={(o) => !o && setStats(null)}
-        />
-      )}
-
-      {bet && (
-        <TipMatrixBetDialog
-          groupId={groupId}
-          matchId={bet.matchId}
+      {betMatchId && betInfo && (
+        <BetDialog
+          match={betInfo.match}
+          groups={[betInfo.group]}
           currentUserId={currentUserId}
           timeZone={timeZone}
-          open={!!bet}
-          onOpenChange={(o) => !o && setBet(null)}
+          open={!!betMatchId}
+          onOpenChange={(o) => {
+            if (!o) {
+              setBetMatchId(null);
+              setBetInfo(null);
+            }
+          }}
         />
       )}
     </div>
