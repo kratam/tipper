@@ -537,6 +537,8 @@
       "qf": "Negyeddöntő",
       "r16": "Nyolcaddöntő",
       "roundOf": "Legjobb {n}"
-    }
+    },
+    "showMore": "{count} további játékos",
+    "showLess": "Kevesebb"
   }
 }
