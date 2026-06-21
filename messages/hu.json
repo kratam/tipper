@@ -524,6 +524,13 @@
     "jumpToMe": "Ugorj a soromra",
     "youName": "{name} (te)",
     "roundLabel": "{n}. forduló",
+    "scopeTotal": "össz",
+    "shortRound": "F{n}",
+    "shortStage": {
+      "final": "D",
+      "sf": "ED",
+      "qf": "ND"
+    },
     "stage": {
       "final": "Döntő",
       "sf": "Elődöntő",

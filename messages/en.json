@@ -524,6 +524,13 @@
     "jumpToMe": "Jump to my row",
     "youName": "{name} (you)",
     "roundLabel": "Round {n}",
+    "scopeTotal": "tot",
+    "shortRound": "R{n}",
+    "shortStage": {
+      "final": "F",
+      "sf": "SF",
+      "qf": "QF"
+    },
     "stage": {
       "final": "Final",
       "sf": "Semi-final",

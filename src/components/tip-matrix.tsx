@@ -9,7 +9,7 @@ import { TipMatrixStatsDialog } from "@/components/tip-matrix-stats-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { predictionToneClass } from "@/lib/bet-display";
-import { betNet } from "@/lib/tip-matrix";
+import { betNet, buildMatrixRows, type MatrixRowDisplay, type MatrixScope } from "@/lib/tip-matrix";
 import { cn } from "@/lib/utils";
 import type { TipMatrixBet, TipMatrixMatch, TipMatrixRound } from "@/queries/tip-matrix";
 
@@ -49,6 +49,7 @@ export function TipMatrix({
     initialRound ? { [initialRound.roundKey]: initialRound } : {},
   );
   const [roundKey, setRoundKey] = useState<string | null>(initialRound?.roundKey ?? null);
+  const [scope, setScope] = useState<MatrixScope>("total");
 
   const round = roundKey ? cache[roundKey] : null;
 
@@ -68,6 +69,11 @@ export function TipMatrix({
     for (const b of round?.bets ?? []) map.set(cellKey(b.userId, b.matchId), b);
     return map;
   }, [round]);
+
+  const displayRows = useMemo(
+    () => buildMatrixRows(leaderboard, round?.bets ?? [], scope),
+    [leaderboard, round, scope],
+  );
 
   if (!round) {
     return <p className="text-muted-foreground text-sm">{t("empty")}</p>;
@@ -93,6 +99,19 @@ export function TipMatrix({
     roundTitle = t("stage.roundOf", { n: round.roundKnockoutTeams ?? 0 });
   }
 
+  let roundScopeLabel: string;
+  if (round.roundKind === "group" && round.roundGroupNumber != null) {
+    roundScopeLabel = t("shortRound", { n: round.roundGroupNumber });
+  } else if (round.roundIsFinal) {
+    roundScopeLabel = t("shortStage.final");
+  } else if (round.roundKnockoutTeams === 4) {
+    roundScopeLabel = t("shortStage.sf");
+  } else if (round.roundKnockoutTeams === 8) {
+    roundScopeLabel = t("shortStage.qf");
+  } else {
+    roundScopeLabel = `1/${(round.roundKnockoutTeams ?? 0) / 2}`;
+  }
+
   function goToRound(key: string | null) {
     if (!key) return;
     if (cache[key]) {
@@ -108,7 +127,7 @@ export function TipMatrix({
     });
   }
 
-  const meRow = leaderboard.find((r) => r.userId === currentUserId);
+  const meRow = displayRows.find((r) => r.userId === currentUserId);
 
   function headerResult(m: TipMatrixMatch) {
     if (m.status === "finished" && m.homeScore != null && m.awayScore != null) {
@@ -133,7 +152,7 @@ export function TipMatrix({
     );
   }
 
-  function renderCell(row: TipMatrixLeaderboardRow, m: TipMatrixMatch) {
+  function renderCell(row: MatrixRowDisplay, m: TipMatrixMatch) {
     const bet = betByCell.get(cellKey(row.userId, m.id));
     const isMe = row.userId === currentUserId;
 
@@ -225,8 +244,23 @@ export function TipMatrix({
               <th className="sticky left-0 z-[2] border-border border-b bg-surface-2 px-2.5 py-2 text-left text-[11px] text-muted-foreground">
                 {t("player")}
               </th>
-              <th className="border-border border-b bg-surface-2 px-2.5 py-2 text-[11px] text-muted-foreground">
-                Σ
+              <th className="border-border border-b bg-surface-2 p-0 text-[11px] text-muted-foreground">
+                <button
+                  type="button"
+                  onClick={() => setScope((s) => (s === "total" ? "round" : "total"))}
+                  aria-pressed={scope === "round"}
+                  className="flex w-full flex-col items-center px-2.5 py-2 hover:bg-surface-3"
+                >
+                  <span>Σ</span>
+                  <span
+                    className={cn(
+                      "mt-1 whitespace-nowrap text-[10px]",
+                      scope === "round" ? "text-gold" : "text-faint",
+                    )}
+                  >
+                    {scope === "round" ? roundScopeLabel : t("scopeTotal")}
+                  </span>
+                </button>
               </th>
               {round.matches.map((m) => (
                 <th
@@ -244,7 +278,7 @@ export function TipMatrix({
             </tr>
           </thead>
           <tbody>
-            {leaderboard.map((row) => {
+            {displayRows.map((row) => {
               const isMe = row.userId === currentUserId;
               return (
                 <tr
@@ -268,7 +302,7 @@ export function TipMatrix({
                     </span>
                   </td>
                   <td className="border-border border-b px-2.5 py-2 text-center font-bold text-[14px] text-gold">
-                    {signed(row.profit)}
+                    {signed(row.value)}
                   </td>
                   {round.matches.map((m) => (
                     // biome-ignore lint/a11y/useKeyWithClickEvents: table cell click is a supplemental interaction; keyboard users navigate via the stats dialog
@@ -292,7 +326,7 @@ export function TipMatrix({
         <div className="flex items-center gap-2.5 border-gold border-t bg-surface-2 px-3 py-2">
           <span className="font-bold text-gold">{meRow.rank}.</span>
           <span className="font-bold">{t("youName", { name: meRow.userName })}</span>
-          <span className="ml-auto font-bold text-gold">{signed(meRow.profit)}</span>
+          <span className="ml-auto font-bold text-gold">{signed(meRow.value)}</span>
           <Button
             variant="ghost"
             size="icon-sm"
