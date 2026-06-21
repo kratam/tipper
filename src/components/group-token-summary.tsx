@@ -16,8 +16,7 @@ interface GroupTokenSummaryProps {
 
 /**
  * Empty-state for the groups section: shown when the user has no joined groups.
- * The populated group cards live in {@link GroupSummaryCard} and are rendered in a
- * shared grid alongside circle cards (see TournamentTabs).
+ * When groups exist, the torna-landing board-paneljéhez (TournamentBoardPanel) renders them.
  */
 export function GroupTokenSummary({
   topPublicGroups = [],

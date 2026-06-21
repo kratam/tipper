@@ -1,14 +1,25 @@
 "use client";
 
-import { ArrowDownToLine, ChevronLeft, ChevronRight, Lock } from "lucide-react";
+import {
+  ArrowDownToLine,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Lock,
+} from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useMemo, useRef, useState, useTransition } from "react";
-import { getTipMatrixRoundAction } from "@/actions/tip-matrix";
-import { TipMatrixBetDialog } from "@/components/tip-matrix-bet-dialog";
-import { TipMatrixStatsDialog } from "@/components/tip-matrix-stats-dialog";
+import {
+  getTipMatrixBetInfoAction,
+  getTipMatrixRoundAction,
+  type TipMatrixBetInfo,
+} from "@/actions/tip-matrix";
+import { BetDialog } from "@/components/bet-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { predictionToneClass } from "@/lib/bet-display";
+import { splitCuratedRows } from "@/lib/leaderboard-utils";
 import { betNet, buildMatrixRows, type MatrixRowDisplay, type MatrixScope } from "@/lib/tip-matrix";
 import { cn } from "@/lib/utils";
 import type { TipMatrixBet, TipMatrixMatch, TipMatrixRound } from "@/queries/tip-matrix";
@@ -28,6 +39,14 @@ interface TipMatrixProps {
   leaderboard: TipMatrixLeaderboardRow[];
   initialRound: TipMatrixRound | null;
   readOnly?: boolean;
+  curated?: boolean;
+  /**
+   * Ha meg van adva, meccs-kattintáskor (fejléc vagy cella) NEM a mátrix saját
+   * dialógusai nyílnak, hanem ezt hívjuk a meccs id-jével — így a hívó a
+   * meccs-kártyával AZONOS popupot (BetDialog) nyithatja. Megadás nélkül a
+   * mátrix a saját stats/bet dialógusait használja (detail oldalak).
+   */
+  onMatchSelect?: (matchId: string) => void;
 }
 
 const cellKey = (userId: string, matchId: string) => `${userId}__${matchId}`;
@@ -40,6 +59,8 @@ export function TipMatrix({
   leaderboard,
   initialRound,
   readOnly = false,
+  curated = false,
+  onMatchSelect,
 }: TipMatrixProps) {
   const t = useTranslations("tipMatrix");
   const format = useFormatter();
@@ -50,17 +71,14 @@ export function TipMatrix({
   );
   const [roundKey, setRoundKey] = useState<string | null>(initialRound?.roundKey ?? null);
   const [scope, setScope] = useState<MatrixScope>("total");
+  const [gapOpen, setGapOpen] = useState(false);
 
   const round = roundKey ? cache[roundKey] : null;
 
-  const [stats, setStats] = useState<{
-    matchId: string;
-    title: string;
-    isFinished: boolean;
-    locked: boolean;
-  } | null>(null);
-
-  const [bet, setBet] = useState<{ matchId: string } | null>(null);
+  // Meccs-kattintáskor (ha nincs onMatchSelect) a meccs-kártyával AZONOS
+  // BetDialog-ot nyitjuk, lustán betöltve az adott meccs bet-infóját.
+  const [betMatchId, setBetMatchId] = useState<string | null>(null);
+  const [betInfo, setBetInfo] = useState<TipMatrixBetInfo | null>(null);
 
   const meRowRef = useRef<HTMLTableRowElement | null>(null);
 
@@ -202,13 +220,59 @@ export function TipMatrix({
     );
   }
 
-  function onMatchClick(m: TipMatrixMatch) {
-    const title = `${m.homeTeam.name} – ${m.awayTeam.name}`;
-    if (m.locked) {
-      setStats({ matchId: m.id, title, isFinished: m.status === "finished", locked: true });
-    } else if (!readOnly) {
-      setBet({ matchId: m.id });
+  const curatedSplit = curated
+    ? splitCuratedRows(displayRows, currentUserId, { leaders: 3, neighbors: 1 })
+    : null;
+  const colCount = 2 + round.matches.length;
+
+  function renderRow(row: MatrixRowDisplay) {
+    const isMe = row.userId === currentUserId;
+    return (
+      <tr key={row.userId} ref={isMe ? meRowRef : undefined} className={cn(isMe && "bg-gold-soft")}>
+        <td
+          className={cn(
+            "sticky left-0 z-[1] border-border border-b px-2.5 py-2 text-left",
+            isMe ? "bg-surface-2" : "bg-surface",
+          )}
+        >
+          <span className={cn("flex items-center gap-2", isMe && "font-bold text-gold")}>
+            <span className="w-4 text-right text-muted-foreground">{row.rank}.</span>
+            <Avatar className="size-[22px]">
+              <AvatarImage src={row.userAvatarUrl ?? undefined} alt="" />
+              <AvatarFallback>{row.userName.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <span className="max-[560px]:hidden">{row.userName}</span>
+          </span>
+        </td>
+        <td className="border-border border-b px-2.5 py-2 text-center font-bold text-[14px] text-gold">
+          {signed(row.value)}
+        </td>
+        {round?.matches.map((m) => (
+          // biome-ignore lint/a11y/useKeyWithClickEvents: table cell click is a supplemental interaction; keyboard users navigate via the stats dialog
+          <td
+            key={m.id}
+            className="cursor-pointer border-border border-b px-2.5 py-2 text-center hover:bg-surface-3"
+            onClick={() => onMatchClick(m)}
+          >
+            {renderCell(row, m)}
+          </td>
+        ))}
+      </tr>
+    );
+  }
+
+  async function onMatchClick(m: TipMatrixMatch) {
+    if (onMatchSelect) {
+      onMatchSelect(m.id);
+      return;
     }
+    // Lusta betöltés: a kattintott meccs bet-infója, majd a meccs-kártyával
+    // AZONOS BetDialog. (A BetDialog lejátszott/élő meccsre belül maga is
+    // lazy-zi a csoport-tippeket.)
+    setBetMatchId(m.id);
+    setBetInfo(null);
+    const info = await getTipMatrixBetInfoAction(groupId, m.id);
+    setBetInfo(info);
   }
 
   return (
@@ -237,14 +301,24 @@ export function TipMatrix({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className={cn("overflow-x-auto", curated && gapOpen && "max-h-[60vh] overflow-y-auto")}>
         <table className="w-max min-w-full border-collapse text-[13px]">
           <thead>
             <tr>
-              <th className="sticky left-0 z-[2] border-border border-b bg-surface-2 px-2.5 py-2 text-left text-[11px] text-muted-foreground">
+              <th
+                className={cn(
+                  "sticky left-0 z-[2] border-border border-b bg-surface-2 px-2.5 py-2 text-left text-[11px] text-muted-foreground",
+                  curated && "top-0",
+                )}
+              >
                 {t("player")}
               </th>
-              <th className="border-border border-b bg-surface-2 p-0 text-[11px] text-muted-foreground">
+              <th
+                className={cn(
+                  "border-border border-b bg-surface-2 p-0 text-[11px] text-muted-foreground",
+                  curated && "sticky top-0 z-[1]",
+                )}
+              >
                 <button
                   type="button"
                   onClick={() => setScope((s) => (s === "total" ? "round" : "total"))}
@@ -265,7 +339,10 @@ export function TipMatrix({
               {round.matches.map((m) => (
                 <th
                   key={m.id}
-                  className="cursor-pointer border-border border-b bg-surface-2 px-2.5 py-2 align-bottom hover:bg-surface-3"
+                  className={cn(
+                    "cursor-pointer border-border border-b bg-surface-2 px-2.5 py-2 align-bottom hover:bg-surface-3",
+                    curated && "sticky top-0 z-[1]",
+                  )}
                   onClick={() => onMatchClick(m)}
                 >
                   <span className="flex justify-center gap-[5px] text-[15px] leading-none">
@@ -278,45 +355,46 @@ export function TipMatrix({
             </tr>
           </thead>
           <tbody>
-            {displayRows.map((row) => {
-              const isMe = row.userId === currentUserId;
-              return (
-                <tr
-                  key={row.userId}
-                  ref={isMe ? meRowRef : undefined}
-                  className={cn(isMe && "bg-gold-soft")}
-                >
-                  <td
-                    className={cn(
-                      "sticky left-0 z-[1] border-border border-b px-2.5 py-2 text-left",
-                      isMe ? "bg-surface-2" : "bg-surface",
-                    )}
-                  >
-                    <span className={cn("flex items-center gap-2", isMe && "font-bold text-gold")}>
-                      <span className="w-4 text-right text-muted-foreground">{row.rank}.</span>
-                      <Avatar className="size-[22px]">
-                        <AvatarImage src={row.userAvatarUrl ?? undefined} alt="" />
-                        <AvatarFallback>{row.userName.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <span className="max-[560px]:hidden">{row.userName}</span>
-                    </span>
-                  </td>
-                  <td className="border-border border-b px-2.5 py-2 text-center font-bold text-[14px] text-gold">
-                    {signed(row.value)}
-                  </td>
-                  {round.matches.map((m) => (
-                    // biome-ignore lint/a11y/useKeyWithClickEvents: table cell click is a supplemental interaction; keyboard users navigate via the stats dialog
-                    <td
-                      key={m.id}
-                      className="cursor-pointer border-border border-b px-2.5 py-2 text-center hover:bg-surface-3"
-                      onClick={() => onMatchClick(m)}
-                    >
-                      {renderCell(row, m)}
+            {!curatedSplit ? (
+              displayRows.map((row) => renderRow(row))
+            ) : gapOpen ? (
+              <>
+                {displayRows.map((row) => renderRow(row))}
+                {curatedSplit.hiddenCount > 0 && (
+                  <tr>
+                    <td colSpan={colCount} className="border-border border-b p-0">
+                      <button
+                        type="button"
+                        onClick={() => setGapOpen(false)}
+                        className="flex w-full items-center justify-center gap-1.5 bg-surface-2 py-2 text-[12.5px] text-muted-foreground hover:bg-surface-3"
+                      >
+                        <ChevronUp className="size-3.5" />
+                        {t("showLess")}
+                      </button>
                     </td>
-                  ))}
-                </tr>
-              );
-            })}
+                  </tr>
+                )}
+              </>
+            ) : (
+              <>
+                {curatedSplit.leaders.map((row) => renderRow(row))}
+                {curatedSplit.hiddenCount > 0 && (
+                  <tr>
+                    <td colSpan={colCount} className="border-border border-b p-0">
+                      <button
+                        type="button"
+                        onClick={() => setGapOpen(true)}
+                        className="flex w-full items-center justify-center gap-1.5 bg-surface-2 py-2 text-[12.5px] text-faint hover:bg-surface-3"
+                      >
+                        <ChevronDown className="size-3.5" />
+                        {t("showMore", { count: curatedSplit.hiddenCount })}
+                      </button>
+                    </td>
+                  </tr>
+                )}
+                {curatedSplit.around.map((row) => renderRow(row))}
+              </>
+            )}
           </tbody>
         </table>
       </div>
@@ -340,26 +418,19 @@ export function TipMatrix({
         </div>
       )}
 
-      {stats && (
-        <TipMatrixStatsDialog
-          groupId={groupId}
-          matchId={stats.matchId}
-          title={stats.title}
-          isFinished={stats.isFinished}
-          locked={stats.locked}
-          open={!!stats}
-          onOpenChange={(o) => !o && setStats(null)}
-        />
-      )}
-
-      {bet && (
-        <TipMatrixBetDialog
-          groupId={groupId}
-          matchId={bet.matchId}
+      {betMatchId && betInfo && (
+        <BetDialog
+          match={betInfo.match}
+          groups={[betInfo.group]}
           currentUserId={currentUserId}
           timeZone={timeZone}
-          open={!!bet}
-          onOpenChange={(o) => !o && setBet(null)}
+          open={!!betMatchId}
+          onOpenChange={(o) => {
+            if (!o) {
+              setBetMatchId(null);
+              setBetInfo(null);
+            }
+          }}
         />
       )}
     </div>
