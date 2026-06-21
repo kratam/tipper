@@ -12,6 +12,7 @@ import { getGroupBetsForFinishedMatches } from "@/queries/bets";
 import { getCircleBySlug, getOfficialGroupByTournamentId } from "@/queries/circles";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
 import { getFinishedMatchesForTournament } from "@/queries/matches";
+import { getTipMatrixRound } from "@/queries/tip-matrix";
 import { getTournamentBySlug } from "@/queries/tournaments";
 
 export default async function CircleDetailPage({
@@ -76,10 +77,11 @@ export default async function CircleDetailPage({
     );
   }
 
-  const [leaderboardRaw, finishedMatches, groupBetsRaw] = await Promise.all([
+  const [leaderboardRaw, finishedMatches, groupBetsRaw, initialMatrixRound] = await Promise.all([
     getGroupLeaderboard(official.id),
     getFinishedMatchesForTournament(official.tournamentId, tournament.useFlagFallback),
     getGroupBetsForFinishedMatches(official.id),
+    getTipMatrixRound(official.id, tournament.id, tournament.useFlagFallback, user.id, null),
   ]);
 
   const leaderboard = filterAndRerankLeaderboard(leaderboardRaw, memberIds);
@@ -120,6 +122,9 @@ export default async function CircleDetailPage({
           round: m.round,
         }))}
         bets={bets}
+        officialGroupId={official.id}
+        timeZone={tournament.timezone}
+        initialMatrixRound={initialMatrixRound}
       />
     </div>
   );

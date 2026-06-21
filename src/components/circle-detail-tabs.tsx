@@ -7,9 +7,11 @@ import { toast } from "sonner";
 import { deleteCircle, leaveCircle } from "@/actions/circles";
 import { GroupLeaderboardContent } from "@/components/group-leaderboard-content";
 import { GroupResultsContent } from "@/components/group-results-content";
+import { TipMatrix } from "@/components/tip-matrix";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from "@/i18n/navigation";
+import type { TipMatrixRound } from "@/queries/tip-matrix";
 
 interface LeaderboardRow {
   rank: number;
@@ -54,6 +56,9 @@ interface CircleDetailTabsProps {
   leaderboard: LeaderboardRow[];
   finishedMatches: FinishedMatch[];
   bets: CircleBet[];
+  officialGroupId: string;
+  timeZone: string;
+  initialMatrixRound: TipMatrixRound | null;
 }
 
 export function CircleDetailTabs({
@@ -65,6 +70,9 @@ export function CircleDetailTabs({
   leaderboard,
   finishedMatches,
   bets,
+  officialGroupId,
+  timeZone,
+  initialMatrixRound,
 }: CircleDetailTabsProps) {
   const t = useTranslations("circles");
   const tGroups = useTranslations("groups");
@@ -98,11 +106,23 @@ export function CircleDetailTabs({
   }
 
   return (
-    <Tabs defaultValue="leaderboard">
+    <Tabs defaultValue="matrix">
       <TabsList className="w-full">
+        <TabsTrigger value="matrix">{tGroups("tipMatrix")}</TabsTrigger>
         <TabsTrigger value="leaderboard">{tGroups("leaderboard")}</TabsTrigger>
         <TabsTrigger value="results">{tGroups("results")}</TabsTrigger>
       </TabsList>
+
+      <TabsContent value="matrix" className="mt-4">
+        <TipMatrix
+          groupId={officialGroupId}
+          currentUserId={currentUserId}
+          timeZone={timeZone}
+          leaderboard={leaderboard}
+          initialRound={initialMatrixRound}
+          readOnly
+        />
+      </TabsContent>
 
       <TabsContent value="leaderboard" className="mt-4 flex flex-col gap-4">
         {leaderboard.length === 0 ? (
