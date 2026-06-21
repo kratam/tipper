@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { type LeaderboardEntry, pickMiniLeaderboard } from "@/lib/leaderboard-utils";
+import {
+  type LeaderboardEntry,
+  pickMiniLeaderboard,
+  splitCuratedRows,
+} from "@/lib/leaderboard-utils";
 
 function makeEntry(rank: number, userId: string, profit: number): LeaderboardEntry {
   return { rank, userId, userName: `User ${userId}`, userAvatarUrl: null, profit };
@@ -83,5 +87,72 @@ describe("pickMiniLeaderboard", () => {
       const result = pickMiniLeaderboard(small, "d", 5);
       expect(result.map((r) => r.userId)).toEqual(["a", "b", "c", "d"]);
     });
+  });
+});
+
+describe("splitCuratedRows", () => {
+  const board: LeaderboardEntry[] = [
+    makeEntry(1, "a", 300),
+    makeEntry(2, "b", 200),
+    makeEntry(3, "c", 100),
+    makeEntry(4, "d", 50),
+    makeEntry(5, "e", 20),
+    makeEntry(6, "f", -10),
+  ];
+
+  it("user a dobogón: nincs around, a többi rejtett", () => {
+    const r = splitCuratedRows(board, "b");
+    expect(r.leaders.map((x) => x.userId)).toEqual(["a", "b", "c"]);
+    expect(r.around).toEqual([]);
+    expect(r.hiddenCount).toBe(3);
+  });
+
+  it("user #4: around = [me, mögötte], az ahead leaderként látszik", () => {
+    const r = splitCuratedRows(board, "d");
+    expect(r.leaders.map((x) => x.userId)).toEqual(["a", "b", "c"]);
+    expect(r.around.map((x) => x.userId)).toEqual(["d", "e"]);
+    expect(r.hiddenCount).toBe(1); // csak "f"
+  });
+
+  it("user #5: around = ±1, nincs rejtett (mindenki látszik)", () => {
+    const r = splitCuratedRows(board, "e");
+    expect(r.around.map((x) => x.userId)).toEqual(["d", "e", "f"]);
+    expect(r.hiddenCount).toBe(0);
+  });
+
+  it("user az utolsó: around = [előtte, me]", () => {
+    const r = splitCuratedRows(board, "f");
+    expect(r.around.map((x) => x.userId)).toEqual(["e", "f"]);
+    expect(r.hiddenCount).toBe(1); // "d"
+  });
+
+  it("user nincs a listában: csak leaderek", () => {
+    const r = splitCuratedRows(board, "x");
+    expect(r.leaders.map((x) => x.userId)).toEqual(["a", "b", "c"]);
+    expect(r.around).toEqual([]);
+    expect(r.hiddenCount).toBe(3);
+  });
+
+  it("kevés játékos (< leaders): mindenki leader, nincs rejtett", () => {
+    const small = [makeEntry(1, "a", 100), makeEntry(2, "b", 50)];
+    const r = splitCuratedRows(small, "b");
+    expect(r.leaders.map((x) => x.userId)).toEqual(["a", "b"]);
+    expect(r.around).toEqual([]);
+    expect(r.hiddenCount).toBe(0);
+  });
+
+  it("üres lista", () => {
+    const r = splitCuratedRows([], "a");
+    expect(r).toEqual({ leaders: [], around: [], hiddenCount: 0 });
+  });
+
+  it("nagy mezőny, user a középmezőnyben: rés a leaderek és az around közt + az around alatt", () => {
+    const big: LeaderboardEntry[] = Array.from({ length: 10 }, (_, i) =>
+      makeEntry(i + 1, `u${i + 1}`, 100 - i),
+    );
+    const r = splitCuratedRows(big, "u6"); // index 5
+    expect(r.leaders.map((x) => x.userId)).toEqual(["u1", "u2", "u3"]);
+    expect(r.around.map((x) => x.userId)).toEqual(["u5", "u6", "u7"]);
+    expect(r.hiddenCount).toBe(4); // u4 + u8,u9,u10
   });
 });
