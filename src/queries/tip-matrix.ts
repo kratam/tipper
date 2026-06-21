@@ -3,18 +3,19 @@ import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { bets } from "@/db/schema";
 import {
+  deriveRounds,
   filterRoundBetsForViewer,
-  groupMatchesIntoRounds,
   isMatchLocked,
   type MatchStatus,
   pickDefaultRoundKey,
+  type RoundKind,
   type RoundMatchInput,
 } from "@/lib/tip-matrix";
 import { getMatchesForTournament } from "@/queries/matches";
+import { matchParticipantsKnown } from "@/queries/team-display";
 
 export interface TipMatrixMatch {
   id: string;
-  round: string;
   homeTeam: { name: string; logoUrl: string | null };
   awayTeam: { name: string; logoUrl: string | null };
   homeScore: number | null;
@@ -40,7 +41,14 @@ export interface TipMatrixBet {
 
 export interface TipMatrixRound {
   roundKey: string;
-  roundLabel: string;
+  /** A forduló típusa: round-robin („group") vagy kieséses („knockout"). */
+  roundKind: RoundKind;
+  /** Csoportköri forduló sorszáma (group), egyébként null. */
+  roundGroupNumber: number | null;
+  /** A kieséses kör csapatszáma (knockout): 32/16/8/4…, egyébként null. */
+  roundKnockoutTeams: number | null;
+  /** Az utolsó kieséses kör (döntő). */
+  roundIsFinal: boolean;
   orderedRoundKeys: string[];
   matches: TipMatrixMatch[];
   bets: TipMatrixBet[];
@@ -50,7 +58,10 @@ export interface TipMatrixRound {
  * Egy forduló mátrix-adata a megadott csoportra: a forduló meccsei
  * (display-feloldott csapatok, lock-állapot, odds) + a tippek
  * ADATVÉDELMILEG SZŰRVE (jövőbeli meccsen csak a néző saját tippje).
- * `roundKey === null` esetén az alapértelmezett fordulót adja.
+ *
+ * A fordulókat a menetrendből vezetjük le (`deriveRounds`), nem a tárolt
+ * `round` (= dátum) mezőből: csoportkör = megjelenés-forduló, kieséses =
+ * bracket-felezés. `roundKey === null` esetén az alapértelmezett fordulót adja.
  */
 export async function getTipMatrixRound(
   groupId: string,
@@ -64,12 +75,13 @@ export async function getTipMatrixRound(
 
   const roundInputs: RoundMatchInput[] = allMatches.map((m) => ({
     id: m.id,
-    round: m.round,
     scheduledAt: m.scheduledAt,
-    status: m.status as MatchStatus,
+    homeTeamId: m.homeTeamId,
+    awayTeamId: m.awayTeamId,
+    participantsKnown: matchParticipantsKnown(m.homeTeam.name, m.awayTeam.name),
   }));
 
-  const rounds = groupMatchesIntoRounds(roundInputs);
+  const rounds = deriveRounds(roundInputs);
   if (rounds.length === 0) return null;
 
   const startedMatchIds = new Set(
@@ -85,7 +97,6 @@ export async function getTipMatrixRound(
 
   const tipMatches: TipMatrixMatch[] = roundMatches.map((m) => ({
     id: m.id,
-    round: m.round,
     homeTeam: { name: m.homeTeam.name, logoUrl: m.homeTeam.logoUrl },
     awayTeam: { name: m.awayTeam.name, logoUrl: m.awayTeam.logoUrl },
     homeScore: m.homeScore,
@@ -124,7 +135,10 @@ export async function getTipMatrixRound(
 
   return {
     roundKey: round.key,
-    roundLabel: round.label,
+    roundKind: round.kind,
+    roundGroupNumber: round.groupNumber,
+    roundKnockoutTeams: round.knockoutTeams,
+    roundIsFinal: round.isFinal,
     orderedRoundKeys: rounds.map((r) => r.key),
     matches: tipMatches,
     bets: visibleBets,

@@ -522,6 +522,14 @@
     "prevRound": "Previous round",
     "nextRound": "Next round",
     "jumpToMe": "Jump to my row",
-    "youName": "{name} (you)"
+    "youName": "{name} (you)",
+    "roundLabel": "Round {n}",
+    "stage": {
+      "final": "Final",
+      "sf": "Semi-final",
+      "qf": "Quarter-final",
+      "r16": "Round of 16",
+      "roundOf": "Round of {n}"
+    }
   }
 }

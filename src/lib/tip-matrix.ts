@@ -1,5 +1,5 @@
 /**
- * Tipp-tábla (mátrix-ranglista) pure logikája: forduló-csoportosítás,
+ * Tipp-tábla (mátrix-ranglista) pure logikája: forduló-levezetés a menetrendből,
  * alapforduló-választás, lock-detektálás, adatvédelmi szűrés, nettó számítás.
  * Tesztelve: tests/lib/tip-matrix.test.ts.
  */
@@ -8,40 +8,147 @@ export type MatchStatus = "scheduled" | "live" | "finished" | "cancelled";
 
 export interface RoundMatchInput {
   id: string;
-  round: string;
   scheduledAt: Date;
-  status: MatchStatus;
+  homeTeamId: string;
+  awayTeamId: string;
+  /** Hamis, ha bármelyik résztvevő placeholder (pl. „1A", „W73") — kieséses bracket. */
+  participantsKnown: boolean;
 }
+
+export type RoundKind = "group" | "knockout";
 
 export interface RoundGroup {
   key: string;
-  label: string;
+  kind: RoundKind;
+  /** Csoportköri forduló sorszáma (kind==="group"), egyébként null. */
+  groupNumber: number | null;
+  /** A kieséses kör csapatszáma (kind==="knockout"): 32/16/8/4…, egyébként null. */
+  knockoutTeams: number | null;
+  /** Az utolsó kieséses kör (döntő, esetleg + 3. helyért). */
+  isFinal: boolean;
   matchIds: string[];
   minScheduledAt: number;
 }
 
+function byDateId(a: RoundMatchInput, b: RoundMatchInput): number {
+  return (
+    a.scheduledAt.getTime() - b.scheduledAt.getTime() || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+  );
+}
+
 /**
- * A meccseket `round` szerint csoportosítja, a fordulókat a bennük lévő
- * legkorábbi `scheduledAt` szerint növekvő sorrendbe rakja, a fordulón belül a
- * meccseket szintén `scheduledAt` szerint rendezi.
+ * Egy kieséses bracket köreinek mérete a meccsszámból, felezéssel. Az utolsó
+ * 1–2 meccs egy körbe kerül (döntő, esetleg + 3. helyért).
+ * Pl. 32 → [16,8,4,2,2]; 31 → [16,8,4,2,1]; 16 → [8,4,2,2].
  */
-export function groupMatchesIntoRounds(matches: readonly RoundMatchInput[]): RoundGroup[] {
-  const byRound = new Map<string, RoundMatchInput[]>();
-  for (const m of matches) {
-    const list = byRound.get(m.round) ?? [];
-    list.push(m);
-    byRound.set(m.round, list);
+export function knockoutBucketSizes(p: number): number[] {
+  if (p <= 0) return [];
+  if (p <= 2) return [p];
+  let pow = 1;
+  while (pow * 2 <= p) pow *= 2;
+  let cur = pow === p ? pow / 2 : pow;
+  const sizes: number[] = [];
+  let rem = p;
+  while (rem > 0) {
+    if (rem <= 2) {
+      sizes.push(rem);
+      rem = 0;
+    } else {
+      const take = Math.min(cur, rem);
+      sizes.push(take);
+      rem -= take;
+      cur = Math.max(1, Math.floor(cur / 2));
+    }
+  }
+  return sizes;
+}
+
+/**
+ * Valódi fordulókat vezet le a menetrendből — a tárolt `round` (= dátum) helyett.
+ *
+ * - **Round-robin rész (csoportkör):** egy meccs fordulója = a két csapat
+ *   hányadik meccse (per-csapat megjelenés-számláló). Így minden csapat egyszer
+ *   játszik fordulónként, akkor is, ha a forduló több napon át tart, vagy a
+ *   fordulók dátumai átfednek. A csoportkör = a kezdő, „teli" (azonos méretű) körök.
+ * - **Kieséses rész:** a placeholder-bracket (és a már lejátszott, csoportkörön
+ *   túli) meccsek kronológikusan felezéssel körökre bontva (R32/Nyolcad/…/Döntő).
+ *   Placeholder-független, ezért stabil a torna előrehaladtával.
+ */
+export function deriveRounds(matches: readonly RoundMatchInput[]): RoundGroup[] {
+  if (matches.length === 0) return [];
+  const sorted = [...matches].sort(byDateId);
+
+  // 1. Megjelenés-forduló az ISMERT résztvevőjű meccsekre.
+  const appearances = new Map<string, number>();
+  const appRound = new Map<string, number>();
+  for (const m of sorted) {
+    if (!m.participantsKnown) continue;
+    const h = appearances.get(m.homeTeamId) ?? 0;
+    const a = appearances.get(m.awayTeamId) ?? 0;
+    appRound.set(m.id, Math.max(h, a) + 1);
+    appearances.set(m.homeTeamId, h + 1);
+    appearances.set(m.awayTeamId, a + 1);
+  }
+
+  // 2. Csoportkör hossza G = a kezdő körök, amelyek mérete = az 1. kör mérete.
+  const countByRound = new Map<number, number>();
+  for (const r of appRound.values()) countByRound.set(r, (countByRound.get(r) ?? 0) + 1);
+  const firstCount = countByRound.get(1) ?? 0;
+  let groupRounds = 0;
+  while (firstCount > 0 && (countByRound.get(groupRounds + 1) ?? 0) === firstCount) {
+    groupRounds++;
+  }
+
+  // 3. Szétválasztás: csoportköri meccsek (appRound ≤ G) vs. kieséses (a többi).
+  const groupMatches: RoundMatchInput[] = [];
+  const knockoutMatches: RoundMatchInput[] = [];
+  for (const m of sorted) {
+    const r = appRound.get(m.id);
+    if (r != null && r <= groupRounds) groupMatches.push(m);
+    else knockoutMatches.push(m);
   }
 
   const rounds: RoundGroup[] = [];
-  for (const [key, list] of byRound) {
-    const sorted = [...list].sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime());
+
+  // 4. Csoportköri körök (sorszámozva).
+  const groupByRound = new Map<number, RoundMatchInput[]>();
+  for (const m of groupMatches) {
+    const r = appRound.get(m.id) as number;
+    const list = groupByRound.get(r);
+    if (list) list.push(m);
+    else groupByRound.set(r, [m]);
+  }
+  for (const [r, list] of groupByRound) {
+    const ls = [...list].sort(byDateId);
     rounds.push({
-      key,
-      label: key,
-      matchIds: sorted.map((m) => m.id),
-      minScheduledAt: sorted[0].scheduledAt.getTime(),
+      key: `g${r}`,
+      kind: "group",
+      groupNumber: r,
+      knockoutTeams: null,
+      isFinal: false,
+      matchIds: ls.map((m) => m.id),
+      minScheduledAt: ls[0].scheduledAt.getTime(),
     });
+  }
+
+  // 5. Kieséses körök (kronológikus felezés).
+  if (knockoutMatches.length > 0) {
+    const ks = [...knockoutMatches].sort(byDateId);
+    const sizes = knockoutBucketSizes(ks.length);
+    let idx = 0;
+    for (let b = 0; b < sizes.length; b++) {
+      const slice = ks.slice(idx, idx + sizes[b]);
+      idx += sizes[b];
+      rounds.push({
+        key: `k${b + 1}`,
+        kind: "knockout",
+        groupNumber: null,
+        knockoutTeams: sizes[b] * 2,
+        isFinal: b === sizes.length - 1,
+        matchIds: slice.map((m) => m.id),
+        minScheduledAt: slice[0].scheduledAt.getTime(),
+      });
+    }
   }
 
   rounds.sort((a, b) => a.minScheduledAt - b.minScheduledAt);

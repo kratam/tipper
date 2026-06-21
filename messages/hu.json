@@ -522,6 +522,14 @@
     "prevRound": "Előző forduló",
     "nextRound": "Következő forduló",
     "jumpToMe": "Ugorj a soromra",
-    "youName": "{name} (te)"
+    "youName": "{name} (te)",
+    "roundLabel": "{n}. forduló",
+    "stage": {
+      "final": "Döntő",
+      "sf": "Elődöntő",
+      "qf": "Negyeddöntő",
+      "r16": "Nyolcaddöntő",
+      "roundOf": "Legjobb {n}"
+    }
   }
 }

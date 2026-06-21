@@ -78,6 +78,21 @@ export function TipMatrix({
   const prevKey = idx > 0 ? keys[idx - 1] : null;
   const nextKey = idx >= 0 && idx < keys.length - 1 ? keys[idx + 1] : null;
 
+  let roundTitle: string;
+  if (round.roundKind === "group" && round.roundGroupNumber != null) {
+    roundTitle = t("roundLabel", { n: round.roundGroupNumber });
+  } else if (round.roundIsFinal) {
+    roundTitle = t("stage.final");
+  } else if (round.roundKnockoutTeams === 4) {
+    roundTitle = t("stage.sf");
+  } else if (round.roundKnockoutTeams === 8) {
+    roundTitle = t("stage.qf");
+  } else if (round.roundKnockoutTeams === 16) {
+    roundTitle = t("stage.r16");
+  } else {
+    roundTitle = t("stage.roundOf", { n: round.roundKnockoutTeams ?? 0 });
+  }
+
   function goToRound(key: string | null) {
     if (!key) return;
     if (cache[key]) {
@@ -190,7 +205,7 @@ export function TipMatrix({
         >
           <ChevronLeft className="size-4" />
         </Button>
-        <span className="font-semibold text-[13px] text-foreground">{round.roundLabel}</span>
+        <span className="font-semibold text-[13px] text-foreground">{roundTitle}</span>
         <Button
           variant="ghost"
           size="icon-sm"
