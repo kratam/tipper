@@ -9,7 +9,7 @@ import {
   Lock,
 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import {
   getTipMatrixBetInfoAction,
   getTipMatrixRoundAction,
@@ -116,6 +116,20 @@ export function TipMatrix({
   const [betInfo, setBetInfo] = useState<TipMatrixBetInfo | null>(null);
 
   const meRowRef = useRef<HTMLTableRowElement | null>(null);
+
+  // A vízszintesen görgethető tábla látható szélessége. A "további játékos"
+  // elválasztó-sor feliratát ehhez igazítjuk (sticky), hogy bármennyit
+  // görgetünk jobbra/balra, a felirat középen, mindig látható maradjon.
+  const [viewportW, setViewportW] = useState(0);
+  const roRef = useRef<ResizeObserver | null>(null);
+  const scrollRefCb = useCallback((el: HTMLDivElement | null) => {
+    roRef.current?.disconnect();
+    if (!el) return;
+    setViewportW(el.clientWidth);
+    const ro = new ResizeObserver(() => setViewportW(el.clientWidth));
+    ro.observe(el);
+    roRef.current = ro;
+  }, []);
 
   const betByCell = useMemo(() => {
     const map = new Map<string, TipMatrixBet>();
@@ -299,6 +313,38 @@ export function TipMatrix({
     );
   }
 
+  // A leaders / around blokk közötti összecsukó-sor. A teljes táblát átérő
+  // bg-sáv a <td>-n marad, de a felirat egy sticky, viewport-széles spanben ül,
+  // így vízszintes görgetéskor is mindig a látható terület közepén marad.
+  function renderGapToggle(opts: { onClick: () => void; expanded: boolean; count?: number }) {
+    return (
+      <tr>
+        <td colSpan={colCount} className="border-border border-b bg-surface-2 p-0">
+          <button
+            type="button"
+            onClick={opts.onClick}
+            className="block w-full py-2 hover:bg-surface-3"
+          >
+            <span
+              className={cn(
+                "sticky left-0 flex w-full items-center justify-center gap-1.5 text-[12.5px]",
+                opts.expanded ? "text-muted-foreground" : "text-faint",
+              )}
+              style={{ width: viewportW || undefined }}
+            >
+              {opts.expanded ? (
+                <ChevronUp className="size-3.5" />
+              ) : (
+                <ChevronDown className="size-3.5" />
+              )}
+              {opts.expanded ? t("showLess") : t("showMore", { count: opts.count ?? 0 })}
+            </span>
+          </button>
+        </td>
+      </tr>
+    );
+  }
+
   async function onMatchClick(m: TipMatrixMatch) {
     if (onMatchSelect) {
       onMatchSelect(m.id);
@@ -339,7 +385,10 @@ export function TipMatrix({
       </div>
 
       {/* Table */}
-      <div className={cn("overflow-x-auto", curated && gapOpen && "max-h-[60vh] overflow-y-auto")}>
+      <div
+        ref={scrollRefCb}
+        className={cn("overflow-x-auto", curated && gapOpen && "max-h-[60vh] overflow-y-auto")}
+      >
         <table className="w-max min-w-full border-collapse text-[13px]">
           <thead>
             <tr>
@@ -398,38 +447,18 @@ export function TipMatrix({
             ) : gapOpen ? (
               <>
                 {displayRows.map((row) => renderRow(row))}
-                {curatedSplit.hiddenCount > 0 && (
-                  <tr>
-                    <td colSpan={colCount} className="border-border border-b p-0">
-                      <button
-                        type="button"
-                        onClick={() => setGapOpen(false)}
-                        className="flex w-full items-center justify-center gap-1.5 bg-surface-2 py-2 text-[12.5px] text-muted-foreground hover:bg-surface-3"
-                      >
-                        <ChevronUp className="size-3.5" />
-                        {t("showLess")}
-                      </button>
-                    </td>
-                  </tr>
-                )}
+                {curatedSplit.hiddenCount > 0 &&
+                  renderGapToggle({ onClick: () => setGapOpen(false), expanded: true })}
               </>
             ) : (
               <>
                 {curatedSplit.leaders.map((row) => renderRow(row))}
-                {curatedSplit.hiddenCount > 0 && (
-                  <tr>
-                    <td colSpan={colCount} className="border-border border-b p-0">
-                      <button
-                        type="button"
-                        onClick={() => setGapOpen(true)}
-                        className="flex w-full items-center justify-center gap-1.5 bg-surface-2 py-2 text-[12.5px] text-faint hover:bg-surface-3"
-                      >
-                        <ChevronDown className="size-3.5" />
-                        {t("showMore", { count: curatedSplit.hiddenCount })}
-                      </button>
-                    </td>
-                  </tr>
-                )}
+                {curatedSplit.hiddenCount > 0 &&
+                  renderGapToggle({
+                    onClick: () => setGapOpen(true),
+                    expanded: false,
+                    count: curatedSplit.hiddenCount,
+                  })}
                 {curatedSplit.around.map((row) => renderRow(row))}
               </>
             )}
