@@ -18,6 +18,7 @@ import {
 import { BetDialog } from "@/components/bet-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { predictionToneClass } from "@/lib/bet-display";
 import { splitCuratedRows } from "@/lib/leaderboard-utils";
 import { betNet, buildMatrixRows, type MatrixRowDisplay, type MatrixScope } from "@/lib/tip-matrix";
@@ -51,6 +52,39 @@ interface TipMatrixProps {
 
 const cellKey = (userId: string, matchId: string) => `${userId}__${matchId}`;
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+
+/**
+ * Avatár a játékos-oszlopban. Mobilon a nevet nem írjuk ki (helyhiány), ezért
+ * az avatárra kattintva tooltipben jelenik meg a név. Controlled `open` +
+ * onClick toggle — mert touch-eszközön nincs hover (lásd bet-form
+ * BalanceInfoTooltip ugyanezzel a mintával).
+ */
+function PlayerAvatarTooltip({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <TooltipProvider>
+      <Tooltip open={open} onOpenChange={setOpen}>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              setOpen((v) => !v);
+            }}
+            className="inline-flex cursor-pointer rounded-full"
+            aria-label={name}
+          >
+            <Avatar className="size-[22px]">
+              <AvatarImage src={avatarUrl ?? undefined} alt="" />
+              <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+            </Avatar>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top">{name}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 export function TipMatrix({
   groupId,
@@ -237,10 +271,7 @@ export function TipMatrix({
         >
           <span className={cn("flex items-center gap-2", isMe && "font-bold text-gold")}>
             <span className="w-4 text-right text-muted-foreground">{row.rank}.</span>
-            <Avatar className="size-[22px]">
-              <AvatarImage src={row.userAvatarUrl ?? undefined} alt="" />
-              <AvatarFallback>{row.userName.charAt(0)}</AvatarFallback>
-            </Avatar>
+            <PlayerAvatarTooltip name={row.userName} avatarUrl={row.userAvatarUrl} />
             <span className="max-[560px]:hidden">{row.userName}</span>
           </span>
         </td>
