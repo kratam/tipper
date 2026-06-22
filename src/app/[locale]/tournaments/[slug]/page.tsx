@@ -7,7 +7,7 @@ import { TournamentTabs } from "@/components/tournament-tabs";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { filterAndRerankLeaderboard } from "@/lib/circle-leaderboard";
-import { pickMiniLeaderboard } from "@/lib/leaderboard-utils";
+import { hideInactiveAndRerank, pickMiniLeaderboard } from "@/lib/leaderboard-utils";
 import { ensureOfficialMembership } from "@/lib/official-group";
 import { getUserBetsForTournament } from "@/queries/bets";
 import { getUserCircles } from "@/queries/circles";
@@ -91,7 +91,8 @@ export default async function TournamentDetailPage({
     ),
     Promise.all(
       relevantGroups.map(async (gm) => {
-        const leaderboard = await getGroupLeaderboard(gm.group.id);
+        const rawLeaderboard = await getGroupLeaderboard(gm.group.id);
+        const leaderboard = hideInactiveAndRerank(rawLeaderboard);
         const mini = pickMiniLeaderboard(leaderboard, user.id, gm.group.isOfficial ? 5 : 3);
         const myEntry = leaderboard.find((e) => e.userId === user.id);
         return {
@@ -102,6 +103,7 @@ export default async function TournamentDetailPage({
           isOfficial: gm.group.isOfficial,
           myProfit: myEntry?.profit ?? 0,
           myRank: myEntry?.rank ?? null,
+          rawLeaderboard,
           fullLeaderboard: leaderboard.map((e) => ({
             rank: e.rank,
             userId: e.userId,
@@ -232,8 +234,8 @@ export default async function TournamentDetailPage({
       )
     : null;
 
-  const officialFullLeaderboard = officialGroup
-    ? (groupLeaderboards.find((l) => l.groupId === officialGroup.id)?.fullLeaderboard ?? [])
+  const officialRawLeaderboard = officialGroup
+    ? (groupLeaderboards.find((l) => l.groupId === officialGroup.id)?.rawLeaderboard ?? [])
     : [];
 
   // BoardTab összeállítása: hivatalos → saját csoportok → körök
@@ -288,7 +290,7 @@ export default async function TournamentDetailPage({
   if (officialGroup) {
     for (const circle of userCircles) {
       const memberIds = new Set(circle.members.map((m) => m.userId));
-      const filtered = filterAndRerankLeaderboard(officialFullLeaderboard, memberIds);
+      const filtered = filterAndRerankLeaderboard(officialRawLeaderboard, memberIds);
       groupTabs.push({
         key: `circle-${circle.id}`,
         label: circle.name,

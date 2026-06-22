@@ -5,6 +5,7 @@ import { GroupPageHeader } from "@/components/group-page-header";
 import { InviteCodeBadge } from "@/components/invite-code-badge";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { hideInactiveAndRerank } from "@/lib/leaderboard-utils";
 import { getGroupBetsForFinishedMatches } from "@/queries/bets";
 import { getGroupBySlug } from "@/queries/groups";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
@@ -31,28 +32,36 @@ export default async function GroupDetailPage({
   const group = await getGroupBySlug(tournamentSlug, groupSlug);
   if (!group) notFound();
 
-  const [leaderboard, finishedMatches, groupBetsRaw, upcomingDays, matchTimes, initialMatrixRound] =
-    await Promise.all([
-      getGroupLeaderboard(group.id),
-      getFinishedMatchesForTournament(group.tournamentId, group.tournament.useFlagFallback),
-      getGroupBetsForFinishedMatches(group.id),
-      getUpcomingBetSummary(
-        group.tournamentId,
-        group.id,
-        user.id,
-        group.tournament.timezone,
-        locale,
-        group.tournament.useFlagFallback,
-      ),
-      getTournamentMatchTimes(group.tournamentId),
-      getTipMatrixRound(
-        group.id,
-        group.tournamentId,
-        group.tournament.useFlagFallback,
-        user.id,
-        null,
-      ),
-    ]);
+  const [
+    leaderboardRaw,
+    finishedMatches,
+    groupBetsRaw,
+    upcomingDays,
+    matchTimes,
+    initialMatrixRound,
+  ] = await Promise.all([
+    getGroupLeaderboard(group.id),
+    getFinishedMatchesForTournament(group.tournamentId, group.tournament.useFlagFallback),
+    getGroupBetsForFinishedMatches(group.id),
+    getUpcomingBetSummary(
+      group.tournamentId,
+      group.id,
+      user.id,
+      group.tournament.timezone,
+      locale,
+      group.tournament.useFlagFallback,
+    ),
+    getTournamentMatchTimes(group.tournamentId),
+    getTipMatrixRound(
+      group.id,
+      group.tournamentId,
+      group.tournament.useFlagFallback,
+      user.id,
+      null,
+    ),
+  ]);
+
+  const leaderboard = hideInactiveAndRerank(leaderboardRaw);
 
   const isOwner = group.ownerId === user.id;
   const canEditSettings = isOwner || (user.isAdmin && group.isOfficial);
