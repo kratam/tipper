@@ -115,7 +115,7 @@ function BetSection({ bets, isFinished }: { bets: UserBet[]; isFinished: boolean
   const isLoss = first.result1x2Correct === false;
 
   return (
-    <div className="flex flex-col items-center gap-1.5 border-border border-t pt-[9px]">
+    <div className="flex w-full flex-col items-center gap-1.5 border-border border-t pt-[9px]">
       {/* Tipp (egyszer) */}
       <span
         className={`flex items-center gap-1 font-bold font-mono text-[15px] ${
@@ -172,12 +172,16 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
     <button
       type="button"
       onClick={onClick}
+      // A közvetlen blokkok (idő / csapat-rács / odds-rács / tipp-sáv) lent explicit
+      // w-full-t kapnak: a régi WebKit (Safari ≤ 18.6) nem nyújtja ki az
+      // align-items: stretch-re bízott grid/flex gyerekeket, hanem a max-content
+      // szélességükre zsugorítja őket balra. Az explicit width:100% ezt visszahúzza.
       className={`flex w-full flex-col gap-2 rounded-lg border border-border bg-card p-[15px] text-left shadow-card transition-all hover:-translate-y-[3px] hover:border-gold-line hover:shadow-card-hover ${
         isLive ? "border-l-[3px] border-l-loss" : hasNoBet ? "border-l-[3px] border-l-gold" : ""
       }`}
     >
       {/* ── Idő / státusz ── */}
-      <div className="flex flex-col items-center leading-[1.1]">
+      <div className="flex w-full flex-col items-center leading-[1.1]">
         {isLive ? (
           <span className="inline-flex items-center gap-1.5 font-bold font-mono text-[13px] text-loss">
             <span className="tc-live-dot size-[9px] rounded-full bg-loss" />
@@ -209,7 +213,7 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
       </div>
 
       {/* ── Csapat-sor ── */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+      <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2">
         {/* Hazai csapat */}
         <div className="flex min-w-0 items-center gap-2">
           <TeamLogo
@@ -240,7 +244,7 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
 
       {/* ── Odds 1/X/2 (csak közelgőnél, ahogy a prototípus) ── */}
       {match.odds && isScheduled && (
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid w-full grid-cols-3 gap-1">
           <span className="flex items-baseline justify-center gap-1.5 rounded-[7px] bg-surface-2 py-[3px] font-mono text-[12px]">
             <span className="font-bold text-[9px] text-faint">1</span>
             <span className="font-semibold" style={{ color: oddsColor(match.odds.homeOdds) }}>
@@ -266,12 +270,12 @@ export function MatchCard({ match, timezone, onClick }: MatchCardProps) {
       {match.userBets.length > 0 ? (
         <BetSection bets={match.userBets} isFinished={isFinished} />
       ) : participantsUnknown ? (
-        <div className="flex justify-center border-border border-t pt-[9px]">
+        <div className="flex w-full justify-center border-border border-t pt-[9px]">
           <span className="text-[12.5px] text-faint italic">{t("participantsUnknown")}</span>
         </div>
       ) : (
         isScheduled && (
-          <div className="flex items-center justify-center gap-1 border-border border-t pt-[9px] font-semibold text-[12.5px] text-gold">
+          <div className="flex w-full items-center justify-center gap-1 border-border border-t pt-[9px] font-semibold text-[12.5px] text-gold">
             <Target className="size-3.5" />
             {t("noBet")}
           </div>
