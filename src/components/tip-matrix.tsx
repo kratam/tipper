@@ -229,7 +229,7 @@ export function TipMatrix({
           <span className="inline-block rounded-[6px] px-[6px] py-px outline outline-[1.5px] outline-gold-line">
             <span className="block font-semibold text-gold">{pred}</span>
           </span>
-          <span className="inline-flex items-center gap-[2px] text-[10px] text-faint">
+          <span className="inline-flex items-center gap-[2px] font-medium text-[10px] text-gold-text">
             <TokenIcon size={9} />
             {bet.stake}
           </span>
