@@ -16,6 +16,7 @@ import {
   type TipMatrixBetInfo,
 } from "@/actions/tip-matrix";
 import { BetDialog } from "@/components/bet-dialog";
+import { TokenIcon } from "@/components/token-icon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -222,10 +223,16 @@ export function TipMatrix({
     const pred = `${bet.predictedHome}:${bet.predictedAway}`;
 
     if (!m.locked) {
-      // own future tip
+      // own future tip — tipp + alatta a feltett tét
       return (
-        <span className="inline-block rounded-[6px] px-[6px] py-px outline outline-[1.5px] outline-gold-line">
-          <span className="block font-semibold text-gold">{pred}</span>
+        <span className="flex flex-col items-center gap-[2px] leading-tight">
+          <span className="inline-block rounded-[6px] px-[6px] py-px outline outline-[1.5px] outline-gold-line">
+            <span className="block font-semibold text-gold">{pred}</span>
+          </span>
+          <span className="inline-flex items-center gap-[2px] text-[10px] text-faint">
+            <TokenIcon size={9} />
+            {bet.stake}
+          </span>
         </span>
       );
     }
