@@ -4,6 +4,7 @@ export interface LeaderboardEntry {
   userName: string;
   userAvatarUrl: string | null;
   profit: number;
+  betCount: number;
 }
 
 export function pickMiniLeaderboard(
@@ -57,4 +58,18 @@ export function splitCuratedRows<T extends { userId: string }>(
   const end = Math.min(rows.length - 1, userIndex + neighbors);
   const around = rows.slice(start, end + 1);
   return { leaders, around, hiddenCount: rows.length - leaders.length - around.length };
+}
+
+/**
+ * Elrejti a még nem tippelt játékosokat (`betCount === 0`), és a maradékot
+ * 1..n-re rangsorolja. Ha SENKI sem tippelt a listán, mindenkit megtart (csak
+ * újrarangsorol) — különben üres lenne a lista. A bemeneti (profit szerint
+ * csökkenő) sorrendet megőrzi.
+ */
+export function hideInactiveAndRerank<T extends { betCount: number; rank: number }>(
+  rows: readonly T[],
+): T[] {
+  const anyActive = rows.some((r) => r.betCount > 0);
+  const kept = anyActive ? rows.filter((r) => r.betCount > 0) : rows;
+  return kept.map((row, index) => ({ ...row, rank: index + 1 }));
 }

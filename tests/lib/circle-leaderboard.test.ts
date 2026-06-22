@@ -2,18 +2,34 @@ import { describe, expect, it } from "vitest";
 import { filterAndRerankLeaderboard } from "@/lib/circle-leaderboard";
 
 const officialRows = [
-  { rank: 1, userId: "a", userName: "Anna", userAvatarUrl: null, profit: 500 },
-  { rank: 2, userId: "b", userName: "Bea", userAvatarUrl: null, profit: 300 },
-  { rank: 3, userId: "c", userName: "Cili", userAvatarUrl: null, profit: 100 },
-  { rank: 4, userId: "d", userName: "Dani", userAvatarUrl: null, profit: -50 },
+  { rank: 1, userId: "a", userName: "Anna", userAvatarUrl: null, profit: 500, betCount: 1 },
+  { rank: 2, userId: "b", userName: "Bea", userAvatarUrl: null, profit: 300, betCount: 1 },
+  { rank: 3, userId: "c", userName: "Cili", userAvatarUrl: null, profit: 100, betCount: 1 },
+  { rank: 4, userId: "d", userName: "Dani", userAvatarUrl: null, profit: -50, betCount: 1 },
 ];
 
 describe("filterAndRerankLeaderboard", () => {
   it("keeps only circle members and re-ranks them 1..n", () => {
     const result = filterAndRerankLeaderboard(officialRows, new Set(["b", "d"]));
     expect(result).toEqual([
-      { rank: 1, officialRank: 2, userId: "b", userName: "Bea", userAvatarUrl: null, profit: 300 },
-      { rank: 2, officialRank: 4, userId: "d", userName: "Dani", userAvatarUrl: null, profit: -50 },
+      {
+        rank: 1,
+        officialRank: 2,
+        userId: "b",
+        userName: "Bea",
+        userAvatarUrl: null,
+        profit: 300,
+        betCount: 1,
+      },
+      {
+        rank: 2,
+        officialRank: 4,
+        userId: "d",
+        userName: "Dani",
+        userAvatarUrl: null,
+        profit: -50,
+        betCount: 1,
+      },
     ]);
   });
 
@@ -31,7 +47,15 @@ describe("filterAndRerankLeaderboard", () => {
   it("handles a single-member circle", () => {
     const result = filterAndRerankLeaderboard(officialRows, new Set(["c"]));
     expect(result).toEqual([
-      { rank: 1, officialRank: 3, userId: "c", userName: "Cili", userAvatarUrl: null, profit: 100 },
+      {
+        rank: 1,
+        officialRank: 3,
+        userId: "c",
+        userName: "Cili",
+        userAvatarUrl: null,
+        profit: 100,
+        betCount: 1,
+      },
     ]);
   });
 

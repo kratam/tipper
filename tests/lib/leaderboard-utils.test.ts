@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  hideInactiveAndRerank,
   type LeaderboardEntry,
   pickMiniLeaderboard,
   splitCuratedRows,
 } from "@/lib/leaderboard-utils";
 
-function makeEntry(rank: number, userId: string, profit: number): LeaderboardEntry {
-  return { rank, userId, userName: `User ${userId}`, userAvatarUrl: null, profit };
+function makeEntry(rank: number, userId: string, profit: number, betCount = 1): LeaderboardEntry {
+  return { rank, userId, userName: `User ${userId}`, userAvatarUrl: null, profit, betCount };
 }
 
 describe("pickMiniLeaderboard", () => {
@@ -154,5 +155,31 @@ describe("splitCuratedRows", () => {
     expect(r.leaders.map((x) => x.userId)).toEqual(["u1", "u2", "u3"]);
     expect(r.around.map((x) => x.userId)).toEqual(["u5", "u6", "u7"]);
     expect(r.hiddenCount).toBe(4); // u4 + u8,u9,u10
+  });
+});
+
+describe("hideInactiveAndRerank", () => {
+  it("kiszűri a nem-tippelő (betCount === 0) sorokat, ha van tippelő", () => {
+    const board = [makeEntry(1, "a", 500, 2), makeEntry(2, "b", 0, 0), makeEntry(3, "c", -50, 1)];
+    const result = hideInactiveAndRerank(board);
+    expect(result.map((r) => r.userId)).toEqual(["a", "c"]);
+  });
+
+  it("a megmaradó sorokat 1..n-re rangsorolja, a sorrendet megtartva", () => {
+    const board = [makeEntry(1, "a", 500, 1), makeEntry(2, "b", 0, 0), makeEntry(3, "c", -50, 1)];
+    const result = hideInactiveAndRerank(board);
+    expect(result.map((r) => r.rank)).toEqual([1, 2]);
+    expect(result.map((r) => r.userId)).toEqual(["a", "c"]);
+  });
+
+  it("ha senki sem tippelt, mindenkit megtart (csak újrarangsorol)", () => {
+    const board = [makeEntry(1, "a", 0, 0), makeEntry(2, "b", 0, 0)];
+    const result = hideInactiveAndRerank(board);
+    expect(result.map((r) => r.userId)).toEqual(["a", "b"]);
+    expect(result.map((r) => r.rank)).toEqual([1, 2]);
+  });
+
+  it("üres listára üres listát ad", () => {
+    expect(hideInactiveAndRerank([])).toEqual([]);
   });
 });
