@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull, isNull, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, lte, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   bets,
@@ -10,9 +10,12 @@ import {
   tokenLedger,
   tournaments,
 } from "@/db/schema";
+import { expectedMatchDurationMs } from "@/lib/match-duration";
+import { computeNextFinishCheck, delaySecondsUntil } from "@/lib/match-finish-schedule";
 import { getProvider } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers/types";
 import { toProviderConfig } from "@/lib/providers/types";
+import { scheduleMatchFinishCheck } from "@/lib/qstash";
 import { hasApiScheduleImproved, isScheduleBroken } from "@/lib/schedule-override";
 import { calculateBetPayout } from "@/lib/scoring";
 import { getRelevantOdds } from "@/lib/tokens";
@@ -188,6 +191,66 @@ export async function syncTournament(tournament: Tournament): Promise<void> {
     { id: tournament.id, useScheduleOverrides: tournament.useScheduleOverrides },
     apiGameDates,
   );
+}
+
+// ── Match-finish lánc ütemezése ──
+
+/**
+ * Tornánként EGYETLEN match-finish recheck-lánc fenntartása. A `next_finish_check_at`
+ * oszlop a szerződés: ha jövőbeli érték van benne, már fut a lánc. Az atomikus
+ * compare-and-set claim garantálja, hogy két párhuzamos hívó (periodic + futó
+ * match-finish) közül csak egy ütemez. A `<= now` feltétel teszi lehetővé az
+ * önjavítást: egy elveszett (retries:0) láncot a következő hívó újrafoglal.
+ */
+export async function scheduleNextFinishCheck(tournamentId: string): Promise<void> {
+  const tournament = await db.query.tournaments.findFirst({
+    where: eq(tournaments.id, tournamentId),
+    columns: { id: true, providerSport: true },
+  });
+  if (!tournament) return;
+
+  const pending = await db
+    .select({ scheduledAt: matches.scheduledAt, status: matches.status })
+    .from(matches)
+    .where(
+      and(eq(matches.tournamentId, tournamentId), inArray(matches.status, ["scheduled", "live"])),
+    );
+
+  const durationMs = expectedMatchDurationMs(tournament.providerSport);
+  const now = new Date();
+  const target = computeNextFinishCheck(
+    pending.map((m) => ({
+      scheduledAt: m.scheduledAt,
+      status: m.status as "scheduled" | "live",
+      durationMs,
+    })),
+    now,
+  );
+
+  if (target === null) {
+    // Nincs több lezáratlan meccs — a lánc leáll.
+    await db
+      .update(tournaments)
+      .set({ nextFinishCheckAt: null })
+      .where(eq(tournaments.id, tournamentId));
+    return;
+  }
+
+  // Atomikus claim: csak akkor ütemezünk, ha nincs jövőbeli függő check.
+  const claimed = await db
+    .update(tournaments)
+    .set({ nextFinishCheckAt: target })
+    .where(
+      and(
+        eq(tournaments.id, tournamentId),
+        or(isNull(tournaments.nextFinishCheckAt), lte(tournaments.nextFinishCheckAt, now)),
+      ),
+    )
+    .returning({ id: tournaments.id });
+
+  if (claimed.length === 0) return; // már van jövőbeli check — nem duplikálunk
+
+  await scheduleMatchFinishCheck(tournamentId, delaySecondsUntil(target, now));
 }
 
 // ── Schedule overrides ──

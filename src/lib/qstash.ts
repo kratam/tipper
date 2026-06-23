@@ -23,17 +23,24 @@ export function getCallbackBaseUrl(): string {
 }
 
 /**
- * Schedule a match-finish check at a specific time.
- * QStash will POST to /api/cron/match-finish after the delay.
+ * Match-finish check ütemezése egy adott tornára, `delaySeconds` múlva.
+ * QStash POST-ol a /api/cron/match-finish-re, body-ban a tournamentId-vel.
+ * `retries: 0` — szándékosan nincs QStash-újrapróbálkozás: egy odds-api 429
+ * miatti route-hiba nem szülhet további hívásokat (retry-amplifikáció ellen).
+ * Az elveszett láncot a periodic cron önjavítja (DB-claim, lásd sync.ts).
  */
-export async function scheduleMatchFinishCheck(delaySeconds: number): Promise<void> {
+export async function scheduleMatchFinishCheck(
+  tournamentId: string,
+  delaySeconds: number,
+): Promise<void> {
   const qstash = getQStashClient();
   const baseUrl = getCallbackBaseUrl();
 
   await qstash.publishJSON({
     url: `${baseUrl}/api/cron/match-finish`,
-    body: { trigger: "scheduled" },
+    body: { trigger: "scheduled", tournamentId },
     delay: delaySeconds,
+    retries: 0,
     headers: {
       Authorization: `Bearer ${process.env.CRON_SECRET}`,
     },
