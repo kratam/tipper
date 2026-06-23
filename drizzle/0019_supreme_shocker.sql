@@ -1,0 +1,1 @@
+ALTER TABLE "tournaments" ADD COLUMN "next_finish_check_at" timestamp with time zone;

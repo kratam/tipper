@@ -134,6 +134,13 @@
       "when": 1780466436731,
       "tag": "0018_nasty_mysterio",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1782202642867,
+      "tag": "0019_supreme_shocker",
+      "breakpoints": true
     }
   ]
 }
