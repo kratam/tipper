@@ -156,20 +156,21 @@ export function deriveRounds(matches: readonly RoundMatchInput[]): RoundGroup[] 
 }
 
 /**
- * Az alapértelmezett forduló: a legkésőbbi forduló, amelyben már van elkezdődött
- * meccs; ha egyik forduló sem kezdődött el, a legkorábbi forduló. Üres listára null.
+ * Az alapértelmezett forduló: az első forduló, amelynek van még el nem kezdődött
+ * (tippelhető) meccse — ide kell legközelebb tippelni. Ha minden meccs elkezdődött
+ * (vége a tornának), a legkésőbbi forduló. Üres listára null.
  */
 export function pickDefaultRoundKey(
   rounds: readonly RoundGroup[],
   startedMatchIds: ReadonlySet<string>,
 ): string | null {
   if (rounds.length === 0) return null;
-  for (let i = rounds.length - 1; i >= 0; i--) {
-    if (rounds[i].matchIds.some((id) => startedMatchIds.has(id))) {
-      return rounds[i].key;
+  for (const round of rounds) {
+    if (round.matchIds.some((id) => !startedMatchIds.has(id))) {
+      return round.key;
     }
   }
-  return rounds[0].key;
+  return rounds[rounds.length - 1].key;
 }
 
 /** Lockolt egy meccs, ha már nem fogadható: nem `scheduled`, vagy a kezdés elmúlt. */

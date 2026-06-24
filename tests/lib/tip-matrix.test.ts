@@ -151,14 +151,23 @@ describe("pickDefaultRoundKey", () => {
     },
   ];
 
-  it("picks the latest round that has a started match", () => {
+  it("picks the first round that still has an unstarted match", () => {
+    // g1 teljesen elindult (m1,m2), g2 csak részben (m3 igen, m4 még nem) → g2
     expect(pickDefaultRoundKey(rounds, new Set(["m1", "m2", "m3"]))).toBe("g2");
   });
-  it("picks the latest round even if a later round started", () => {
-    expect(pickDefaultRoundKey(rounds, new Set(["m1", "m5"]))).toBe("k1");
+  it("skips fully-started rounds to the next open one", () => {
+    // A user esete: g1 és g2 minden meccse elindult, k1 még nyitott → k1 (nem g2)
+    expect(pickDefaultRoundKey(rounds, new Set(["m1", "m2", "m3", "m4"]))).toBe("k1");
+  });
+  it("prefers an earlier partially-started round over a later started one", () => {
+    // g1 részben elindult (m1 igen, m2 nem); m5 is elindult, de g1 az első nyitott → g1
+    expect(pickDefaultRoundKey(rounds, new Set(["m1", "m5"]))).toBe("g1");
   });
   it("falls back to the earliest round when nothing has started", () => {
     expect(pickDefaultRoundKey(rounds, new Set())).toBe("g1");
+  });
+  it("falls back to the last round when everything has started", () => {
+    expect(pickDefaultRoundKey(rounds, new Set(["m1", "m2", "m3", "m4", "m5"]))).toBe("k1");
   });
   it("returns null when there are no rounds", () => {
     expect(pickDefaultRoundKey([], new Set())).toBeNull();
