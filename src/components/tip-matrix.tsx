@@ -9,7 +9,7 @@ import {
   Lock,
 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useCallback, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   getTipMatrixBetInfoAction,
   getTipMatrixRoundAction,
@@ -109,6 +109,32 @@ export function TipMatrix({
   const [gapOpen, setGapOpen] = useState(false);
 
   const round = roundKey ? cache[roundKey] : null;
+
+  // A round-adat kliens-state-be (`cache`) van zárva, ezért egy sikeres tipp
+  // utáni `router.refresh()` friss `initialRound` propja önmagában NEM frissíti
+  // a táblát (a useState initializer csak mount-kor fut). Ezért az új
+  // `initialRound` propot beolvasztjuk a cache-be, és — ha a megjelenített
+  // forduló ez — a frissített tippek azonnal látszanak.
+  useEffect(() => {
+    if (!initialRound) return;
+    setCache((c) =>
+      c[initialRound.roundKey] === initialRound
+        ? c
+        : { ...c, [initialRound.roundKey]: initialRound },
+    );
+  }, [initialRound]);
+
+  // Sikeres tipp-mutáció után az ÉPP látott fordulót töltjük újra a szerverről.
+  // Ez pontosabb a router.refresh-propnál: akkor is a helyes fordulót frissíti,
+  // ha a felhasználó az alap (initial) fordulóról tovább lapozott.
+  const refreshCurrentRound = useCallback(() => {
+    const key = roundKey;
+    if (!key) return;
+    startTransition(async () => {
+      const data = await getTipMatrixRoundAction(groupId, key);
+      if (data) setCache((c) => ({ ...c, [data.roundKey]: data }));
+    });
+  }, [groupId, roundKey]);
 
   // Meccs-kattintáskor (ha nincs onMatchSelect) a meccs-kártyával AZONOS
   // BetDialog-ot nyitjuk, lustán betöltve az adott meccs bet-infóját.
@@ -492,6 +518,7 @@ export function TipMatrix({
           currentUserId={currentUserId}
           timeZone={timeZone}
           open={!!betMatchId}
+          onBetMutated={refreshCurrentRound}
           onOpenChange={(o) => {
             if (!o) {
               setBetMatchId(null);

@@ -49,6 +49,13 @@ interface BetFormProps {
   homeTeam: { name: string; logoUrl: string | null };
   awayTeam: { name: string; logoUrl: string | null };
   onSuccess?: () => void;
+  /**
+   * Sikeres tipp-leadás/módosítás/visszavonás után fut (a `router.refresh()`
+   * mellett). A tipp-mátrix ezzel tölti újra az épp megjelenített fordulót,
+   * mert annak round-adata kliens-state-be van zárva, amit a router.refresh()
+   * propja önmagában nem frissít. Lásd [[tip-matrix.tsx]].
+   */
+  onBetMutated?: () => void;
 }
 
 function ScoreStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -128,7 +135,15 @@ function BalanceInfoTooltip({
   );
 }
 
-export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }: BetFormProps) {
+export function BetForm({
+  matchId,
+  groups,
+  odds,
+  homeTeam,
+  awayTeam,
+  onSuccess,
+  onBetMutated,
+}: BetFormProps) {
   const t = useTranslations("betting");
   const tMatches = useTranslations("matches");
   const router = useRouter();
@@ -184,6 +199,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
         icon: isUpdate ? "✏️" : "✅",
       });
       router.refresh();
+      onBetMutated?.();
       onSuccess?.();
     });
   }
@@ -201,6 +217,7 @@ export function BetForm({ matchId, groups, odds, homeTeam, awayTeam, onSuccess }
         icon: "🗑️",
       });
       router.refresh();
+      onBetMutated?.();
       onSuccess?.();
     });
   }

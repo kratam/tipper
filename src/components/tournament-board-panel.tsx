@@ -58,6 +58,18 @@ export function TournamentBoardPanel({
   );
   const [isPending, startTransition] = useTransition();
 
+  // A `router.refresh()` (pl. tipp leadása után) friss `officialInitialRound`
+  // propot ad, de a `roundByTab` useState csak mount-kor inicializálódik. Ezért
+  // a hivatalos tab fordulóját a friss proppal szinkronban tartjuk, hogy a tipp
+  // utáni frissített tábla megjelenjen. Lásd [[tip-matrix.tsx]].
+  useEffect(() => {
+    const k = tabs[0]?.key;
+    if (!k) return;
+    setRoundByTab((prev) =>
+      prev[k] === officialInitialRound ? prev : { ...prev, [k]: officialInitialRound },
+    );
+  }, [officialInitialRound, tabs]);
+
   // Lusta forduló-betöltés az aktív tabhoz (a hivatalos elő van töltve).
   useEffect(() => {
     if (activeKey in roundByTab) return;
