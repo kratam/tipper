@@ -44,9 +44,7 @@ export default async function AdminPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-bold font-mono text-2xl tracking-tight">{t("title")}</h1>
-      <div className="mb-6">
-        <AdminBroadcastForm />
-      </div>
+      <AdminBroadcastForm />
       <AdminPanel tournaments={tournamentsWithTeams} />
     </div>
   );
