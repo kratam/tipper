@@ -1,7 +1,9 @@
 // A match-finish recheck-lánc döntéslogikája. Tiszta (DB/IO nélkül), hogy
 // unit-tesztelhető legyen — lásd tests/lib/match-finish-schedule.test.ts.
 
-export const RECHECK_INTERVAL_MS = 3 * 60 * 1000; // 3 perc
+// 1 perc: a becsült meccs-vég után ennyivel recheck-elünk, amíg a meccs finished.
+// A QStash delay 60s padlója a praktikus alsó határ (lásd delaySecondsUntil).
+export const RECHECK_INTERVAL_MS = 1 * 60 * 1000; // 1 perc
 
 export interface PendingMatch {
   scheduledAt: Date;

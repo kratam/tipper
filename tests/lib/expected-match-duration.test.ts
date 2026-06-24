@@ -4,8 +4,8 @@ import { expectedMatchDurationMs } from "@/lib/match-duration";
 const MIN = 60 * 1000;
 
 describe("expectedMatchDurationMs", () => {
-  it("football → 1h55m", () => {
-    expect(expectedMatchDurationMs("football")).toBe(115 * MIN);
+  it("football → 1h50m", () => {
+    expect(expectedMatchDurationMs("football")).toBe(110 * MIN);
   });
 
   it("hockey (api-sports providerSport NULL) → 2h30m default", () => {

@@ -54,6 +54,12 @@ describe("computeNextFinishCheck", () => {
   });
 });
 
+describe("RECHECK_INTERVAL_MS", () => {
+  it("1 perc — sűrű recheck a meccs vége felé (gyors pontozás)", () => {
+    expect(RECHECK_INTERVAL_MS).toBe(60_000);
+  });
+});
+
 describe("delaySecondsUntil", () => {
   it("jövőbeli cél → másodpercek felfelé kerekítve", () => {
     expect(delaySecondsUntil(new Date("2026-06-23T20:10:30Z"), NOW)).toBe(630);
