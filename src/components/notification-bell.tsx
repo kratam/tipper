@@ -48,6 +48,15 @@ export function NotificationBell() {
     mutateItems();
   }
 
+  // A "Megnyitás" link navigál: zárjuk a panelt és olvasottá tesszük.
+  async function handleOpenLink(recipientId: string, readAt: Date | null) {
+    setOpen(false);
+    if (readAt) return;
+    await markRead(recipientId);
+    mutateUnread();
+    mutateItems();
+  }
+
   const now = new Date();
 
   const bellInner = (
@@ -109,11 +118,11 @@ export function NotificationBell() {
                     </p>
                   </div>
                 </button>
-                {expanded && n.href && (
+                {n.href && (
                   <div className="px-3 pb-2.5 pl-7">
                     <Link
                       href={n.href}
-                      onClick={() => setOpen(false)}
+                      onClick={() => handleOpenLink(n.recipientId, n.readAt)}
                       className="inline-block font-medium text-gold-text text-xs hover:underline"
                     >
                       {t("openLink")}
