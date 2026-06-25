@@ -25,6 +25,7 @@
     "title": "Notifications",
     "markAllRead": "Mark all read",
     "empty": "No notifications yet.",
+    "close": "Close",
     "time": {
       "now": "now",
       "minutes": "{count}m ago",

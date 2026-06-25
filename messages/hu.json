@@ -25,6 +25,7 @@
     "title": "Értesítések",
     "markAllRead": "Mind olvasott",
     "empty": "Még nincs értesítésed.",
+    "close": "Bezárás",
     "time": {
       "now": "most",
       "minutes": "{count} perce",
