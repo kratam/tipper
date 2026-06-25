@@ -17,6 +17,7 @@ export function NotificationBell() {
   const t = useTranslations("notifications");
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [open, setOpen] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const { data: unread = 0, mutate: mutateUnread } = useSWR(
     "notif-unread",
@@ -37,8 +38,10 @@ export function NotificationBell() {
     mutateItems();
   }
 
-  async function handleOpenItem(recipientId: string, readAt: Date | null) {
-    setOpen(false);
+  // Kattintásra helyben ki-/becsukjuk az értesítést (a panel nyitva marad);
+  // első kinyitáskor olvasottá tesszük.
+  async function handleToggle(recipientId: string, readAt: Date | null) {
+    setExpandedId((cur) => (cur === recipientId ? null : recipientId));
     if (readAt) return;
     await markRead(recipientId);
     mutateUnread();
@@ -78,40 +81,46 @@ export function NotificationBell() {
         ) : (
           items.map((n) => {
             const { title, body } = notificationContent(n, t);
-            const inner = (
-              <div key={n.recipientId} className="flex gap-2 px-3 py-2.5 hover:bg-surface-3">
-                {n.readAt ? (
-                  <span className="w-2 shrink-0" />
-                ) : (
-                  <span className="mt-1.5 size-2 shrink-0 rounded-full bg-gold" />
+            const expanded = expandedId === n.recipientId;
+            return (
+              <div key={n.recipientId} className="border-border/60 border-b last:border-b-0">
+                <button
+                  type="button"
+                  aria-expanded={expanded}
+                  onClick={() => handleToggle(n.recipientId, n.readAt)}
+                  className="flex w-full gap-2 px-3 py-2.5 text-left hover:bg-surface-3"
+                >
+                  {n.readAt ? (
+                    <span className="w-2 shrink-0" />
+                  ) : (
+                    <span className="mt-1.5 size-2 shrink-0 rounded-full bg-gold" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm">{title}</p>
+                    {body && (
+                      <p
+                        className={`text-muted-foreground text-xs ${expanded ? "" : "line-clamp-2"}`}
+                      >
+                        {body}
+                      </p>
+                    )}
+                    <p className="mt-0.5 text-[11px] text-faint">
+                      {formatRelativeTime(new Date(n.createdAt), now, t)}
+                    </p>
+                  </div>
+                </button>
+                {expanded && n.href && (
+                  <div className="px-3 pb-2.5 pl-7">
+                    <Link
+                      href={n.href}
+                      onClick={() => setOpen(false)}
+                      className="inline-block font-medium text-gold-text text-xs hover:underline"
+                    >
+                      {t("openLink")}
+                    </Link>
+                  </div>
                 )}
-                <div className="min-w-0">
-                  <p className="font-medium text-sm">{title}</p>
-                  {body && <p className="text-muted-foreground text-xs">{body}</p>}
-                  <p className="text-[11px] text-faint">
-                    {formatRelativeTime(new Date(n.createdAt), now, t)}
-                  </p>
-                </div>
               </div>
-            );
-            return n.href ? (
-              <Link
-                key={n.recipientId}
-                href={n.href}
-                onClick={() => handleOpenItem(n.recipientId, n.readAt)}
-                className="block"
-              >
-                {inner}
-              </Link>
-            ) : (
-              <button
-                key={n.recipientId}
-                type="button"
-                onClick={() => handleOpenItem(n.recipientId, n.readAt)}
-                className="block w-full text-left"
-              >
-                {inner}
-              </button>
             );
           })
         )}
@@ -122,7 +131,7 @@ export function NotificationBell() {
   // Desktop: a haranghoz horgonyzott popover.
   if (isDesktop) {
     return (
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal>
         <PopoverTrigger asChild>
           <button type="button" aria-label={t("title")} className={BELL_CLASS}>
             {bellInner}
