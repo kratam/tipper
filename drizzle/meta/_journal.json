@@ -141,6 +141,13 @@
       "when": 1782202642867,
       "tag": "0019_supreme_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1782330321735,
+      "tag": "0020_confused_stature",
+      "breakpoints": true
     }
   ]
 }

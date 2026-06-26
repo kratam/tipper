@@ -21,6 +21,19 @@
     "help": "Help",
     "circles": "My circles"
   },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "empty": "No notifications yet.",
+    "close": "Close",
+    "openLink": "Open →",
+    "time": {
+      "now": "now",
+      "minutes": "{count}m ago",
+      "hours": "{count}h ago",
+      "days": "{count}d ago"
+    }
+  },
   "landing": {
     "title": "TippCasino",
     "subtitle": "Predict sports matches, earn points, compete with friends!",
@@ -309,7 +322,15 @@
     "archivedBadge": "Archived",
     "archiveConfirm": "Are you sure you want to archive \"{name}\"? It will only be hidden from listings; group members can still access it.",
     "archiveSuccess": "Tournament archived!",
-    "unarchiveSuccess": "Tournament restored!"
+    "unarchiveSuccess": "Tournament restored!",
+    "broadcastTitle": "Send system message",
+    "broadcastFieldTitle": "Title",
+    "broadcastFieldBody": "Message",
+    "broadcastFieldHref": "Link (optional)",
+    "broadcastSend": "Send to everyone",
+    "broadcastConfirm": "Send this to all users?",
+    "broadcastSent": "Sent to {count} users.",
+    "broadcastError": "Could not send."
   },
   "join": {
     "title": "Join",

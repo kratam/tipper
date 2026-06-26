@@ -4,6 +4,7 @@ import {
   decimal,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   real,
@@ -32,6 +33,8 @@ export const tokenTypeEnum = pgEnum("token_type", [
 ]);
 
 export const providerEnum = pgEnum("provider", ["api-sports", "odds-api"]);
+
+export const notificationTypeEnum = pgEnum("notification_type", ["system", "badge"]);
 
 // Tables
 export const users = pgTable("users", {
@@ -300,6 +303,37 @@ export const circleMembers = pgTable(
   (table) => [uniqueIndex("circle_user_idx").on(table.circleId, table.userId)],
 );
 
+export const notificationObjects = pgTable("notification_objects", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  type: notificationTypeEnum("type").notNull(),
+  // system: literál admin-szöveg; badge: null (a data-ból renderelve)
+  title: text("title"),
+  body: text("body"),
+  // badge: template-paraméterek ({ badgeKey, ... }); system: null
+  data: jsonb("data"),
+  href: text("href"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const notificationRecipients = pgTable(
+  "notification_recipients",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    notificationObjectId: uuid("notification_object_id")
+      .references(() => notificationObjects.id, { onDelete: "cascade" })
+      .notNull(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("notification_object_user_idx").on(table.notificationObjectId, table.userId),
+    index("notification_user_read_idx").on(table.userId, table.readAt),
+  ],
+);
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   groupMemberships: many(groupMembers),
@@ -374,4 +408,16 @@ export const circlesRelations = relations(circles, ({ one, many }) => ({
 export const circleMembersRelations = relations(circleMembers, ({ one }) => ({
   circle: one(circles, { fields: [circleMembers.circleId], references: [circles.id] }),
   user: one(users, { fields: [circleMembers.userId], references: [users.id] }),
+}));
+
+export const notificationObjectsRelations = relations(notificationObjects, ({ many }) => ({
+  recipients: many(notificationRecipients),
+}));
+
+export const notificationRecipientsRelations = relations(notificationRecipients, ({ one }) => ({
+  object: one(notificationObjects, {
+    fields: [notificationRecipients.notificationObjectId],
+    references: [notificationObjects.id],
+  }),
+  user: one(users, { fields: [notificationRecipients.userId], references: [users.id] }),
 }));

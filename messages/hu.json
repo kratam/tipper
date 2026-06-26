@@ -21,6 +21,19 @@
     "help": "Súgó",
     "circles": "Köreim"
   },
+  "notifications": {
+    "title": "Értesítések",
+    "markAllRead": "Mind olvasott",
+    "empty": "Még nincs értesítésed.",
+    "close": "Bezárás",
+    "openLink": "Megnyitás →",
+    "time": {
+      "now": "most",
+      "minutes": "{count} perce",
+      "hours": "{count} órája",
+      "days": "{count} napja"
+    }
+  },
   "landing": {
     "title": "TippCasino",
     "subtitle": "Tippelj sportmeccsekre, gyűjts pontokat, versenyezz barátaiddal!",
@@ -309,7 +322,15 @@
     "archivedBadge": "Archivált",
     "archiveConfirm": "Biztosan archiválod a(z) „{name}\" versenysorozatot? Csak a listákból tűnik el, a csoporttagok továbbra is elérik.",
     "archiveSuccess": "Versenysorozat archiválva!",
-    "unarchiveSuccess": "Versenysorozat visszaállítva!"
+    "unarchiveSuccess": "Versenysorozat visszaállítva!",
+    "broadcastTitle": "Rendszerüzenet küldése",
+    "broadcastFieldTitle": "Cím",
+    "broadcastFieldBody": "Szöveg",
+    "broadcastFieldHref": "Link (opcionális)",
+    "broadcastSend": "Küldés mindenkinek",
+    "broadcastConfirm": "Biztosan kiküldöd minden felhasználónak?",
+    "broadcastSent": "Elküldve {count} felhasználónak.",
+    "broadcastError": "Nem sikerült elküldeni."
   },
   "join": {
     "title": "Csatlakozás",

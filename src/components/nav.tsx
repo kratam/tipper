@@ -18,6 +18,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { DisplayNameDialog } from "@/components/display-name-dialog";
 import { HelpDialog } from "@/components/help-dialog";
+import { NotificationBell } from "@/components/notification-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -133,6 +134,9 @@ export function Nav({ user, activeTournaments }: NavProps) {
             <span className="hidden md:inline-flex">
               <HelpDialog />
             </span>
+
+            {/* Notifications */}
+            {user && <NotificationBell />}
 
             {/* Theme toggle */}
             <ThemeToggle />

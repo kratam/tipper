@@ -1,4 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import { AdminBroadcastForm } from "@/components/admin-broadcast-form";
 import { AdminPanel } from "@/components/admin-panel";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
@@ -43,6 +44,7 @@ export default async function AdminPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-bold font-mono text-2xl tracking-tight">{t("title")}</h1>
+      <AdminBroadcastForm />
       <AdminPanel tournaments={tournamentsWithTeams} />
     </div>
   );
