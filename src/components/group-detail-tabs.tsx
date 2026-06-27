@@ -80,6 +80,7 @@ interface GroupDetailTabsProps {
   groupBets: GroupBet[];
   timeZone: string;
   initialMatrixRound: TipMatrixRound | null;
+  userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
 }
 
 export function GroupDetailTabs({
@@ -99,6 +100,7 @@ export function GroupDetailTabs({
   groupBets,
   timeZone,
   initialMatrixRound,
+  userBadges,
 }: GroupDetailTabsProps) {
   const t = useTranslations("groups");
   const tc = useTranslations("common");
@@ -195,6 +197,7 @@ export function GroupDetailTabs({
           bets={groupBets}
           currentUserId={currentUserId}
           oddsBoost={settings.oddsBoost}
+          userBadges={userBadges}
         />
 
         {/* Leave group button (non-owners, non-official only) */}

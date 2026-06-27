@@ -6,6 +6,7 @@ import { InviteCodeBadge } from "@/components/invite-code-badge";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { hideInactiveAndRerank } from "@/lib/leaderboard-utils";
+import { loadBadgesForUsers } from "@/queries/badges";
 import { getGroupBetsForFinishedMatches } from "@/queries/bets";
 import { getGroupBySlug } from "@/queries/groups";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
@@ -39,6 +40,7 @@ export default async function GroupDetailPage({
     upcomingDays,
     matchTimes,
     initialMatrixRound,
+    badgesMap,
   ] = await Promise.all([
     getGroupLeaderboard(group.id),
     getFinishedMatchesForTournament(group.tournamentId, group.tournament.useFlagFallback),
@@ -59,9 +61,17 @@ export default async function GroupDetailPage({
       user.id,
       null,
     ),
+    loadBadgesForUsers(group.members.map((m) => m.userId)),
   ]);
 
   const leaderboard = hideInactiveAndRerank(leaderboardRaw);
+  // Convert Map → plain object before crossing the server→client boundary
+  const userBadges = Object.fromEntries(
+    [...badgesMap.entries()].map(([uid, badges]) => [
+      uid,
+      badges.map((b) => ({ badgeKey: b.badgeKey, tier: b.tier })),
+    ]),
+  );
 
   const isOwner = group.ownerId === user.id;
   const canEditSettings = isOwner || (user.isAdmin && group.isOfficial);
@@ -149,6 +159,7 @@ export default async function GroupDetailPage({
           goalDiffCorrect: b.goalDiffCorrect,
           exactScoreCorrect: b.exactScoreCorrect,
         }))}
+        userBadges={userBadges}
       />
     </div>
   );
