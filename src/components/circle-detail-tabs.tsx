@@ -60,6 +60,7 @@ interface CircleDetailTabsProps {
   timeZone: string;
   initialMatrixRound: TipMatrixRound | null;
   userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
+  userStats?: Record<string, { totalBets: number; hitRate: number }>;
 }
 
 export function CircleDetailTabs({
@@ -75,6 +76,7 @@ export function CircleDetailTabs({
   timeZone,
   initialMatrixRound,
   userBadges,
+  userStats,
 }: CircleDetailTabsProps) {
   const t = useTranslations("circles");
   const tGroups = useTranslations("groups");
@@ -124,6 +126,7 @@ export function CircleDetailTabs({
           initialRound={initialMatrixRound}
           readOnly
           userBadges={userBadges}
+          userStats={userStats}
         />
       </TabsContent>
 

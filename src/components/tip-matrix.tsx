@@ -52,6 +52,7 @@ interface TipMatrixProps {
    */
   onMatchSelect?: (matchId: string) => void;
   userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
+  userStats?: Record<string, { totalBets: number; hitRate: number }>;
 }
 
 const cellKey = (userId: string, matchId: string) => `${userId}__${matchId}`;
@@ -68,11 +69,13 @@ function PlayerAvatarTooltip({
   name,
   avatarUrl,
   badges,
+  stats,
 }: {
   userId: string;
   name: string;
   avatarUrl: string | null;
   badges?: Array<{ badgeKey: string; tier: number }>;
+  stats?: { totalBets: number; hitRate: number };
 }) {
   const t = useTranslations("tipMatrix");
   const [open, setOpen] = useState(false);
@@ -95,8 +98,16 @@ function PlayerAvatarTooltip({
             </Avatar>
           </button>
         </TooltipTrigger>
-        <TooltipContent side="top" className="flex flex-col items-center gap-1.5">
+        <TooltipContent
+          side="top"
+          className="flex flex-col items-center gap-1 border border-border bg-surface-2 text-foreground"
+        >
           <span className="font-medium">{name}</span>
+          {stats && stats.totalBets > 0 ? (
+            <span className="text-[11px] text-muted-foreground">
+              {t("statLine", { bets: stats.totalBets, hit: stats.hitRate })}
+            </span>
+          ) : null}
           {badges && badges.length > 0 ? <LeaderboardBadges badges={badges} /> : null}
           <Link
             href={`/u/${userId}`}
@@ -121,6 +132,7 @@ export function TipMatrix({
   curated = false,
   onMatchSelect,
   userBadges,
+  userStats,
 }: TipMatrixProps) {
   const t = useTranslations("tipMatrix");
   const format = useFormatter();
@@ -348,6 +360,7 @@ export function TipMatrix({
               name={row.userName}
               avatarUrl={row.userAvatarUrl}
               badges={userBadges?.[row.userId]}
+              stats={userStats?.[row.userId]}
             />
             <span className="max-[560px]:hidden">{row.userName}</span>
           </span>

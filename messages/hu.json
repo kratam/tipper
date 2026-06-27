@@ -616,7 +616,8 @@
     },
     "showMore": "{count} további játékos",
     "showLess": "Kevesebb",
-    "viewProfile": "Profil megtekintése →"
+    "viewProfile": "Profil megtekintése →",
+    "statLine": "{bets} tipp · {hit}% találat"
   },
   "badges": {
     "win_streak": {

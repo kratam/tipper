@@ -15,6 +15,7 @@ import {
   getTournamentMatchTimes,
   getUpcomingBetSummary,
 } from "@/queries/matches";
+import { loadPlayerStatsForUsers } from "@/queries/profile";
 import { getTipMatrixRound } from "@/queries/tip-matrix";
 
 export default async function GroupDetailPage({
@@ -33,6 +34,8 @@ export default async function GroupDetailPage({
   const group = await getGroupBySlug(tournamentSlug, groupSlug);
   if (!group) notFound();
 
+  const memberIds = group.members.map((m) => m.userId);
+
   const [
     leaderboardRaw,
     finishedMatches,
@@ -41,6 +44,7 @@ export default async function GroupDetailPage({
     matchTimes,
     initialMatrixRound,
     badgesMap,
+    statsMap,
   ] = await Promise.all([
     getGroupLeaderboard(group.id),
     getFinishedMatchesForTournament(group.tournamentId, group.tournament.useFlagFallback),
@@ -61,7 +65,8 @@ export default async function GroupDetailPage({
       user.id,
       null,
     ),
-    loadBadgesForUsers(group.members.map((m) => m.userId)),
+    loadBadgesForUsers(memberIds),
+    loadPlayerStatsForUsers(memberIds),
   ]);
 
   const leaderboard = hideInactiveAndRerank(leaderboardRaw);
@@ -72,6 +77,7 @@ export default async function GroupDetailPage({
       badges.map((b) => ({ badgeKey: b.badgeKey, tier: b.tier })),
     ]),
   );
+  const userStats = Object.fromEntries([...statsMap.entries()]);
 
   const isOwner = group.ownerId === user.id;
   const canEditSettings = isOwner || (user.isAdmin && group.isOfficial);
@@ -160,6 +166,7 @@ export default async function GroupDetailPage({
           exactScoreCorrect: b.exactScoreCorrect,
         }))}
         userBadges={userBadges}
+        userStats={userStats}
       />
     </div>
   );

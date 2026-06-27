@@ -81,6 +81,7 @@ interface GroupDetailTabsProps {
   timeZone: string;
   initialMatrixRound: TipMatrixRound | null;
   userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
+  userStats?: Record<string, { totalBets: number; hitRate: number }>;
 }
 
 export function GroupDetailTabs({
@@ -101,6 +102,7 @@ export function GroupDetailTabs({
   timeZone,
   initialMatrixRound,
   userBadges,
+  userStats,
 }: GroupDetailTabsProps) {
   const t = useTranslations("groups");
   const tc = useTranslations("common");
@@ -187,6 +189,7 @@ export function GroupDetailTabs({
           leaderboard={liveLeaderboard}
           initialRound={initialMatrixRound}
           userBadges={userBadges}
+          userStats={userStats}
         />
       </TabsContent>
 

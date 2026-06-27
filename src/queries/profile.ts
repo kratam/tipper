@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { bets, circleMembers, groupMembers, groups, users } from "@/db/schema";
 import type { StoredBadge } from "@/lib/badges/evaluate";
@@ -126,4 +126,33 @@ export async function getProfile(userId: string, viewerId: string): Promise<Prof
       },
     },
   };
+}
+
+/**
+ * Batch-betölti a játékosok tipp-statisztikáit (Official Ranglista körökből).
+ * Visszaad: totalBets (összes leadott tipp) + hitRate (0–100, egész).
+ */
+export async function loadPlayerStatsForUsers(
+  userIds: string[],
+): Promise<Map<string, { totalBets: number; hitRate: number }>> {
+  const result = new Map<string, { totalBets: number; hitRate: number }>();
+  if (userIds.length === 0) return result;
+
+  const rows = await db
+    .select({
+      userId: bets.userId,
+      totalBets: sql<number>`cast(count(*) as int)`,
+      resolved: sql<number>`cast(count(*) filter (where ${bets.payout} is not null) as int)`,
+      won: sql<number>`cast(count(*) filter (where ${bets.result1x2Correct} = true) as int)`,
+    })
+    .from(bets)
+    .innerJoin(groups, and(eq(groups.id, bets.groupId), eq(groups.isOfficial, true)))
+    .where(inArray(bets.userId, userIds))
+    .groupBy(bets.userId);
+
+  for (const row of rows) {
+    const hitRateValue = row.resolved > 0 ? Math.round((100 * row.won) / row.resolved) : 0;
+    result.set(row.userId, { totalBets: row.totalBets, hitRate: hitRateValue });
+  }
+  return result;
 }

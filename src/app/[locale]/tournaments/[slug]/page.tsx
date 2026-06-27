@@ -21,6 +21,7 @@ import {
 import { getGroupLeaderboard } from "@/queries/leaderboard";
 import { getMatchesForTournament } from "@/queries/matches";
 import { getPodiumBet, getTournamentTeams } from "@/queries/podium";
+import { loadPlayerStatsForUsers } from "@/queries/profile";
 import { matchParticipantsKnown } from "@/queries/team-display";
 import { getTipMatrixRound, type TipMatrixRound } from "@/queries/tip-matrix";
 import { getTournamentBySlug } from "@/queries/tournaments";
@@ -313,13 +314,17 @@ export default async function TournamentDetailPage({
 
   // Collect all user IDs appearing in any board tab leaderboard, load their badges in one query
   const allUserIds = [...new Set(groupTabs.flatMap((tab) => tab.leaderboard.map((e) => e.userId)))];
-  const badgesMap = await loadBadgesForUsers(allUserIds);
+  const [badgesMap, statsMap] = await Promise.all([
+    loadBadgesForUsers(allUserIds),
+    loadPlayerStatsForUsers(allUserIds),
+  ]);
   const userBadges = Object.fromEntries(
     [...badgesMap.entries()].map(([uid, b]) => [
       uid,
       b.map((x) => ({ badgeKey: x.badgeKey, tier: x.tier })),
     ]),
   );
+  const userStats = Object.fromEntries([...statsMap.entries()]);
 
   // Serialize matches for client component
   const matchesData = matches.map((m) => ({
@@ -387,6 +392,7 @@ export default async function TournamentDetailPage({
         boardTabs={groupTabs}
         officialInitialRound={officialInitialRound}
         userBadges={userBadges}
+        userStats={userStats}
       />
     </div>
   );

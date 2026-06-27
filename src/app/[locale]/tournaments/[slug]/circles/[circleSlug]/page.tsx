@@ -13,6 +13,7 @@ import { getGroupBetsForFinishedMatches } from "@/queries/bets";
 import { getCircleBySlug, getOfficialGroupByTournamentId } from "@/queries/circles";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
 import { getFinishedMatchesForTournament } from "@/queries/matches";
+import { loadPlayerStatsForUsers } from "@/queries/profile";
 import { getTipMatrixRound } from "@/queries/tip-matrix";
 import { getTournamentBySlug } from "@/queries/tournaments";
 
@@ -78,13 +79,16 @@ export default async function CircleDetailPage({
     );
   }
 
-  const [leaderboardRaw, finishedMatches, groupBetsRaw, initialMatrixRound, badgesMap] =
+  const circleMemberIds = circle.members.map((m) => m.userId);
+
+  const [leaderboardRaw, finishedMatches, groupBetsRaw, initialMatrixRound, badgesMap, statsMap] =
     await Promise.all([
       getGroupLeaderboard(official.id),
       getFinishedMatchesForTournament(official.tournamentId, tournament.useFlagFallback),
       getGroupBetsForFinishedMatches(official.id),
       getTipMatrixRound(official.id, tournament.id, tournament.useFlagFallback, user.id, null),
-      loadBadgesForUsers(circle.members.map((m) => m.userId)),
+      loadBadgesForUsers(circleMemberIds),
+      loadPlayerStatsForUsers(circleMemberIds),
     ]);
 
   const leaderboard = filterAndRerankLeaderboard(leaderboardRaw, memberIds);
@@ -95,6 +99,7 @@ export default async function CircleDetailPage({
       badges.map((b) => ({ badgeKey: b.badgeKey, tier: b.tier })),
     ]),
   );
+  const userStats = Object.fromEntries([...statsMap.entries()]);
   const bets = groupBetsRaw
     .filter((b) => memberIds.has(b.userId))
     .map((b) => ({
@@ -123,6 +128,7 @@ export default async function CircleDetailPage({
         oddsBoost={official.oddsBoost}
         leaderboard={leaderboard}
         userBadges={userBadges}
+        userStats={userStats}
         finishedMatches={finishedMatches.map((m) => ({
           id: m.id,
           homeTeam: { name: m.homeTeam.name, logoUrl: m.homeTeam.logoUrl },

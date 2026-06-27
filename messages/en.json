@@ -616,7 +616,8 @@
     },
     "showMore": "{count} more players",
     "showLess": "Show less",
-    "viewProfile": "View profile →"
+    "viewProfile": "View profile →",
+    "statLine": "{bets} bets · {hit}% hit rate"
   },
   "badges": {
     "win_streak": {
