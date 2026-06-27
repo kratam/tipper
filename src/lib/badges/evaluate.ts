@@ -50,6 +50,37 @@ export function computeJackpot(
   return { count, maxOdds };
 }
 
+export function computePerfectDays(bets: ScoredBet[], minBets = 4): number {
+  const byDay = new Map<string, { total: number; won: number }>();
+  for (const b of bets) {
+    const day = b.scheduledAt.toISOString().slice(0, 10);
+    const e = byDay.get(day) ?? { total: 0, won: 0 };
+    e.total++;
+    if (b.result1x2Correct) e.won++;
+    byDay.set(day, e);
+  }
+  let count = 0;
+  for (const { total, won } of byDay.values()) {
+    if (total >= minBets && won === total) count++;
+  }
+  return count;
+}
+
+export interface StoredBadge {
+  tier: number;
+  count: number;
+  bestValue: number | null;
+}
+
+export function diffBadge(
+  stored: StoredBadge | undefined,
+  derived: BadgeProgress,
+): "new" | "upgraded" | null {
+  if (!stored) return derived.tier >= 1 ? "new" : null;
+  if (derived.tier > stored.tier) return "upgraded";
+  return null;
+}
+
 export function computeAbsoluteMatchBadges(orderedBets: ScoredBet[]): BadgeProgress[] {
   const out: BadgeProgress[] = [];
 

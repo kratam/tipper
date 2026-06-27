@@ -3,6 +3,7 @@ import {
   computeAbsoluteMatchBadges,
   computeExactStreak,
   computeJackpot,
+  computePerfectDays,
   computeWinStreak,
   type ScoredBet,
 } from "@/lib/badges/evaluate";
@@ -53,6 +54,26 @@ describe("computeJackpot", () => {
     expect(
       computeJackpot([bet({ result1x2Correct: true, oddsAtBet: 2, stake: 100 })], 100),
     ).toEqual({ count: 0, maxOdds: 0 });
+  });
+});
+
+describe("computePerfectDays", () => {
+  it("counts days with >=4 bets all won", () => {
+    const d1 = new Date("2026-01-01T18:00:00Z");
+    const d2 = new Date("2026-01-02T18:00:00Z");
+    const bets = [
+      ...Array(4)
+        .fill(0)
+        .map(() => bet({ scheduledAt: d1, result1x2Correct: true })),
+      ...Array(4)
+        .fill(0)
+        .map((_, i) => bet({ scheduledAt: d2, result1x2Correct: i !== 0 })), // one loss
+      ...Array(3)
+        .fill(0)
+        .map(() => bet({ scheduledAt: d1, result1x2Correct: true })), // only 3 -> handled by grouping
+    ];
+    // d1 has 7 bets all won -> perfect; d2 has a loss -> not perfect
+    expect(computePerfectDays(bets)).toBe(1);
   });
 });
 
