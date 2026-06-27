@@ -57,6 +57,9 @@ describe("computeJackpot", () => {
 });
 
 describe("computeAbsoluteMatchBadges", () => {
+  it("emits nothing when there is no progress", () => {
+    expect(computeAbsoluteMatchBadges([bet({}), bet({})])).toEqual([]);
+  });
   it("emits win_streak tier and jackpot with bestValue", () => {
     const bets = [
       bet({ result1x2Correct: true, oddsAtBet: 6.0, stake: 100 }),

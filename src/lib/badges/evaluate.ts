@@ -86,5 +86,5 @@ export function computeAbsoluteMatchBadges(orderedBets: ScoredBet[]): BadgeProgr
     bestValue: jp.maxOdds || null,
   });
 
-  return out;
+  return out.filter((b) => b.tier > 0 || b.count > 0);
 }
