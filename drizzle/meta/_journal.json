@@ -148,6 +148,13 @@
       "when": 1782330321735,
       "tag": "0020_confused_stature",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1782556911925,
+      "tag": "0021_mixed_proudstar",
+      "breakpoints": true
     }
   ]
 }
