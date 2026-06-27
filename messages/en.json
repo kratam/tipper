@@ -19,7 +19,8 @@
     "locale": "Language",
     "toggleTheme": "Toggle theme",
     "help": "Help",
-    "circles": "My circles"
+    "circles": "My circles",
+    "myProfile": "My profile"
   },
   "notifications": {
     "title": "Notifications",
@@ -34,16 +35,46 @@
       "days": "{count}d ago"
     },
     "badge": {
-      "aggregate": { "title": "New badges!", "body": "You earned {count} new badges." },
-      "win_streak": { "title": "Winning streak", "body": "{count} winning tips in a row!" },
-      "exact_streak": { "title": "Exact streak", "body": "{count} exact scores in a row!" },
-      "jackpot": { "title": "Jackpot", "body": "You landed a high-odds tip!" },
-      "perfect_day": { "title": "Perfect day", "body": "All your tips on a single day won!" },
-      "oracle": { "title": "Oracle", "body": "You predicted a podium finish!" },
-      "round_winner": { "title": "Round winner", "body": "You had the best score in the round!" },
-      "champion": { "title": "Champion", "body": "You won a tournament!" },
-      "podium": { "title": "Podium", "body": "You reached the podium in a tournament!" },
-      "throne": { "title": "Throne", "body": "You led the leaderboard!" },
+      "aggregate": {
+        "title": "New badges!",
+        "body": "You earned {count} new badges."
+      },
+      "win_streak": {
+        "title": "Winning streak",
+        "body": "{count} winning tips in a row!"
+      },
+      "exact_streak": {
+        "title": "Exact streak",
+        "body": "{count} exact scores in a row!"
+      },
+      "jackpot": {
+        "title": "Jackpot",
+        "body": "You landed a high-odds tip!"
+      },
+      "perfect_day": {
+        "title": "Perfect day",
+        "body": "All your tips on a single day won!"
+      },
+      "oracle": {
+        "title": "Oracle",
+        "body": "You predicted a podium finish!"
+      },
+      "round_winner": {
+        "title": "Round winner",
+        "body": "You had the best score in the round!"
+      },
+      "champion": {
+        "title": "Champion",
+        "body": "You won a tournament!"
+      },
+      "podium": {
+        "title": "Podium",
+        "body": "You reached the podium in a tournament!"
+      },
+      "throne": {
+        "title": "Throne",
+        "body": "You led the leaderboard!"
+      },
       "red_lantern": {
         "title": "Red lantern",
         "body": "You finished last — better luck next time!"
@@ -459,7 +490,15 @@
     "displayNameLabel": "Display name",
     "displayNameDescription": "This is how others will see you. Leave empty to use your Google name.",
     "displayNamePlaceholder": "e.g. Tipper King",
-    "saved": "Saved!"
+    "saved": "Saved!",
+    "trophies": "Trophy cabinet",
+    "stats": "Stats",
+    "totalBets": "Total bets",
+    "hitRate": "Hit rate",
+    "bestStreak": "Best streak",
+    "biggestJackpot": "Best jackpot",
+    "champion": "Champion",
+    "podium": "Podium"
   },
   "help": {
     "title": "How does TippCasino work?",
@@ -579,15 +618,45 @@
     "showLess": "Show less"
   },
   "badges": {
-    "win_streak": { "name": "Win streak" },
-    "exact_streak": { "name": "Exact streak" },
-    "jackpot": { "name": "Jackpot" },
-    "perfect_day": { "name": "Perfect day" },
-    "oracle": { "name": "Oracle" },
-    "round_winner": { "name": "Round winner" },
-    "champion": { "name": "Champion" },
-    "podium": { "name": "Podium" },
-    "throne": { "name": "Throne" },
-    "red_lantern": { "name": "Red lantern" }
+    "win_streak": {
+      "name": "Win streak",
+      "description": "Earned for placing at least 3 consecutive winning tips."
+    },
+    "exact_streak": {
+      "name": "Exact streak",
+      "description": "Earned for predicting at least 2 exact scores in a row."
+    },
+    "jackpot": {
+      "name": "Jackpot",
+      "description": "Earned by winning a bet with high odds (3.0+)."
+    },
+    "perfect_day": {
+      "name": "Perfect day",
+      "description": "Earned when all your tips on a single day (min. 4) win."
+    },
+    "oracle": {
+      "name": "Oracle",
+      "description": "Earned for correctly predicting a podium finish in a tournament."
+    },
+    "round_winner": {
+      "name": "Round winner",
+      "description": "Earned by scoring the most points in a round within your group."
+    },
+    "champion": {
+      "name": "Champion",
+      "description": "Earned by finishing 1st on a tournament leaderboard."
+    },
+    "podium": {
+      "name": "Podium",
+      "description": "Earned by finishing in the top 3 on a tournament leaderboard."
+    },
+    "throne": {
+      "name": "Throne",
+      "description": "Earned by leading the tournament leaderboard at the end of a round."
+    },
+    "red_lantern": {
+      "name": "Red lantern",
+      "description": "Earned by finishing last on a tournament leaderboard."
+    }
   }
 }
