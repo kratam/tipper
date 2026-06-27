@@ -96,15 +96,20 @@ async function processEventBadgeForUsers(
  * (tournamentId, round) pair — i.e. the round is fully settled.
  */
 export async function isRoundComplete(tournamentId: string, round: string): Promise<boolean> {
-  const pending = await db.query.matches.findFirst({
-    where: and(
-      eq(matches.tournamentId, tournamentId),
-      eq(matches.round, round),
-      inArray(matches.status, ["scheduled", "live"]),
-    ),
-    columns: { id: true },
-  });
-  return !pending;
+  try {
+    const pending = await db.query.matches.findFirst({
+      where: and(
+        eq(matches.tournamentId, tournamentId),
+        eq(matches.round, round),
+        inArray(matches.status, ["scheduled", "live"]),
+      ),
+      columns: { id: true },
+    });
+    return !pending;
+  } catch (err) {
+    console.error("[badges] isRoundComplete failed", err);
+    return false;
+  }
 }
 
 // ──────────────────────── evaluateMatchBadges ────────────────────────
@@ -161,7 +166,9 @@ export async function evaluateMatchBadges(matchId: string): Promise<void> {
         await upsertUserBadge(userId, progress);
       }
 
-      await createBadgeNotifications(userId, increments);
+      if (increments.length > 0) {
+        await createBadgeNotifications(userId, increments);
+      }
     }
   } catch (err) {
     console.error("[badges] evaluateMatchBadges failed", { matchId, err });
