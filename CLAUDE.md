@@ -17,7 +17,7 @@ Token-alapú tippjáték ahol játékosok versenysorozatok meccseire fogadnak cs
 
 ## Kulcs URL-ek
 
-- **Prod:** https://tippcasino.vercel.app
+- **Prod:** https://tippcasino.hu (Vercel custom domain)
 - **Repo:** github.com/kratam/tipper
 - **Neon console:** console.neon.tech → patient-leaf-69938778
 - **Vercel:** vercel.com/guestguru/tipper
