@@ -24,10 +24,7 @@ async function getOfficialGroup(tournamentId: string) {
   });
 }
 
-async function loadUserOfficialScoredBets(
-  userId: string,
-  officialGroupId: string,
-): Promise<ScoredBet[]> {
+async function loadUserOfficialScoredBets(userId: string): Promise<ScoredBet[]> {
   const rows = await db
     .select({
       matchId: bets.matchId,
@@ -39,7 +36,8 @@ async function loadUserOfficialScoredBets(
     })
     .from(bets)
     .innerJoin(matches, eq(bets.matchId, matches.id))
-    .where(and(eq(bets.groupId, officialGroupId), eq(bets.userId, userId), isNotNull(bets.payout)))
+    .innerJoin(groups, eq(bets.groupId, groups.id))
+    .where(and(eq(groups.isOfficial, true), eq(bets.userId, userId), isNotNull(bets.payout)))
     .orderBy(matches.scheduledAt, bets.matchId);
 
   return rows.map((r) => ({
@@ -145,7 +143,7 @@ export async function evaluateMatchBadges(matchId: string): Promise<void> {
     for (const userId of userIds) {
       const [storedBadges, scoredBets] = await Promise.all([
         loadUserBadges(userId),
-        loadUserOfficialScoredBets(userId, officialGroup.id),
+        loadUserOfficialScoredBets(userId),
       ]);
 
       const derived = computeAbsoluteMatchBadges(scoredBets);
@@ -207,7 +205,7 @@ export async function evaluateRoundBadges(tournamentId: string, round: string): 
         // perfect_day counts across ALL scored official bets, not just this round
         const [storedBadges, scoredBets] = await Promise.all([
           loadUserBadges(userId),
-          loadUserOfficialScoredBets(userId, officialGroupId),
+          loadUserOfficialScoredBets(userId),
         ]);
 
         const count = computePerfectDays(scoredBets);
