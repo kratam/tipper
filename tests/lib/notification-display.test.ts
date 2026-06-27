@@ -24,13 +24,42 @@ describe("notificationContent", () => {
     );
   });
 
-  it("badge: a data.badgeKey alapján i18n-kulcsot képez", () => {
+  it("badge: a data.badgeKey alapján i18n-kulcsot képez (count interpoláció)", () => {
     expect(
       notificationContent(
-        { type: "badge", title: null, body: null, data: { badgeKey: "roundWinner", count: 3 } },
+        {
+          type: "badge",
+          title: null,
+          body: null,
+          data: { badgeKey: "round_winner", count: 3, tier: 2 },
+        },
         t,
       ),
-    ).toEqual({ title: "badge.roundWinner.title", body: "badge.roundWinner.body" });
+    ).toEqual({ title: "badge.round_winner.title", body: "badge.round_winner.body:3" });
+  });
+
+  it("badge: hiányzó count esetén 0-t használ", () => {
+    expect(
+      notificationContent(
+        { type: "badge", title: null, body: null, data: { badgeKey: "win_streak" } },
+        t,
+      ),
+    ).toEqual({ title: "badge.win_streak.title", body: "badge.win_streak.body:0" });
+  });
+
+  it("badge: aggregált értesítés", () => {
+    expect(
+      notificationContent(
+        { type: "badge", title: null, body: null, data: { aggregate: true, count: 4 } },
+        t,
+      ),
+    ).toEqual({ title: "badge.aggregate.title", body: "badge.aggregate.body:4" });
+  });
+
+  it("badge: aggregált értesítés hiányzó count → 0", () => {
+    expect(
+      notificationContent({ type: "badge", title: null, body: null, data: { aggregate: true } }, t),
+    ).toEqual({ title: "badge.aggregate.title", body: "badge.aggregate.body:0" });
   });
 });
 

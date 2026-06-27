@@ -6,6 +6,7 @@ import { InviteCodeBadge } from "@/components/invite-code-badge";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { hideInactiveAndRerank } from "@/lib/leaderboard-utils";
+import { loadBadgesForUsers } from "@/queries/badges";
 import { getGroupBetsForFinishedMatches } from "@/queries/bets";
 import { getGroupBySlug } from "@/queries/groups";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
@@ -14,6 +15,7 @@ import {
   getTournamentMatchTimes,
   getUpcomingBetSummary,
 } from "@/queries/matches";
+import { loadPlayerStatsForUsers } from "@/queries/profile";
 import { getTipMatrixRound } from "@/queries/tip-matrix";
 
 export default async function GroupDetailPage({
@@ -32,6 +34,8 @@ export default async function GroupDetailPage({
   const group = await getGroupBySlug(tournamentSlug, groupSlug);
   if (!group) notFound();
 
+  const memberIds = group.members.map((m) => m.userId);
+
   const [
     leaderboardRaw,
     finishedMatches,
@@ -39,6 +43,8 @@ export default async function GroupDetailPage({
     upcomingDays,
     matchTimes,
     initialMatrixRound,
+    badgesMap,
+    statsMap,
   ] = await Promise.all([
     getGroupLeaderboard(group.id),
     getFinishedMatchesForTournament(group.tournamentId, group.tournament.useFlagFallback),
@@ -59,9 +65,19 @@ export default async function GroupDetailPage({
       user.id,
       null,
     ),
+    loadBadgesForUsers(memberIds),
+    loadPlayerStatsForUsers(memberIds),
   ]);
 
   const leaderboard = hideInactiveAndRerank(leaderboardRaw);
+  // Convert Map → plain object before crossing the server→client boundary
+  const userBadges = Object.fromEntries(
+    [...badgesMap.entries()].map(([uid, badges]) => [
+      uid,
+      badges.map((b) => ({ badgeKey: b.badgeKey, tier: b.tier })),
+    ]),
+  );
+  const userStats = Object.fromEntries([...statsMap.entries()]);
 
   const isOwner = group.ownerId === user.id;
   const canEditSettings = isOwner || (user.isAdmin && group.isOfficial);
@@ -149,6 +165,8 @@ export default async function GroupDetailPage({
           goalDiffCorrect: b.goalDiffCorrect,
           exactScoreCorrect: b.exactScoreCorrect,
         }))}
+        userBadges={userBadges}
+        userStats={userStats}
       />
     </div>
   );

@@ -246,6 +246,48 @@ csak 1X2 halvány zöld, rossz tipp halvány piros — az arany szín a bónusz-
 - Csak rendes játékidő (3 period) — hosszabbítás nem számít
 - Ha `oddsAtBet` NULL (nem volt odds a tipp leadásakor) → payout = 0
 
+## Badge-rendszer
+
+Teljesítmény-kitüntető rendszer; részletes spec: `docs/superpowers/specs/2026-06-27-badges-design.md`.
+
+### Katalógus
+
+10 badge kódban (`src/lib/badges/catalog.ts`), **tiered-counter modell** (0 = nincs, 1 = bronz, 2 = ezüst, 3 = arany). Mechanikák:
+
+- **Streak:** egymást követő nyerő tippek sorozata (pl. `hot-streak`: 3/5/10 nyerő meccs egyhuzamban)
+- **Darabszám:** tippek/nyerők/pontos találatok összeszámlálása (pl. `perfect-shot`, `lucky-7`, `centurion`)
+- **Odds-alapú:** magas oddsra nyert tipp (pl. `jackpot-hunter`: ≥2.5/3.5/5.0 odds mellett nyerés)
+- **Relatív/esemény-badge:** tornán belüli elért helyezés (pl. `podium-finisher`, `top-gun`) — ezek idempotens eventKey-jel tárolódnak a `user_badge_events` táblában, mert végállapotból nem derive-álhatók
+
+**Hatókör:** kizárólag a hivatalos Ranglista (`isOfficial = true`) csoportban leadott tippekből/helyezésekből számítódnak; barátköri/egyéb csoportok tippjei nem számítanak bele.
+
+### Derive-and-diff (idempotens kiértékelés)
+
+A badge-állapot a tippek és eredmények pure függvénye — nincs event-sourcing, nincs mutable state. Minden trigger-ponton:
+
+1. `evaluate.ts` — a user összes releváns tippjéből kiszámolja az aktuális badge-progresst (`BadgeProgress[]`)
+2. `relative.ts` — a relatív badge-ek aktuális eseményeit materializálja
+3. Diff a tárolt `user_badges` táblával → csak a **növekményt** (tier-ugrásokat) írja DB-be + küld értesítést
+4. Idempotens: ismételt trigger ugyanazt az eredményt adja, dupla-write nem történik
+
+### Trigger-pontok
+
+| Esemény | Kód |
+|---------|-----|
+| Meccs pontozása kész | `scoreMatch` végén (src/lib/sync.ts) |
+| Forduló lezárult | `isRoundComplete` feltétel teljesül a `syncFixtures`-ben |
+| Torna lezárása | `finishTournament` admin action végén |
+
+Az award réteg (`src/lib/badges/award.ts`) `try/catch`-elt → badge-számítási hiba **sosem töri** a pontozást vagy a tornalezárást.
+
+### Megjelenés és értesítés
+
+- **Publikus profil** `/u/[userId]`: trófea-szekrény (badge-kártyák tier-ikonnal) + statisztikák (tippek/nyerők/streak)
+- **Ranglista**: ikon-sor a felhasználó neve mellé (bronz/ezüst/arany Lucide ikonok, arany tiering a design-tokenekkel)
+- **Értesítés**: aggregált in-app harang-értesítés a Phase 1 `user_notifications` rendszeren; egy meccsen belüli több badge-unlock egyetlen üzenetbe összevonódik
+
+**Nincs backfill:** csak az éles deploy utáni tippekből/eredményekből accumulate-álódnak; a badge nem ír `token_ledger`-t, nincs token-hatása.
+
 ## Cron sync
 
 Event-driven architektúra QStash-sel a Neon compute optimalizálás érdekében. A DB csak akkor ébred fel amikor tényleg szükséges.

@@ -2,6 +2,43 @@ import "server-only";
 import { db } from "@/db";
 import { notificationObjects, notificationRecipients, users } from "@/db/schema";
 
+export interface BadgeIncrement {
+  badgeKey: string;
+  tier: number;
+  count: number;
+  bestValue: number | null;
+  change: "new" | "upgraded";
+}
+
+/**
+ * Badge-értesítés(ek) létrehozása egy usernek.
+ * Üres tömb → no-op; 1 elem → egyedi badge értesítés; >1 → aggregált.
+ */
+export async function createBadgeNotifications(
+  userId: string,
+  increments: BadgeIncrement[],
+): Promise<void> {
+  if (increments.length === 0) return;
+
+  if (increments.length === 1) {
+    const { badgeKey, tier, count, bestValue } = increments[0];
+    await createNotificationForUser({
+      userId,
+      type: "badge",
+      data: { badgeKey, tier, count, bestValue },
+      href: `/u/${userId}`,
+    });
+    return;
+  }
+
+  await createNotificationForUser({
+    userId,
+    type: "badge",
+    data: { aggregate: true, count: increments.length },
+    href: `/u/${userId}`,
+  });
+}
+
 /** Egy értesítés egy usernek (1 object + 1 recipient). A Phase 2 cron hívja badge-re. */
 export async function createNotificationForUser(params: {
   userId: string;

@@ -5,10 +5,12 @@ import { useTranslations } from "next-intl";
 import { Accordion as AccordionPrimitive } from "radix-ui";
 import { useMemo, useState } from "react";
 import { BetBonusCell } from "@/components/bet-bonus-cell";
+import { LeaderboardBadges } from "@/components/leaderboard-badges";
 import { TeamLogo } from "@/components/team-logo";
 import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 import { predictionToneClass } from "@/lib/bet-display";
 import { formatEffectiveOdds } from "@/lib/odds-display";
 
@@ -50,6 +52,7 @@ interface GroupLeaderboardContentProps {
   bets: GroupBet[];
   currentUserId: string;
   oddsBoost: number;
+  userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
 }
 
 function initials(name: string): string {
@@ -74,6 +77,7 @@ export function GroupLeaderboardContent({
   bets,
   currentUserId,
   oddsBoost,
+  userBadges = {},
 }: GroupLeaderboardContentProps) {
   const t = useTranslations("groups");
   const tCircles = useTranslations("circles");
@@ -155,24 +159,30 @@ export function GroupLeaderboardContent({
                 isCurrentUser ? "border-gold-line bg-gold-soft" : "border-border bg-card"
               }`}
             >
-              <AccordionPrimitive.Header className="flex">
-                <AccordionPrimitive.Trigger
-                  className={`group/acc flex w-full items-center gap-2.5 p-2.5 px-3 text-left outline-none transition-colors ${
-                    isCurrentUser ? "" : "hover:bg-secondary"
+              <AccordionPrimitive.Header
+                className={`flex items-center transition-colors ${
+                  isCurrentUser ? "" : "hover:bg-secondary"
+                }`}
+              >
+                {/* rank */}
+                <span
+                  className={`min-w-[26px] shrink-0 pl-3 font-bold font-mono text-faint ${
+                    medal ? "text-[16px]" : ""
                   }`}
                 >
-                  <span
-                    className={`min-w-[26px] font-bold font-mono text-faint ${
-                      medal ? "text-[16px]" : ""
-                    }`}
-                  >
-                    {medal ?? `#${row.rank}`}
-                  </span>
+                  {medal ?? `#${row.rank}`}
+                </span>
+                {/* avatar as profile link */}
+                <Link href={`/u/${row.userId}`} className="mx-2.5 flex shrink-0 py-2.5">
                   <Avatar className="size-7">
                     <AvatarImage src={row.userAvatarUrl ?? undefined} />
                     <AvatarFallback className="text-xs">{initials(row.userName)}</AvatarFallback>
                   </Avatar>
+                </Link>
+                {/* accordion toggle: name, badges, profit, chevron */}
+                <AccordionPrimitive.Trigger className="group/acc flex flex-1 items-center gap-2.5 py-2.5 pr-3 text-left outline-none">
                   <span className="flex-1 truncate font-semibold text-[14px]">{row.userName}</span>
+                  <LeaderboardBadges badges={userBadges[row.userId] ?? []} />
                   {row.officialRank != null && (
                     <span className="flex-none rounded-full bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-faint">
                       {tCircles("officialRankBadge", { rank: row.officialRank })}

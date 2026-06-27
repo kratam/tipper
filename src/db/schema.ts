@@ -334,6 +334,40 @@ export const notificationRecipients = pgTable(
   ],
 );
 
+export const userBadges = pgTable(
+  "user_badges",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    badgeKey: text("badge_key").notNull(),
+    tier: integer("tier").notNull(), // 1=bronz, 2=ezüst, 3=arany
+    count: integer("count").default(0).notNull(),
+    bestValue: decimal("best_value", { precision: 8, scale: 2 }),
+    firstEarnedAt: timestamp("first_earned_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("user_badge_idx").on(table.userId, table.badgeKey),
+    index("user_badges_user_idx").on(table.userId),
+  ],
+);
+
+export const userBadgeEvents = pgTable(
+  "user_badge_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    badgeKey: text("badge_key").notNull(),
+    eventKey: text("event_key").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("user_badge_event_idx").on(table.userId, table.badgeKey, table.eventKey)],
+);
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   groupMemberships: many(groupMembers),
@@ -420,4 +454,8 @@ export const notificationRecipientsRelations = relations(notificationRecipients,
     references: [notificationObjects.id],
   }),
   user: one(users, { fields: [notificationRecipients.userId], references: [users.id] }),
+}));
+
+export const userBadgesRelations = relations(userBadges, ({ one }) => ({
+  user: one(users, { fields: [userBadges.userId], references: [users.id] }),
 }));

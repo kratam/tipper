@@ -47,6 +47,8 @@
   --color-gold-ink: var(--gold-ink);
   --color-gold-soft: var(--gold-soft);
   --color-gold-line: var(--gold-line);
+  --color-bronze: #cd7f32;
+  --color-silver: #c0c0c0;
   --color-nav-bg: var(--nav-bg);
 
   --radius-sm: calc(var(--radius) * 0.55);

@@ -10,6 +10,7 @@ import {
   tokenLedger,
   tournaments,
 } from "@/db/schema";
+import { evaluateMatchBadges, evaluateRoundBadges, isRoundComplete } from "@/lib/badges/award";
 import { expectedMatchDurationMs } from "@/lib/match-duration";
 import { computeNextFinishCheck, delaySecondsUntil } from "@/lib/match-finish-schedule";
 import { getProvider } from "@/lib/providers";
@@ -115,6 +116,10 @@ export async function syncFixtures(tournament: Tournament): Promise<Map<string, 
           .returning({ id: matches.id });
         if (claimed.length > 0) {
           await scoreMatch(existingMatch.id, game.homeScore ?? 0, game.awayScore ?? 0);
+          const matchRound = game.scheduledAt.toISOString().split("T")[0];
+          if (await isRoundComplete(tournament.id, matchRound)) {
+            await evaluateRoundBadges(tournament.id, matchRound);
+          }
         }
       } else if (newStatus === "cancelled") {
         const claimed = await db
@@ -491,6 +496,7 @@ async function scoreMatch(matchId: string, homeScore: number, awayScore: number)
       });
     }
   }
+  await evaluateMatchBadges(matchId);
 }
 
 async function flipBetsForMatch(matchId: string): Promise<void> {

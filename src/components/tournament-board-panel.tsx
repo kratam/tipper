@@ -35,6 +35,8 @@ export interface TournamentBoardPanelProps {
   officialInitialRound: TipMatrixRound | null;
   /** Meccs-kattintás a kurált mátrixban → a meccs-kártyával azonos popup (BetDialog). */
   onMatchSelect?: (matchId: string) => void;
+  userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
+  userStats?: Record<string, { totalBets: number; hitRate: number }>;
 }
 
 export function TournamentBoardPanel({
@@ -46,6 +48,8 @@ export function TournamentBoardPanel({
   tabs,
   officialInitialRound,
   onMatchSelect,
+  userBadges,
+  userStats,
 }: TournamentBoardPanelProps) {
   const t = useTranslations("tipMatrix");
   const tGroups = useTranslations("groups");
@@ -164,6 +168,8 @@ export function TournamentBoardPanel({
               initialRound={activeRound}
               readOnly={activeTab.readOnly}
               onMatchSelect={onMatchSelect}
+              userBadges={userBadges}
+              userStats={userStats}
             />
           )}
 

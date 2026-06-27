@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { groupMembers, groups, podiumBets, tokenLedger, tournaments } from "@/db/schema";
 import { fetchLeagueLogoUrl } from "@/lib/api-sports";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { evaluateTournamentBadges } from "@/lib/badges/award";
 import { createOfficialGroup } from "@/lib/official-group";
 import type { ProviderId } from "@/lib/providers/types";
 import { calculatePodiumPoints } from "@/lib/scoring";
@@ -258,4 +259,5 @@ export async function finishTournament(input: FinishTournamentInput) {
       }
     }
   }
+  await evaluateTournamentBadges(tournamentId);
 }

@@ -9,6 +9,7 @@ import {
   Pencil,
   Shield,
   Trophy,
+  User,
   Users,
   UsersRound,
   X,
@@ -40,6 +41,7 @@ interface ActiveTournament {
 
 interface NavProps {
   user: {
+    id: string;
     name: string;
     displayName: string | null;
     email: string;
@@ -73,8 +75,12 @@ export function Nav({ user, activeTournaments }: NavProps) {
   }
 
   function handleSignOut() {
-    authClient.signOut().then(() => {
-      router.refresh();
+    // A SDK saját UI-ja is .finally-vel zár: a signOut() elutasítása esetén is
+    // reagáljon a UI (a .then csak sikerre futott volna). Hard navigáció a
+    // kezdőlapra: a soft router.refresh() bennhagyhat elavult kliens-állapotot,
+    // a teljes újratöltés garantáltan újraolvastatja a (törölt) cookie-t.
+    authClient.signOut().finally(() => {
+      window.location.href = `/${locale}`;
     });
   }
 
@@ -196,6 +202,12 @@ export function Nav({ user, activeTournaments }: NavProps) {
                       {t("circles")}
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/u/${user.id}`}>
+                      <User className="mr-2 size-4" />
+                      {t("myProfile")}
+                    </Link>
+                  </DropdownMenuItem>
                   {user.isAdmin && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin">
@@ -287,6 +299,18 @@ export function Nav({ user, activeTournaments }: NavProps) {
                   <Link href="/circles">
                     <UsersRound className="mr-2 size-4" />
                     {t("circles")}
+                  </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start"
+                  asChild
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Link href={`/u/${user.id}`}>
+                    <User className="mr-2 size-4" />
+                    {t("myProfile")}
                   </Link>
                 </Button>
                 {user.isAdmin && (

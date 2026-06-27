@@ -19,7 +19,8 @@
     "locale": "Nyelv",
     "toggleTheme": "Téma váltása",
     "help": "Súgó",
-    "circles": "Köreim"
+    "circles": "Köreim",
+    "myProfile": "Profilom"
   },
   "notifications": {
     "title": "Értesítések",
@@ -32,6 +33,52 @@
       "minutes": "{count} perce",
       "hours": "{count} órája",
       "days": "{count} napja"
+    },
+    "badge": {
+      "aggregate": {
+        "title": "Új jelvények!",
+        "body": "{count} új jelvényt szereztél."
+      },
+      "win_streak": {
+        "title": "Nyerő széria",
+        "body": "{count} nyertes tipp egymás után!"
+      },
+      "exact_streak": {
+        "title": "Telitalálat",
+        "body": "{count} pontos eredmény egymás után!"
+      },
+      "jackpot": {
+        "title": "Jackpot",
+        "body": "Behoztál egy nagy oddsú tippet!"
+      },
+      "perfect_day": {
+        "title": "Nyerő nap",
+        "body": "Egy teljes napod nyertes lett!"
+      },
+      "oracle": {
+        "title": "Jósda",
+        "body": "Eltaláltál egy dobogós pozíciót!"
+      },
+      "round_winner": {
+        "title": "Fordulógyőztes",
+        "body": "Tiéd a forduló legjobb eredménye!"
+      },
+      "champion": {
+        "title": "Bajnok",
+        "body": "Megnyertél egy tornát!"
+      },
+      "podium": {
+        "title": "Dobogós",
+        "body": "Dobogóra értél egy tornán!"
+      },
+      "throne": {
+        "title": "Trónfoglaló",
+        "body": "Vezetted a Ranglistát!"
+      },
+      "red_lantern": {
+        "title": "Piros lámpás",
+        "body": "Utolsó lettél — legközelebb jobb lesz!"
+      }
     }
   },
   "landing": {
@@ -443,7 +490,15 @@
     "displayNameLabel": "Becenév",
     "displayNameDescription": "Így fognak látni mások. Ha üresen hagyod, a Google neved jelenik meg.",
     "displayNamePlaceholder": "pl. Tipper King",
-    "saved": "Mentve!"
+    "saved": "Mentve!",
+    "trophies": "Trófea-szekrény",
+    "stats": "Statisztikák",
+    "totalBets": "Összes tipp",
+    "hitRate": "Találati arány",
+    "avgStake": "Átlag tét",
+    "maxStake": "Legnagyobb tét",
+    "biggestWin": "Legnagyobb nyeremény",
+    "biggestLoss": "Legnagyobb bukó"
   },
   "help": {
     "title": "Hogyan működik a TippCasino?",
@@ -560,6 +615,50 @@
       "roundOf": "Legjobb {n}"
     },
     "showMore": "{count} további játékos",
-    "showLess": "Kevesebb"
+    "showLess": "Kevesebb",
+    "viewProfile": "Profil megtekintése →",
+    "statLine": "{bets} tipp · {hit}% találat"
+  },
+  "badges": {
+    "win_streak": {
+      "name": "Nyerő széria",
+      "description": "Legalább 3 egymást követő nyertes tipp leadásáért jár."
+    },
+    "exact_streak": {
+      "name": "Telitalálat",
+      "description": "Legalább 2 egymást követő pontos végeredmény-tipp leadásáért jár."
+    },
+    "jackpot": {
+      "name": "Jackpot",
+      "description": "Nagy oddsú (3.0+) meccsen nyertes tipp elhelyezéséért jár."
+    },
+    "perfect_day": {
+      "name": "Nyerő nap",
+      "description": "Egy napon leadott összes tipped (minimum 4) nyertessé válásáért jár."
+    },
+    "oracle": {
+      "name": "Jósda",
+      "description": "Egy torna végén pontosan eltalált dobogós csapat-helyezéséért jár."
+    },
+    "round_winner": {
+      "name": "Fordulógyőztes",
+      "description": "Egy fordulóban a legtöbb pontot szerzed a csoportodban."
+    },
+    "champion": {
+      "name": "Bajnok",
+      "description": "Egy torna ranglistáján az 1. helyen végeztél."
+    },
+    "podium": {
+      "name": "Dobogós",
+      "description": "Egy torna ranglistáján a dobogón (top 3) végeztél."
+    },
+    "throne": {
+      "name": "Trónfoglaló",
+      "description": "Egy forduló végén vezeted a torna ranglistáját."
+    },
+    "red_lantern": {
+      "name": "Piros lámpás",
+      "description": "Egy torna ranglistáján az utolsó helyen végeztél."
+    }
   }
 }
