@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { predictionToneClass } from "@/lib/bet-display";
+import { getInitials } from "@/lib/initials";
 import { formatEffectiveOdds } from "@/lib/odds-display";
 
 interface LeaderboardRow {
@@ -53,15 +54,6 @@ interface GroupLeaderboardContentProps {
   currentUserId: string;
   oddsBoost: number;
   userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
-}
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
 }
 
 function medalFor(rank: number): string | null {
@@ -176,7 +168,7 @@ export function GroupLeaderboardContent({
                 <Link href={`/u/${row.userId}`} className="mx-2.5 flex shrink-0 py-2.5">
                   <Avatar className="size-7">
                     <AvatarImage src={row.userAvatarUrl ?? undefined} />
-                    <AvatarFallback className="text-xs">{initials(row.userName)}</AvatarFallback>
+                    <AvatarFallback className="text-xs">{getInitials(row.userName)}</AvatarFallback>
                   </Avatar>
                 </Link>
                 {/* accordion toggle: name, badges, profit, chevron */}

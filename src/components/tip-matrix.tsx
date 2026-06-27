@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "@/i18n/navigation";
 import { predictionToneClass } from "@/lib/bet-display";
+import { getInitials } from "@/lib/initials";
 import { splitCuratedRows } from "@/lib/leaderboard-utils";
 import { betNet, buildMatrixRows, type MatrixRowDisplay, type MatrixScope } from "@/lib/tip-matrix";
 import { cn } from "@/lib/utils";
@@ -94,7 +95,7 @@ function PlayerAvatarTooltip({
           >
             <Avatar className="size-[22px]">
               <AvatarImage src={avatarUrl ?? undefined} alt="" />
-              <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+              <AvatarFallback>{getInitials(name)}</AvatarFallback>
             </Avatar>
           </button>
         </TooltipTrigger>

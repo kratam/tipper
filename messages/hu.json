@@ -488,6 +488,7 @@
   },
   "profile": {
     "displayNameLabel": "Becenév",
+    "editDisplayName": "Becenév szerkesztése",
     "displayNameDescription": "Így fognak látni mások. Ha üresen hagyod, a Google neved jelenik meg.",
     "displayNamePlaceholder": "pl. Tipper King",
     "saved": "Mentve!",

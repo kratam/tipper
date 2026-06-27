@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLeaderboardPolling } from "@/hooks/use-leaderboard-polling";
 import { useRouter } from "@/i18n/navigation";
 import type { GroupRules } from "@/lib/group-rules";
+import { getInitials } from "@/lib/initials";
 import type { TipMatrixRound } from "@/queries/tip-matrix";
 
 interface LeaderboardRow {
@@ -384,14 +385,7 @@ export function GroupDetailTabs({
                 >
                   <Avatar className="size-[30px]">
                     <AvatarImage src={member.avatarUrl ?? undefined} />
-                    <AvatarFallback className="text-xs">
-                      {member.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()
-                        .slice(0, 2)}
-                    </AvatarFallback>
+                    <AvatarFallback className="text-xs">{getInitials(member.name)}</AvatarFallback>
                   </Avatar>
                   <span className="flex-1 truncate font-medium text-[13.5px]">{member.name}</span>
                   {member.userId !== currentUserId && (
