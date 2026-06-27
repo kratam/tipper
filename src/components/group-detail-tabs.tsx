@@ -186,6 +186,7 @@ export function GroupDetailTabs({
           timeZone={timeZone}
           leaderboard={liveLeaderboard}
           initialRound={initialMatrixRound}
+          userBadges={userBadges}
         />
       </TabsContent>
 

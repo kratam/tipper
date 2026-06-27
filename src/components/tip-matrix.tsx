@@ -16,10 +16,12 @@ import {
   type TipMatrixBetInfo,
 } from "@/actions/tip-matrix";
 import { BetDialog } from "@/components/bet-dialog";
+import { LeaderboardBadges } from "@/components/leaderboard-badges";
 import { TokenIcon } from "@/components/token-icon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Link } from "@/i18n/navigation";
 import { predictionToneClass } from "@/lib/bet-display";
 import { splitCuratedRows } from "@/lib/leaderboard-utils";
 import { betNet, buildMatrixRows, type MatrixRowDisplay, type MatrixScope } from "@/lib/tip-matrix";
@@ -49,6 +51,7 @@ interface TipMatrixProps {
    * mátrix a saját stats/bet dialógusait használja (detail oldalak).
    */
   onMatchSelect?: (matchId: string) => void;
+  userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
 }
 
 const cellKey = (userId: string, matchId: string) => `${userId}__${matchId}`;
@@ -60,7 +63,18 @@ const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
  * onClick toggle — mert touch-eszközön nincs hover (lásd bet-form
  * BalanceInfoTooltip ugyanezzel a mintával).
  */
-function PlayerAvatarTooltip({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
+function PlayerAvatarTooltip({
+  userId,
+  name,
+  avatarUrl,
+  badges,
+}: {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  badges?: Array<{ badgeKey: string; tier: number }>;
+}) {
+  const t = useTranslations("tipMatrix");
   const [open, setOpen] = useState(false);
   return (
     <TooltipProvider>
@@ -81,7 +95,17 @@ function PlayerAvatarTooltip({ name, avatarUrl }: { name: string; avatarUrl: str
             </Avatar>
           </button>
         </TooltipTrigger>
-        <TooltipContent side="top">{name}</TooltipContent>
+        <TooltipContent side="top" className="flex flex-col items-center gap-1.5">
+          <span className="font-medium">{name}</span>
+          {badges && badges.length > 0 ? <LeaderboardBadges badges={badges} /> : null}
+          <Link
+            href={`/u/${userId}`}
+            onClick={() => setOpen(false)}
+            className="text-[11px] text-gold hover:underline"
+          >
+            {t("viewProfile")}
+          </Link>
+        </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
@@ -96,6 +120,7 @@ export function TipMatrix({
   readOnly = false,
   curated = false,
   onMatchSelect,
+  userBadges,
 }: TipMatrixProps) {
   const t = useTranslations("tipMatrix");
   const format = useFormatter();
@@ -318,7 +343,12 @@ export function TipMatrix({
         >
           <span className={cn("flex items-center gap-2", isMe && "font-bold text-gold")}>
             <span className="w-4 text-right text-muted-foreground">{row.rank}.</span>
-            <PlayerAvatarTooltip name={row.userName} avatarUrl={row.userAvatarUrl} />
+            <PlayerAvatarTooltip
+              userId={row.userId}
+              name={row.userName}
+              avatarUrl={row.userAvatarUrl}
+              badges={userBadges?.[row.userId]}
+            />
             <span className="max-[560px]:hidden">{row.userName}</span>
           </span>
         </td>

@@ -9,6 +9,7 @@ import { getCurrentUser } from "@/lib/auth/user-sync";
 import { filterAndRerankLeaderboard } from "@/lib/circle-leaderboard";
 import { hideInactiveAndRerank, pickMiniLeaderboard } from "@/lib/leaderboard-utils";
 import { ensureOfficialMembership } from "@/lib/official-group";
+import { loadBadgesForUsers } from "@/queries/badges";
 import { getUserBetsForTournament } from "@/queries/bets";
 import { getUserCircles } from "@/queries/circles";
 import {
@@ -310,6 +311,16 @@ export default async function TournamentDetailPage({
     }
   }
 
+  // Collect all user IDs appearing in any board tab leaderboard, load their badges in one query
+  const allUserIds = [...new Set(groupTabs.flatMap((tab) => tab.leaderboard.map((e) => e.userId)))];
+  const badgesMap = await loadBadgesForUsers(allUserIds);
+  const userBadges = Object.fromEntries(
+    [...badgesMap.entries()].map(([uid, b]) => [
+      uid,
+      b.map((x) => ({ badgeKey: x.badgeKey, tier: x.tier })),
+    ]),
+  );
+
   // Serialize matches for client component
   const matchesData = matches.map((m) => ({
     id: m.id,
@@ -375,6 +386,7 @@ export default async function TournamentDetailPage({
         officialCard={officialCard}
         boardTabs={groupTabs}
         officialInitialRound={officialInitialRound}
+        userBadges={userBadges}
       />
     </div>
   );

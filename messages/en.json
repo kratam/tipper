@@ -615,7 +615,8 @@
       "roundOf": "Round of {n}"
     },
     "showMore": "{count} more players",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "viewProfile": "View profile →"
   },
   "badges": {
     "win_streak": {

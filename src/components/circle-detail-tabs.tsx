@@ -123,6 +123,7 @@ export function CircleDetailTabs({
           leaderboard={leaderboard}
           initialRound={initialMatrixRound}
           readOnly
+          userBadges={userBadges}
         />
       </TabsContent>
 

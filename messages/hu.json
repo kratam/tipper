@@ -615,7 +615,8 @@
       "roundOf": "Legjobb {n}"
     },
     "showMore": "{count} további játékos",
-    "showLess": "Kevesebb"
+    "showLess": "Kevesebb",
+    "viewProfile": "Profil megtekintése →"
   },
   "badges": {
     "win_streak": {

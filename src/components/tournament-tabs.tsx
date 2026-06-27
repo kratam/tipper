@@ -108,6 +108,7 @@ interface TournamentTabsProps {
   officialCard: OfficialCardData | null;
   boardTabs: import("@/components/tournament-board-panel").BoardTab[];
   officialInitialRound: import("@/queries/tip-matrix").TipMatrixRound | null;
+  userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
 }
 
 type MatchFilter = "upcoming" | "played" | "all" | "podium";
@@ -156,6 +157,7 @@ export function TournamentTabs({
   officialCard,
   boardTabs,
   officialInitialRound,
+  userBadges,
 }: TournamentTabsProps) {
   const t = useTranslations("tournaments");
   const tMatches = useTranslations("matches");
@@ -295,6 +297,7 @@ export function TournamentTabs({
               const m = liveMatches.find((x) => x.id === matchId);
               if (m) handleMatchClick(m);
             }}
+            userBadges={userBadges}
           />
         )}
 
