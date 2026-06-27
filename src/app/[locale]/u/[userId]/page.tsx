@@ -4,6 +4,7 @@ import { TrophyCabinet } from "@/components/trophy-cabinet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { cn } from "@/lib/utils";
 import { getProfile } from "@/queries/profile";
 
 export default async function ProfilePage({
@@ -55,28 +56,38 @@ export default async function ProfilePage({
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <StatCard label={t("totalBets")} value={String(profile.stats.totalBets)} />
           <StatCard label={t("hitRate")} value={`${profile.stats.hitRate}%`} />
-          <StatCard label={t("bestStreak")} value={String(profile.stats.bestWinStreak)} />
-          {profile.stats.biggestJackpotOdds != null && (
-            <StatCard
-              label={t("biggestJackpot")}
-              value={`${profile.stats.biggestJackpotOdds.toFixed(1)}×`}
-            />
-          )}
-          <StatCard label={t("champion")} value={String(profile.stats.placements.champion)} />
-          <StatCard label={t("podium")} value={String(profile.stats.placements.podium)} />
+          <StatCard label={t("avgStake")} value={String(profile.stats.avgStake)} />
+          <StatCard label={t("maxStake")} value={String(profile.stats.maxStake)} />
+          <StatCard
+            label={t("biggestWin")}
+            value={profile.stats.biggestWin > 0 ? `+${profile.stats.biggestWin}` : "—"}
+            tone={profile.stats.biggestWin > 0 ? "win" : undefined}
+          />
+          <StatCard
+            label={t("biggestLoss")}
+            value={profile.stats.biggestLoss < 0 ? String(profile.stats.biggestLoss) : "—"}
+            tone={profile.stats.biggestLoss < 0 ? "loss" : undefined}
+          />
         </div>
       </section>
     </div>
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value, tone }: { label: string; value: string; tone?: "win" | "loss" }) {
   return (
     <div className="rounded-xl bg-card p-4">
       <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wide">
         {label}
       </p>
-      <p className="mt-1 font-bold text-2xl text-foreground">{value}</p>
+      <p
+        className={cn(
+          "mt-1 font-bold text-2xl",
+          tone === "win" ? "text-win" : tone === "loss" ? "text-loss" : "text-foreground",
+        )}
+      >
+        {value}
+      </p>
     </div>
   );
 }

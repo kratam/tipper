@@ -495,10 +495,10 @@
     "stats": "Statisztikák",
     "totalBets": "Összes tipp",
     "hitRate": "Találati arány",
-    "bestStreak": "Legjobb sorozat",
-    "biggestJackpot": "Legjobb jackpot",
-    "champion": "Bajnok",
-    "podium": "Dobogós"
+    "avgStake": "Átlag tét",
+    "maxStake": "Legnagyobb tét",
+    "biggestWin": "Legnagyobb nyeremény",
+    "biggestLoss": "Legnagyobb bukó"
   },
   "help": {
     "title": "Hogyan működik a TippCasino?",

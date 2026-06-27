@@ -495,10 +495,10 @@
     "stats": "Stats",
     "totalBets": "Total bets",
     "hitRate": "Hit rate",
-    "bestStreak": "Best streak",
-    "biggestJackpot": "Best jackpot",
-    "champion": "Champion",
-    "podium": "Podium"
+    "avgStake": "Avg stake",
+    "maxStake": "Biggest stake",
+    "biggestWin": "Biggest win",
+    "biggestLoss": "Biggest loss"
   },
   "help": {
     "title": "How does TippCasino work?",

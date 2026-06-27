@@ -3,7 +3,6 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { bets, circleMembers, groupMembers, groups, users } from "@/db/schema";
 import type { StoredBadge } from "@/lib/badges/evaluate";
-import { hitRate } from "@/lib/profile-stats";
 import { loadBadgesForUsers } from "@/queries/badges";
 
 export interface ProfileView {
@@ -13,12 +12,10 @@ export interface ProfileView {
   stats: {
     totalBets: number;
     hitRate: number;
-    bestWinStreak: number;
-    biggestJackpotOdds: number | null;
-    placements: {
-      champion: number;
-      podium: number;
-    };
+    avgStake: number;
+    maxStake: number;
+    biggestWin: number;
+    biggestLoss: number;
   };
 }
 
@@ -83,47 +80,36 @@ export async function getProfile(userId: string, viewerId: string): Promise<Prof
   const badgeMap = await loadBadgesForUsers([userId]);
   const userBadges = badgeMap.get(userId) ?? [];
 
-  // Tipp-statisztikák: csak official csoportokban leadott tippek
-  const officialGroupIds = await db
-    .select({ id: groups.id })
-    .from(groups)
-    .where(eq(groups.isOfficial, true))
-    .then((rows) => rows.map((r) => r.id));
+  // Tipp-statisztikák: csak a hivatalos Ranglista (isOfficial) tippjeiből,
+  // szándékosan a badge-ekkel NEM átfedő mutatók (tét / nyeremény / bukó).
+  // A nettó egy tippre = payout - stake (lepontozott tippeknél).
+  const [agg] = await db
+    .select({
+      totalBets: sql<number>`cast(count(*) as int)`,
+      won: sql<number>`cast(count(*) filter (where ${bets.result1x2Correct} = true) as int)`,
+      resolved: sql<number>`cast(count(*) filter (where ${bets.payout} is not null) as int)`,
+      avgStake: sql<number>`cast(coalesce(round(avg(${bets.stake})), 0) as int)`,
+      maxStake: sql<number>`cast(coalesce(max(${bets.stake}), 0) as int)`,
+      biggestWin: sql<number>`cast(coalesce(max(${bets.payout} - ${bets.stake}) filter (where ${bets.payout} is not null), 0) as int)`,
+      biggestLoss: sql<number>`cast(coalesce(min(${bets.payout} - ${bets.stake}) filter (where ${bets.payout} is not null), 0) as int)`,
+    })
+    .from(bets)
+    .innerJoin(groups, and(eq(groups.id, bets.groupId), eq(groups.isOfficial, true)))
+    .where(eq(bets.userId, userId));
 
-  let totalBets = 0;
-  let hitRateValue = 0;
-
-  if (officialGroupIds.length > 0) {
-    const userBetRows = await db
-      .select({ result1x2Correct: bets.result1x2Correct })
-      .from(bets)
-      .where(and(eq(bets.userId, userId), inArray(bets.groupId, officialGroupIds)));
-
-    totalBets = userBetRows.length;
-    hitRateValue = hitRate(userBetRows);
-  }
-
-  // Win streak és jackpot a badge row-okból (nem újraszámítjuk)
-  const winStreakBadge = userBadges.find((b) => b.badgeKey === "win_streak");
-  const jackpotBadge = userBadges.find((b) => b.badgeKey === "jackpot");
-
-  // Helyezések: champion / podium badgekből
-  const championBadge = userBadges.find((b) => b.badgeKey === "champion");
-  const podiumBadge = userBadges.find((b) => b.badgeKey === "podium");
+  const hitRateValue = agg && agg.resolved > 0 ? Math.round((100 * agg.won) / agg.resolved) : 0;
 
   return {
     displayName: user.displayName ?? user.name,
     avatarUrl: user.avatarUrl ?? null,
     badges: userBadges,
     stats: {
-      totalBets,
+      totalBets: agg?.totalBets ?? 0,
       hitRate: hitRateValue,
-      bestWinStreak: winStreakBadge?.count ?? 0,
-      biggestJackpotOdds: jackpotBadge?.bestValue ?? null,
-      placements: {
-        champion: championBadge?.count ?? 0,
-        podium: podiumBadge?.count ?? 0,
-      },
+      avgStake: agg?.avgStake ?? 0,
+      maxStake: agg?.maxStake ?? 0,
+      biggestWin: agg?.biggestWin ?? 0,
+      biggestLoss: agg?.biggestLoss ?? 0,
     },
   };
 }
