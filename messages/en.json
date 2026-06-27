@@ -577,5 +577,17 @@
     },
     "showMore": "{count} more players",
     "showLess": "Show less"
+  },
+  "badges": {
+    "win_streak": { "name": "Win streak" },
+    "exact_streak": { "name": "Exact streak" },
+    "jackpot": { "name": "Jackpot" },
+    "perfect_day": { "name": "Perfect day" },
+    "oracle": { "name": "Oracle" },
+    "round_winner": { "name": "Round winner" },
+    "champion": { "name": "Champion" },
+    "podium": { "name": "Podium" },
+    "throne": { "name": "Throne" },
+    "red_lantern": { "name": "Red lantern" }
   }
 }

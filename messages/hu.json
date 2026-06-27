@@ -574,5 +574,17 @@
     },
     "showMore": "{count} további játékos",
     "showLess": "Kevesebb"
+  },
+  "badges": {
+    "win_streak": { "name": "Nyerő széria" },
+    "exact_streak": { "name": "Telitalálat" },
+    "jackpot": { "name": "Jackpot" },
+    "perfect_day": { "name": "Nyerő nap" },
+    "oracle": { "name": "Jósda" },
+    "round_winner": { "name": "Fordulógyőztes" },
+    "champion": { "name": "Bajnok" },
+    "podium": { "name": "Dobogós" },
+    "throne": { "name": "Trónfoglaló" },
+    "red_lantern": { "name": "Piros lámpás" }
   }
 }
