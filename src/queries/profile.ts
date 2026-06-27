@@ -3,7 +3,16 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { bets, circleMembers, groupMembers, groups, users } from "@/db/schema";
 import type { StoredBadge } from "@/lib/badges/evaluate";
+import type { Locale } from "@/lib/providers/types";
 import { loadBadgesForUsers } from "@/queries/badges";
+import { withTeamDisplay } from "@/queries/team-display";
+
+export interface StatMatch {
+  homeTeam: string;
+  awayTeam: string;
+  homeScore: number | null;
+  awayScore: number | null;
+}
 
 export interface ProfileView {
   displayName: string;
@@ -14,8 +23,11 @@ export interface ProfileView {
     hitRate: number;
     avgStake: number;
     maxStake: number;
+    maxStakeMatch: StatMatch | null;
     biggestWin: number;
+    biggestWinMatch: StatMatch | null;
     biggestLoss: number;
+    biggestLossMatch: StatMatch | null;
   };
 }
 
@@ -68,7 +80,11 @@ export async function shareACircleOrLeague(userId: string, viewerId: string): Pr
  * Visszaadja a felhasználó profilját, vagy null-t ha a viewer nem láthatja
  * (nem osztanak sem official Ranglistát, sem kört).
  */
-export async function getProfile(userId: string, viewerId: string): Promise<ProfileView | null> {
+export async function getProfile(
+  userId: string,
+  viewerId: string,
+  locale: Locale,
+): Promise<ProfileView | null> {
   const canView = await shareACircleOrLeague(userId, viewerId);
   if (!canView) return null;
 
@@ -82,34 +98,98 @@ export async function getProfile(userId: string, viewerId: string): Promise<Prof
 
   // Tipp-statisztikák: csak a hivatalos Ranglista (isOfficial) tippjeiből,
   // szándékosan a badge-ekkel NEM átfedő mutatók (tét / nyeremény / bukó).
-  // A nettó egy tippre = payout - stake (lepontozott tippeknél).
-  const [agg] = await db
-    .select({
-      totalBets: sql<number>`cast(count(*) as int)`,
-      won: sql<number>`cast(count(*) filter (where ${bets.result1x2Correct} = true) as int)`,
-      resolved: sql<number>`cast(count(*) filter (where ${bets.payout} is not null) as int)`,
-      avgStake: sql<number>`cast(coalesce(round(avg(${bets.stake})), 0) as int)`,
-      maxStake: sql<number>`cast(coalesce(max(${bets.stake}), 0) as int)`,
-      biggestWin: sql<number>`cast(coalesce(max(${bets.payout} - ${bets.stake}) filter (where ${bets.payout} is not null), 0) as int)`,
-      biggestLoss: sql<number>`cast(coalesce(min(${bets.payout} - ${bets.stake}) filter (where ${bets.payout} is not null), 0) as int)`,
-    })
-    .from(bets)
-    .innerJoin(groups, and(eq(groups.id, bets.groupId), eq(groups.isOfficial, true)))
-    .where(eq(bets.userId, userId));
+  // Egy user profilja kevés tipp (≈ pár száz), ezért egyetlen relációs
+  // lekérdezéssel behúzzuk a meccs-adatokkal együtt, és az extrémumokat
+  // (legnagyobb tét / nyeremény / bukó) JS-ben választjuk ki — így a hozzájuk
+  // tartozó MECCS is megvan. A nettó egy tippre = payout - stake.
+  const officialGroupIds = await db
+    .select({ id: groups.id })
+    .from(groups)
+    .where(eq(groups.isOfficial, true))
+    .then((rows) => rows.map((r) => r.id));
 
-  const hitRateValue = agg && agg.resolved > 0 ? Math.round((100 * agg.won) / agg.resolved) : 0;
+  const emptyStats = {
+    totalBets: 0,
+    hitRate: 0,
+    avgStake: 0,
+    maxStake: 0,
+    maxStakeMatch: null,
+    biggestWin: 0,
+    biggestWinMatch: null,
+    biggestLoss: 0,
+    biggestLossMatch: null,
+  } satisfies ProfileView["stats"];
+
+  if (officialGroupIds.length === 0) {
+    return {
+      displayName: user.displayName ?? user.name,
+      avatarUrl: user.avatarUrl ?? null,
+      badges: userBadges,
+      stats: emptyStats,
+    };
+  }
+
+  const userBets = await db.query.bets.findMany({
+    where: and(eq(bets.userId, userId), inArray(bets.groupId, officialGroupIds)),
+    with: {
+      match: {
+        with: {
+          homeTeam: { columns: { name: true, logoUrl: true } },
+          awayTeam: { columns: { name: true, logoUrl: true } },
+          tournament: { columns: { useFlagFallback: true } },
+        },
+      },
+    },
+  });
+
+  type ProfileBet = (typeof userBets)[number];
+  const netOf = (b: ProfileBet) => (b.payout ?? 0) - b.stake;
+  const toStatMatch = (b: ProfileBet): StatMatch => {
+    const { match } = b;
+    const ff = match.tournament.useFlagFallback;
+    return {
+      homeTeam: withTeamDisplay(match.homeTeam, locale, ff).name,
+      awayTeam: withTeamDisplay(match.awayTeam, locale, ff).name,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
+    };
+  };
+
+  const totalBets = userBets.length;
+  const resolved = userBets.filter((b) => b.payout !== null);
+  const won = resolved.filter((b) => b.result1x2Correct === true).length;
+  const hitRateValue = resolved.length > 0 ? Math.round((100 * won) / resolved.length) : 0;
+  const avgStake =
+    totalBets > 0 ? Math.round(userBets.reduce((s, b) => s + b.stake, 0) / totalBets) : 0;
+
+  let maxStakeBet: ProfileBet | null = null;
+  let bestWinBet: ProfileBet | null = null;
+  let worstLossBet: ProfileBet | null = null;
+  for (const b of userBets) {
+    if (!maxStakeBet || b.stake > maxStakeBet.stake) maxStakeBet = b;
+  }
+  for (const b of resolved) {
+    if (!bestWinBet || netOf(b) > netOf(bestWinBet)) bestWinBet = b;
+    if (!worstLossBet || netOf(b) < netOf(worstLossBet)) worstLossBet = b;
+  }
+
+  const biggestWin = bestWinBet ? netOf(bestWinBet) : 0;
+  const biggestLoss = worstLossBet ? netOf(worstLossBet) : 0;
 
   return {
     displayName: user.displayName ?? user.name,
     avatarUrl: user.avatarUrl ?? null,
     badges: userBadges,
     stats: {
-      totalBets: agg?.totalBets ?? 0,
+      totalBets,
       hitRate: hitRateValue,
-      avgStake: agg?.avgStake ?? 0,
-      maxStake: agg?.maxStake ?? 0,
-      biggestWin: agg?.biggestWin ?? 0,
-      biggestLoss: agg?.biggestLoss ?? 0,
+      avgStake,
+      maxStake: maxStakeBet?.stake ?? 0,
+      maxStakeMatch: maxStakeBet ? toStatMatch(maxStakeBet) : null,
+      biggestWin,
+      biggestWinMatch: biggestWin > 0 && bestWinBet ? toStatMatch(bestWinBet) : null,
+      biggestLoss,
+      biggestLossMatch: biggestLoss < 0 && worstLossBet ? toStatMatch(worstLossBet) : null,
     },
   };
 }

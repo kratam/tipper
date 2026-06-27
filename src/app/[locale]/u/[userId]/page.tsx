@@ -23,8 +23,18 @@ export default async function ProfilePage({
     return redirect({ href: "/", locale });
   }
 
-  const profile = await getProfile(userId, user.id);
+  const profile = await getProfile(userId, user.id, locale as "hu" | "en");
   if (!profile) notFound();
+
+  const matchLabel = (m: {
+    homeTeam: string;
+    awayTeam: string;
+    homeScore: number | null;
+    awayScore: number | null;
+  }) =>
+    m.homeScore != null && m.awayScore != null
+      ? `${m.homeTeam}–${m.awayTeam} ${m.homeScore}:${m.awayScore}`
+      : `${m.homeTeam}–${m.awayTeam}`;
 
   const initials = profile.displayName
     .split(" ")
@@ -57,16 +67,28 @@ export default async function ProfilePage({
           <StatCard label={t("totalBets")} value={String(profile.stats.totalBets)} />
           <StatCard label={t("hitRate")} value={`${profile.stats.hitRate}%`} />
           <StatCard label={t("avgStake")} value={String(profile.stats.avgStake)} />
-          <StatCard label={t("maxStake")} value={String(profile.stats.maxStake)} />
+          <StatCard
+            label={t("maxStake")}
+            value={String(profile.stats.maxStake)}
+            sub={profile.stats.maxStakeMatch ? matchLabel(profile.stats.maxStakeMatch) : undefined}
+          />
           <StatCard
             label={t("biggestWin")}
             value={profile.stats.biggestWin > 0 ? `+${profile.stats.biggestWin}` : "—"}
             tone={profile.stats.biggestWin > 0 ? "win" : undefined}
+            sub={
+              profile.stats.biggestWinMatch ? matchLabel(profile.stats.biggestWinMatch) : undefined
+            }
           />
           <StatCard
             label={t("biggestLoss")}
             value={profile.stats.biggestLoss < 0 ? String(profile.stats.biggestLoss) : "—"}
             tone={profile.stats.biggestLoss < 0 ? "loss" : undefined}
+            sub={
+              profile.stats.biggestLossMatch
+                ? matchLabel(profile.stats.biggestLossMatch)
+                : undefined
+            }
           />
         </div>
       </section>
@@ -74,7 +96,17 @@ export default async function ProfilePage({
   );
 }
 
-function StatCard({ label, value, tone }: { label: string; value: string; tone?: "win" | "loss" }) {
+function StatCard({
+  label,
+  value,
+  tone,
+  sub,
+}: {
+  label: string;
+  value: string;
+  tone?: "win" | "loss";
+  sub?: string;
+}) {
   return (
     <div className="rounded-xl bg-card p-4">
       <p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wide">
@@ -88,6 +120,7 @@ function StatCard({ label, value, tone }: { label: string; value: string; tone?:
       >
         {value}
       </p>
+      {sub ? <p className="mt-1 truncate text-[11px] text-muted-foreground">{sub}</p> : null}
     </div>
   );
 }
