@@ -32,6 +32,19 @@
       "minutes": "{count} perce",
       "hours": "{count} órája",
       "days": "{count} napja"
+    },
+    "badge": {
+      "aggregate": { "title": "Új jelvények!", "body": "{count} új jelvényt szereztél." },
+      "win_streak": { "title": "Nyerő széria", "body": "{count} nyertes tipp egymás után!" },
+      "exact_streak": { "title": "Telitalálat", "body": "{count} pontos eredmény egymás után!" },
+      "jackpot": { "title": "Jackpot", "body": "Behoztál egy nagy oddsú tippet!" },
+      "perfect_day": { "title": "Nyerő nap", "body": "Egy teljes napod nyertes lett!" },
+      "oracle": { "title": "Jósda", "body": "Eltaláltál egy dobogós pozíciót!" },
+      "round_winner": { "title": "Fordulógyőztes", "body": "Tiéd a forduló legjobb eredménye!" },
+      "champion": { "title": "Bajnok", "body": "Megnyertél egy tornát!" },
+      "podium": { "title": "Dobogós", "body": "Dobogóra értél egy tornán!" },
+      "throne": { "title": "Trónfoglaló", "body": "Vezetted a Ranglistát!" },
+      "red_lantern": { "title": "Piros lámpás", "body": "Utolsó lettél — legközelebb jobb lesz!" }
     }
   },
   "landing": {

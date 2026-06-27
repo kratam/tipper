@@ -13,11 +13,26 @@ export function notificationContent(
   t: Translate,
 ): { title: string; body: string } {
   if (n.type === "badge") {
-    const data = (n.data ?? {}) as { badgeKey?: string; [k: string]: unknown };
+    const data = (n.data ?? {}) as {
+      badgeKey?: string;
+      aggregate?: boolean;
+      tier?: number;
+      count?: number;
+      [k: string]: unknown;
+    };
+    if (data.aggregate) {
+      return {
+        title: t("badge.aggregate.title"),
+        body: t("badge.aggregate.body", { count: Number(data.count ?? 0) }),
+      };
+    }
     const badgeKey = data.badgeKey ?? "unknown";
     return {
       title: t(`badge.${badgeKey}.title`),
-      body: t(`badge.${badgeKey}.body`),
+      body: t(`badge.${badgeKey}.body`, {
+        count: Number(data.count ?? 0),
+        tier: Number(data.tier ?? 1),
+      }),
     };
   }
   // system (és bármi ismeretlen): a tárolt literál szöveg

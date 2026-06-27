@@ -32,6 +32,22 @@
       "minutes": "{count}m ago",
       "hours": "{count}h ago",
       "days": "{count}d ago"
+    },
+    "badge": {
+      "aggregate": { "title": "New badges!", "body": "You earned {count} new badges." },
+      "win_streak": { "title": "Winning streak", "body": "{count} winning tips in a row!" },
+      "exact_streak": { "title": "Exact streak", "body": "{count} exact scores in a row!" },
+      "jackpot": { "title": "Jackpot", "body": "You landed a high-odds tip!" },
+      "perfect_day": { "title": "Perfect day", "body": "All your tips on a single day won!" },
+      "oracle": { "title": "Oracle", "body": "You predicted a podium finish!" },
+      "round_winner": { "title": "Round winner", "body": "You had the best score in the round!" },
+      "champion": { "title": "Champion", "body": "You won a tournament!" },
+      "podium": { "title": "Podium", "body": "You reached the podium in a tournament!" },
+      "throne": { "title": "Throne", "body": "You led the leaderboard!" },
+      "red_lantern": {
+        "title": "Red lantern",
+        "body": "You finished last — better luck next time!"
+      }
     }
   },
   "landing": {
