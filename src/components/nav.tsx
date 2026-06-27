@@ -75,8 +75,12 @@ export function Nav({ user, activeTournaments }: NavProps) {
   }
 
   function handleSignOut() {
-    authClient.signOut().then(() => {
-      router.refresh();
+    // A SDK saját UI-ja is .finally-vel zár: a signOut() elutasítása esetén is
+    // reagáljon a UI (a .then csak sikerre futott volna). Hard navigáció a
+    // kezdőlapra: a soft router.refresh() bennhagyhat elavult kliens-állapotot,
+    // a teljes újratöltés garantáltan újraolvastatja a (törölt) cookie-t.
+    authClient.signOut().finally(() => {
+      window.location.href = `/${locale}`;
     });
   }
 
