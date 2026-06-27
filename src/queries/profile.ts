@@ -7,9 +7,14 @@ import type { Locale } from "@/lib/providers/types";
 import { loadBadgesForUsers } from "@/queries/badges";
 import { withTeamDisplay } from "@/queries/team-display";
 
+export interface StatMatchTeam {
+  name: string;
+  logoUrl: string | null;
+}
+
 export interface StatMatch {
-  homeTeam: string;
-  awayTeam: string;
+  home: StatMatchTeam;
+  away: StatMatchTeam;
   homeScore: number | null;
   awayScore: number | null;
 }
@@ -147,9 +152,11 @@ export async function getProfile(
   const toStatMatch = (b: ProfileBet): StatMatch => {
     const { match } = b;
     const ff = match.tournament.useFlagFallback;
+    const home = withTeamDisplay(match.homeTeam, locale, ff);
+    const away = withTeamDisplay(match.awayTeam, locale, ff);
     return {
-      homeTeam: withTeamDisplay(match.homeTeam, locale, ff).name,
-      awayTeam: withTeamDisplay(match.awayTeam, locale, ff).name,
+      home: { name: home.name, logoUrl: home.logoUrl },
+      away: { name: away.name, logoUrl: away.logoUrl },
       homeScore: match.homeScore,
       awayScore: match.awayScore,
     };

@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
+import type { ReactNode } from "react";
+import { TeamLogo } from "@/components/team-logo";
 import { TrophyCabinet } from "@/components/trophy-cabinet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { cn } from "@/lib/utils";
-import { getProfile } from "@/queries/profile";
+import { getProfile, type StatMatch } from "@/queries/profile";
 
 export default async function ProfilePage({
   params,
@@ -26,22 +28,14 @@ export default async function ProfilePage({
   const profile = await getProfile(userId, user.id, locale as "hu" | "en");
   if (!profile) notFound();
 
-  const matchLabel = (m: {
-    homeTeam: string;
-    awayTeam: string;
-    homeScore: number | null;
-    awayScore: number | null;
-  }) =>
-    m.homeScore != null && m.awayScore != null
-      ? `${m.homeTeam}–${m.awayTeam} ${m.homeScore}:${m.awayScore}`
-      : `${m.homeTeam}–${m.awayTeam}`;
-
   const initials = profile.displayName
     .split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
+
+  const { stats } = profile;
 
   return (
     <div className="flex flex-col gap-8">
@@ -64,30 +58,26 @@ export default async function ProfilePage({
       <section>
         <h2 className="mb-4 font-bold font-heading text-lg">{t("stats")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <StatCard label={t("totalBets")} value={String(profile.stats.totalBets)} />
-          <StatCard label={t("hitRate")} value={`${profile.stats.hitRate}%`} />
-          <StatCard label={t("avgStake")} value={String(profile.stats.avgStake)} />
+          <StatCard label={t("totalBets")} value={String(stats.totalBets)} />
+          <StatCard label={t("hitRate")} value={`${stats.hitRate}%`} />
+          <StatCard label={t("avgStake")} value={String(stats.avgStake)} />
           <StatCard
             label={t("maxStake")}
-            value={String(profile.stats.maxStake)}
-            sub={profile.stats.maxStakeMatch ? matchLabel(profile.stats.maxStakeMatch) : undefined}
+            value={String(stats.maxStake)}
+            footer={stats.maxStakeMatch ? <StatMatchRow m={stats.maxStakeMatch} /> : undefined}
           />
           <StatCard
             label={t("biggestWin")}
-            value={profile.stats.biggestWin > 0 ? `+${profile.stats.biggestWin}` : "—"}
-            tone={profile.stats.biggestWin > 0 ? "win" : undefined}
-            sub={
-              profile.stats.biggestWinMatch ? matchLabel(profile.stats.biggestWinMatch) : undefined
-            }
+            value={stats.biggestWin > 0 ? `+${stats.biggestWin}` : "—"}
+            tone={stats.biggestWin > 0 ? "win" : undefined}
+            footer={stats.biggestWinMatch ? <StatMatchRow m={stats.biggestWinMatch} /> : undefined}
           />
           <StatCard
             label={t("biggestLoss")}
-            value={profile.stats.biggestLoss < 0 ? String(profile.stats.biggestLoss) : "—"}
-            tone={profile.stats.biggestLoss < 0 ? "loss" : undefined}
-            sub={
-              profile.stats.biggestLossMatch
-                ? matchLabel(profile.stats.biggestLossMatch)
-                : undefined
+            value={stats.biggestLoss < 0 ? String(stats.biggestLoss) : "—"}
+            tone={stats.biggestLoss < 0 ? "loss" : undefined}
+            footer={
+              stats.biggestLossMatch ? <StatMatchRow m={stats.biggestLossMatch} /> : undefined
             }
           />
         </div>
@@ -96,16 +86,29 @@ export default async function ProfilePage({
   );
 }
 
+/** A stathoz tartozó meccs kompakt jelzése: [zászló] eredmény [zászló] —
+ * a Results-fül eredmény-mintáját követi (TeamLogo + font-mono tabular-nums). */
+function StatMatchRow({ m }: { m: StatMatch }) {
+  const score = m.homeScore != null && m.awayScore != null ? `${m.homeScore}-${m.awayScore}` : "–";
+  return (
+    <div className="mt-2 flex items-center justify-center gap-2">
+      <TeamLogo name={m.home.name} logoUrl={m.home.logoUrl} size={18} />
+      <span className="font-bold font-mono text-[14px] text-foreground tabular-nums">{score}</span>
+      <TeamLogo name={m.away.name} logoUrl={m.away.logoUrl} size={18} />
+    </div>
+  );
+}
+
 function StatCard({
   label,
   value,
   tone,
-  sub,
+  footer,
 }: {
   label: string;
   value: string;
   tone?: "win" | "loss";
-  sub?: string;
+  footer?: ReactNode;
 }) {
   return (
     <div className="rounded-xl bg-card p-4">
@@ -120,7 +123,7 @@ function StatCard({
       >
         {value}
       </p>
-      {sub ? <p className="mt-1 truncate text-[11px] text-muted-foreground">{sub}</p> : null}
+      {footer}
     </div>
   );
 }
