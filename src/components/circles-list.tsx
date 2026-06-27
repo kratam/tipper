@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "@/i18n/navigation";
+import { getInitials } from "@/lib/initials";
 
 interface CircleMember {
   userId: string;
@@ -79,14 +80,7 @@ export function CirclesList({ circles }: { circles: CircleItem[] }) {
                 >
                   <Avatar className="size-5">
                     <AvatarImage src={m.avatarUrl ?? undefined} />
-                    <AvatarFallback className="text-[8px]">
-                      {m.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()
-                        .slice(0, 2)}
-                    </AvatarFallback>
+                    <AvatarFallback className="text-[8px]">{getInitials(m.name)}</AvatarFallback>
                   </Avatar>
                   {m.name}
                 </span>

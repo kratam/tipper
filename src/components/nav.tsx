@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth/client";
+import { getInitials } from "@/lib/initials";
 
 interface ActiveTournament {
   id: string;
@@ -85,14 +86,7 @@ export function Nav({ user, activeTournaments }: NavProps) {
   }
 
   const displayedName = user?.displayName ?? user?.name;
-  const initials = displayedName
-    ? displayedName
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : "?";
+  const initials = displayedName ? getInitials(displayedName) : "?";
 
   return (
     <>

@@ -488,6 +488,7 @@
   },
   "profile": {
     "displayNameLabel": "Display name",
+    "editDisplayName": "Edit display name",
     "displayNameDescription": "This is how others will see you. Leave empty to use your Google name.",
     "displayNamePlaceholder": "e.g. Tipper King",
     "saved": "Saved!",

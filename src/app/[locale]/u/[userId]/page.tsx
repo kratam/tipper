@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
+import { EditDisplayNameButton } from "@/components/edit-display-name-button";
 import { TeamLogo } from "@/components/team-logo";
 import { TrophyCabinet } from "@/components/trophy-cabinet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { getInitials } from "@/lib/initials";
 import { cn } from "@/lib/utils";
 import { getProfile, type StatMatch } from "@/queries/profile";
 
@@ -28,12 +30,7 @@ export default async function ProfilePage({
   const profile = await getProfile(userId, user.id, locale as "hu" | "en");
   if (!profile) notFound();
 
-  const initials = profile.displayName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  const initials = getInitials(profile.displayName);
 
   const { stats } = profile;
 
@@ -46,6 +43,7 @@ export default async function ProfilePage({
           <AvatarFallback className="text-xl">{initials}</AvatarFallback>
         </Avatar>
         <h1 className="font-bold font-heading text-2xl tracking-tight">{profile.displayName}</h1>
+        {user.id === userId && <EditDisplayNameButton currentDisplayName={user.displayName} />}
       </div>
 
       {/* Trophy cabinet */}

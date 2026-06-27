@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { TokenIcon } from "@/components/token-icon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getInitials } from "@/lib/initials";
 import { formatEffectiveOdds } from "@/lib/odds-display";
 import type { GroupMemberBet } from "@/queries/bets";
 
@@ -62,9 +63,7 @@ export function BetRow({
       )}
       <Avatar className="size-[26px] shrink-0">
         <AvatarImage src={bet.userAvatarUrl ?? undefined} alt={displayName} loading="lazy" />
-        <AvatarFallback className="font-mono text-[9px]">
-          {displayName.slice(0, 2).toUpperCase()}
-        </AvatarFallback>
+        <AvatarFallback className="font-mono text-[9px]">{getInitials(displayName)}</AvatarFallback>
       </Avatar>
       <div className="min-w-0">
         <div className="truncate font-semibold text-[13.5px]">{displayName}</div>

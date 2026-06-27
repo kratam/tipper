@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { predictionToneClass } from "@/lib/bet-display";
+import { getInitials } from "@/lib/initials";
 import { formatEffectiveOdds } from "@/lib/odds-display";
 
 interface FinishedMatch {
@@ -44,15 +45,6 @@ interface GroupResultsContentProps {
   currentUserId: string;
   memberCount: number;
   oddsBoost: number;
-}
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
 }
 
 export function GroupResultsContent({
@@ -168,7 +160,7 @@ export function GroupResultsContent({
                               <Avatar className="size-5">
                                 <AvatarImage src={bet.userAvatarUrl ?? undefined} />
                                 <AvatarFallback className="text-[9px]">
-                                  {initials(bet.userName)}
+                                  {getInitials(bet.userName)}
                                 </AvatarFallback>
                               </Avatar>
                               <span className="truncate text-xs">{bet.userName}</span>
