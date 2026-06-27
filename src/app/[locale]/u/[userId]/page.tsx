@@ -54,7 +54,7 @@ export default async function ProfilePage({
         <h2 className="mb-4 font-bold font-heading text-lg">{t("stats")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <StatCard label={t("totalBets")} value={String(profile.stats.totalBets)} />
-          <StatCard label={t("hitRate")} value={`${Math.round(profile.stats.hitRate * 100)}%`} />
+          <StatCard label={t("hitRate")} value={`${profile.stats.hitRate}%`} />
           <StatCard label={t("bestStreak")} value={String(profile.stats.bestWinStreak)} />
           {profile.stats.biggestJackpotOdds != null && (
             <StatCard
