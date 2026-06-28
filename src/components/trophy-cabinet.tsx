@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { BadgeIcon } from "@/components/badge-icon";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BADGES } from "@/lib/badges/catalog";
@@ -12,6 +13,51 @@ interface EarnedBadge extends StoredBadge {
 
 interface TrophyCabinetProps {
   earnedBadges: EarnedBadge[];
+}
+
+/**
+ * Egy jelvény-cella a trófea szekrényben. Controlled `open` + onClick toggle —
+ * mert touch-eszközön nincs hover, így mobilon kattintásra is megjelenik a
+ * leírás (lásd tip-matrix PlayerAvatarTooltip ugyanezzel a mintával).
+ */
+function BadgeCell({
+  name,
+  description,
+  badgeKey,
+  tier,
+  valueLabel,
+}: {
+  name: string;
+  description: string;
+  badgeKey: string;
+  tier: number;
+  valueLabel: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Tooltip open={open} onOpenChange={setOpen}>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            setOpen((v) => !v);
+          }}
+          aria-label={name}
+          className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-xl p-2.5 text-center transition ${
+            tier === 0 ? "opacity-25" : "bg-card"
+          }`}
+        >
+          <BadgeIcon badgeKey={badgeKey} tier={tier} size={32} />
+          <span className="font-medium text-[11px] text-foreground leading-tight">{name}</span>
+          {valueLabel && <span className="text-[10px] text-muted-foreground">{valueLabel}</span>}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{description}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 export function TrophyCabinet({ earnedBadges }: TrophyCabinetProps) {
@@ -36,26 +82,14 @@ export function TrophyCabinet({ earnedBadges }: TrophyCabinetProps) {
           }
 
           return (
-            <Tooltip key={badgeDef.key}>
-              <TooltipTrigger asChild>
-                <div
-                  className={`flex cursor-default flex-col items-center gap-1.5 rounded-xl p-2.5 text-center transition ${
-                    tier === 0 ? "opacity-25" : "bg-card"
-                  }`}
-                >
-                  <BadgeIcon badgeKey={badgeDef.key} tier={tier} size={32} />
-                  <span className="font-medium text-[11px] text-foreground leading-tight">
-                    {t(`${badgeDef.key}.name`)}
-                  </span>
-                  {valueLabel && (
-                    <span className="text-[10px] text-muted-foreground">{valueLabel}</span>
-                  )}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t(`${badgeDef.key}.description`)}</p>
-              </TooltipContent>
-            </Tooltip>
+            <BadgeCell
+              key={badgeDef.key}
+              badgeKey={badgeDef.key}
+              tier={tier}
+              name={t(`${badgeDef.key}.name`)}
+              description={t(`${badgeDef.key}.description`)}
+              valueLabel={valueLabel}
+            />
           );
         })}
       </div>
