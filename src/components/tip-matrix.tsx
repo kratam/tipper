@@ -287,13 +287,21 @@ export function TipMatrix({
         </span>
       );
     }
+    // Upcoming meccs: az idő fölé apró dátum (a játékos saját tz-e szerint,
+    // ugyanúgy mint az idő). Szoros leading + a th csökkentett függőleges
+    // paddingje együtt tartja a fejléc-sor magasságát ~változatlanul.
+    const tz = userTimeZone ?? timeZone;
+    const dt = new Date(m.scheduledAt);
     return (
-      <span className="text-[11px] text-faint">
-        {format.dateTime(new Date(m.scheduledAt), {
-          timeZone: userTimeZone ?? timeZone,
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
+      <span className="flex flex-col items-center leading-none">
+        <span className="font-light text-[9px] text-faint">
+          {format
+            .dateTime(dt, { timeZone: tz, day: "2-digit", month: "2-digit" })
+            .replace(/\s/g, "")}
+        </span>
+        <span className="mt-px text-[11px] text-faint">
+          {format.dateTime(dt, { timeZone: tz, hour: "2-digit", minute: "2-digit" })}
+        </span>
       </span>
     );
   }
@@ -479,7 +487,7 @@ export function TipMatrix({
             <tr>
               <th
                 className={cn(
-                  "sticky left-0 z-[2] border-border border-b bg-surface-2 px-2.5 py-2 text-left text-[11px] text-muted-foreground",
+                  "sticky left-0 z-[2] border-border border-b bg-surface-2 px-2.5 py-1.5 text-left text-[11px] text-muted-foreground",
                   curated && "top-0",
                 )}
               >
@@ -495,7 +503,7 @@ export function TipMatrix({
                   type="button"
                   onClick={() => setScope((s) => (s === "total" ? "round" : "total"))}
                   aria-pressed={scope === "round"}
-                  className="flex w-full flex-col items-center px-2.5 py-2 hover:bg-surface-3"
+                  className="flex w-full flex-col items-center px-2.5 py-1.5 hover:bg-surface-3"
                 >
                   <span>Σ</span>
                   <span
@@ -512,7 +520,7 @@ export function TipMatrix({
                 <th
                   key={m.id}
                   className={cn(
-                    "cursor-pointer border-border border-b bg-surface-2 px-2.5 py-2 align-bottom hover:bg-surface-3",
+                    "cursor-pointer border-border border-b bg-surface-2 px-2.5 py-1.5 align-bottom hover:bg-surface-3",
                     curated && "sticky top-0 z-[1]",
                   )}
                   onClick={() => onMatchClick(m)}
@@ -521,7 +529,7 @@ export function TipMatrix({
                     <FlagOrLogo team={m.homeTeam} />
                     <FlagOrLogo team={m.awayTeam} />
                   </span>
-                  <span className="mt-1 block">{headerResult(m)}</span>
+                  <span className="mt-0.5 block">{headerResult(m)}</span>
                 </th>
               ))}
             </tr>
