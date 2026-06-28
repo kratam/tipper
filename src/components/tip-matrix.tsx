@@ -139,6 +139,17 @@ export function TipMatrix({
   const format = useFormatter();
   const [isPending, startTransition] = useTransition();
 
+  // A fejléc meccs-időpontját a felhasználó SAJÁT (böngésző) időzónája szerint
+  // mutatjuk, nem a verseny helyszínéé (`timeZone` prop) szerint — a játékos
+  // számára az a hasznos, mikor kezdődik a meccs nála. SSR-kor a böngésző tz
+  // nem ismert, ezért kezdőértékként a venue tz-t használjuk (a szerver-render
+  // ezzel egyezik → nincs hydration mismatch), majd mount után átváltunk a
+  // böngésző tz-re. A venue idő/eltérés a meccs-popupban (BetDialog) marad.
+  const [userTimeZone, setUserTimeZone] = useState<string | null>(null);
+  useEffect(() => {
+    setUserTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, []);
+
   const [cache, setCache] = useState<Record<string, TipMatrixRound>>(
     initialRound ? { [initialRound.roundKey]: initialRound } : {},
   );
@@ -278,7 +289,11 @@ export function TipMatrix({
     }
     return (
       <span className="text-[11px] text-faint">
-        {format.dateTime(new Date(m.scheduledAt), { timeZone, hour: "2-digit", minute: "2-digit" })}
+        {format.dateTime(new Date(m.scheduledAt), {
+          timeZone: userTimeZone ?? timeZone,
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
       </span>
     );
   }
