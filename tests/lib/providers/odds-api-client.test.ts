@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { createOddsApiClient } from "@/lib/providers/odds-api/client";
+import { createOddsApiClient, ODDS_API_MAX_ATTEMPTS } from "@/lib/providers/odds-api/client";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -86,4 +86,60 @@ it("requests multi-event odds with comma-separated eventIds", async () => {
 
 it("throws when ODDS_API_KEY is missing", () => {
   expect(() => createOddsApiClient()).toThrow(/ODDS_API_KEY/);
+});
+
+// Az odds-api rendszeresen 500 "Failed to fetch events"-et ad terhelés alatt
+// (a foci-VB lekérés ~7 próbából 1-szer jött be). Egyetlen 500 ne hasalassza el
+// a sync-et — de CSAK az 500 átmeneti, a 4xx (404 League not found, 401) végleges.
+it("retries on HTTP 500, then succeeds", async () => {
+  vi.stubEnv("ODDS_API_KEY", "k");
+  let calls = 0;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => {
+      calls++;
+      if (calls < 3) {
+        return new Response(JSON.stringify({ error: "Failed to fetch events" }), { status: 500 });
+      }
+      return new Response(JSON.stringify([{ id: 7 }]), { status: 200 });
+    }),
+  );
+  const events = await createOddsApiClient({ retryBaseDelayMs: 0 }).fetchEvents(
+    "football",
+    "international-fifa-world-cup",
+  );
+  expect(calls).toBe(3);
+  expect(events[0].id).toBe(7);
+});
+
+it("does NOT retry on HTTP 404 (League not found)", async () => {
+  vi.stubEnv("ODDS_API_KEY", "k");
+  let calls = 0;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => {
+      calls++;
+      return new Response(JSON.stringify({ error: "League not found" }), { status: 404 });
+    }),
+  );
+  await expect(
+    createOddsApiClient({ retryBaseDelayMs: 0 }).fetchEvents("football", "nope"),
+  ).rejects.toThrow(/404/);
+  expect(calls).toBe(1);
+});
+
+it("stops retrying after the attempt cap on persistent 500", async () => {
+  vi.stubEnv("ODDS_API_KEY", "k");
+  let calls = 0;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => {
+      calls++;
+      return new Response(JSON.stringify({ error: "Failed to fetch events" }), { status: 500 });
+    }),
+  );
+  await expect(
+    createOddsApiClient({ retryBaseDelayMs: 0 }).fetchEvents("football", "wc"),
+  ).rejects.toThrow(/500/);
+  expect(calls).toBe(ODDS_API_MAX_ATTEMPTS);
 });
