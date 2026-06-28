@@ -53,7 +53,7 @@ function BadgeCell({
           {valueLabel && <span className="text-[10px] text-muted-foreground">{valueLabel}</span>}
         </button>
       </TooltipTrigger>
-      <TooltipContent>
+      <TooltipContent collisionPadding={12} className="max-w-[220px] text-center">
         <p>{description}</p>
       </TooltipContent>
     </Tooltip>
