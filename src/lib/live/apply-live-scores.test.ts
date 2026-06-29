@@ -41,14 +41,14 @@ const round: TipMatrixRound = {
 
 describe("applyLiveScores", () => {
   it("liveData hiányában változatlan round-ot ad (másolatban)", () => {
-    expect(applyLiveScores(round, undefined)).toEqual(round);
+    expect(applyLiveScores(round, undefined, "u1")).toEqual(round);
   });
 
   it("a meccs score-ját és status-át frissíti a snapshotból", () => {
     const live: LiveMatchData[] = [
       { matchId: "m1", homeScore: 3, awayScore: 2, status: "finished", userBets: [] },
     ];
-    const out = applyLiveScores(round, live);
+    const out = applyLiveScores(round, live, "u1");
     expect(out.matches[0].homeScore).toBe(3);
     expect(out.matches[0].awayScore).toBe(2);
     expect(out.matches[0].status).toBe("finished");
@@ -73,8 +73,66 @@ describe("applyLiveScores", () => {
         ],
       },
     ];
-    const out = applyLiveScores(round, live);
+    const out = applyLiveScores(round, live, "u1");
     expect(out.bets[0].payout).toBe(99);
     expect(out.bets[0].exactScoreCorrect).toBe(true);
+  });
+
+  it("CSAK a néző saját sorát frissíti — más játékos (u2) tippje változatlan", () => {
+    // Multi-user round: u1 (néző) ÉS u2 is tippelt UGYANARRA a befejezett
+    // meccsre. A snapshot CSAK u1 élő tippjét hordozza. u1 sora kapja az élő
+    // payout-ot, u2 sora ÉRINTETLEN marad.
+    const multiUserRound: TipMatrixRound = {
+      ...round,
+      bets: [
+        round.bets[0], // u1, payout: null
+        {
+          matchId: "m1",
+          userId: "u2",
+          predictedHome: 0,
+          predictedAway: 3,
+          stake: 10,
+          oddsAtBet: "1.5",
+          payout: 42,
+          result1x2Correct: false,
+          goalDiffCorrect: false,
+          exactScoreCorrect: false,
+        },
+      ],
+    };
+    const live: LiveMatchData[] = [
+      {
+        matchId: "m1",
+        homeScore: 2,
+        awayScore: 1,
+        status: "finished",
+        userBets: [
+          {
+            betId: "u1-bet",
+            matchId: "m1",
+            result1x2Correct: true,
+            goalDiffCorrect: true,
+            exactScoreCorrect: true,
+            payout: 99,
+          },
+        ],
+      },
+    ];
+    const out = applyLiveScores(multiUserRound, live, "u1");
+
+    const u1Row = out.bets.find((b) => b.userId === "u1");
+    const u2Row = out.bets.find((b) => b.userId === "u2");
+
+    // u1 (néző) kapja az élő értékeket
+    expect(u1Row?.payout).toBe(99);
+    expect(u1Row?.result1x2Correct).toBe(true);
+    expect(u1Row?.goalDiffCorrect).toBe(true);
+    expect(u1Row?.exactScoreCorrect).toBe(true);
+
+    // u2 sora VÁLTOZATLAN (nem a néző payout-jával felülírva)
+    expect(u2Row?.payout).toBe(42);
+    expect(u2Row?.result1x2Correct).toBe(false);
+    expect(u2Row?.goalDiffCorrect).toBe(false);
+    expect(u2Row?.exactScoreCorrect).toBe(false);
   });
 });

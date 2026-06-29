@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getTipMatrixRoundAction } from "@/actions/tip-matrix";
 import { liveKeys } from "@/lib/live/query-keys";
 import type { TipMatrixRound } from "@/queries/tip-matrix";
@@ -19,6 +19,10 @@ export function useTipMatrixRound(
       return r ?? initialRound;
     },
     initialData: initialRound.roundKey === roundKey ? initialRound : undefined,
+    // Forduló-váltáskor (még nem cache-elt roundKey) a friss fetch alatt az
+    // ELŐZŐ forduló adatát mutatjuk (lapozás-UX), nem az initialRound-ot —
+    // így nem villan be tévesen a kezdő forduló tartalma.
+    placeholderData: keepPreviousData,
     staleTime: Number.POSITIVE_INFINITY,
   });
   return data ?? initialRound;

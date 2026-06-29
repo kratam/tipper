@@ -3,20 +3,24 @@ import type { MatchStatus } from "@/lib/tip-matrix";
 import type { TipMatrixRound } from "@/queries/tip-matrix";
 
 // A közös `matches` snapshot beolvasztása a tip-mátrix fordulóba: a meccs
-// score/status MINDIG a snapshotból (egyetlen igazságforrás), a tipp-payout a
-// néző saját tippjeire a snapshot userBets-éből. A többi játékos payout-ja a
-// tipMatrix query friss lekérésekor frissül. A round szerkezete (ki mit
-// tippelt) változatlan.
+// score/status MINDIG a snapshotból (egyetlen igazságforrás), a tipp-payout
+// CSAK a néző (currentUserId) saját tippjeire a snapshot userBets-éből. A
+// snapshot `userBets`-e KIZÁRÓLAG a néző tippjeit tartalmazza, míg a
+// `round.bets` több-felhasználós (minden játékos tippje a lockolt meccsekre);
+// ezért a payout-merge-et a néző soraira kell szűkíteni, különben más játékos
+// sorát a néző értékeivel írnánk felül. A többi játékos payout-ja a tipMatrix
+// query friss lekérésekor frissül. A round szerkezete (ki mit tippelt) változatlan.
 export function applyLiveScores(
   round: TipMatrixRound,
   liveData: LiveMatchData[] | undefined,
+  currentUserId: string,
 ): TipMatrixRound {
   if (!liveData) return round;
 
   const liveMatch = new Map(liveData.map((m) => [m.matchId, m]));
-  // payout-kulcs: (matchId, betId) — de a tip-mátrix tippnek nincs betId-je,
-  // ezért a néző saját tippjeit a snapshot matchId-jén belül egyetlen
-  // userBets-elemmel párosítjuk, ha az adott meccsre a néző tippelt.
+  // A snapshot userBets-e a néző sajátja; matchId-re kulcsolva. A tip-mátrix
+  // tippnek nincs betId linkje a multi-user round bet-ekhez, ezért a néző
+  // saját sorát a (currentUserId, matchId) páron azonosítjuk.
   const livePayoutByMatch = new Map(liveData.map((m) => [m.matchId, m.userBets]));
 
   return {
@@ -32,11 +36,12 @@ export function applyLiveScores(
       };
     }),
     bets: round.bets.map((bet) => {
+      // CSAK a néző saját sorát frissítjük — a snapshot userBets-e a nézőé,
+      // más játékos sorát nem szabad a néző payout-jával felülírni.
+      if (bet.userId !== currentUserId) return bet;
       const liveBets = livePayoutByMatch.get(bet.matchId);
       if (!liveBets || liveBets.length === 0) return bet;
-      // A snapshot userBets-e a néző sajátja; a tip-mátrixban a néző sorát a
-      // matchId azonosítja (egy meccsre egy tipp / játékos). Csak akkor írunk
-      // payout-ot, ha van snapshot-tipp erre a meccsre.
+      // Egy meccsre egy tipp / játékos, így a néző saját élő tippje a [0].
       const liveBet = liveBets[0];
       return {
         ...bet,

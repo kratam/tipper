@@ -180,7 +180,7 @@ export function TipMatrix({
     roundKey ?? initialRound?.roundKey ?? "",
   );
   const liveMatchData = useMatchesRaw(tournamentId);
-  const round = initialRound ? applyLiveScores(baseRound, liveMatchData) : null;
+  const round = initialRound ? applyLiveScores(baseRound, liveMatchData, currentUserId) : null;
 
   // Meccs-kattintáskor (ha nincs onMatchSelect) a meccs-kártyával AZONOS
   // BetDialog-ot nyitjuk, lustán betöltve az adott meccs bet-infóját.
