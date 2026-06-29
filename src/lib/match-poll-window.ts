@@ -2,7 +2,7 @@
 // vagyunk: kickoff előtt 10 perctől a kezdés után 3 óráig (meccs + lezárás/
 // scoring). Ezen kívül az adat úgyse változik, így nem kérdezzük a DB-t — ezért a
 // Neon compute el tud aludni (scale-to-zero).
-// Lásd: use-leaderboard-polling.ts, use-match-polling.ts.
+// Lásd: use-leaderboard-polling.ts, hooks/live/use-matches.ts.
 
 export const POLL_LEAD_MS = 10 * 60 * 1000;
 export const POLL_WINDOW_MS = 3 * 60 * 60 * 1000;
