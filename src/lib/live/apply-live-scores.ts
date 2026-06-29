@@ -10,10 +10,18 @@ import type { TipMatrixRound } from "@/queries/tip-matrix";
 // ezért a payout-merge-et a néző soraira kell szűkíteni, különben más játékos
 // sorát a néző értékeivel írnánk felül. A többi játékos payout-ja a tipMatrix
 // query friss lekérésekor frissül. A round szerkezete (ki mit tippelt) változatlan.
+//
+// A snapshot userBets-e NEM csoport-szűrt: a néző UGYANARRA a meccsre több
+// csoportban (hivatalos + saját) is tippelhet, így egy matchId-hez TÖBB userBets
+// tartozhat, eltérő payouttal (oddsBoost/stake/bónusz). A tip-mátrix viszont
+// csoport-szűrt (round.bets WHERE groupId = X), ezért a néző élő tippjét a
+// (currentUserId, groupId) páron kell azonosítani — különben más csoport
+// payout-ját/nyerés-színét írnánk a néző cellájába.
 export function applyLiveScores(
   round: TipMatrixRound,
   liveData: LiveMatchData[] | undefined,
   currentUserId: string,
+  groupId: string,
 ): TipMatrixRound {
   if (!liveData) return round;
 
@@ -41,8 +49,11 @@ export function applyLiveScores(
       if (bet.userId !== currentUserId) return bet;
       const liveBets = livePayoutByMatch.get(bet.matchId);
       if (!liveBets || liveBets.length === 0) return bet;
-      // Egy meccsre egy tipp / játékos, így a néző saját élő tippje a [0].
-      const liveBet = liveBets[0];
+      // A néző UGYANARRA a meccsre több csoportban is tippelhet, ezért a
+      // [0] index önkényes (DB-sorrend) lenne — a néző élő tippjét EBBEN a
+      // csoportban a groupId-vel azonosítjuk. Ha nincs ilyen, a sor érintetlen.
+      const liveBet = liveBets.find((lb) => lb.groupId === groupId);
+      if (!liveBet) return bet;
       return {
         ...bet,
         result1x2Correct: liveBet.result1x2Correct,

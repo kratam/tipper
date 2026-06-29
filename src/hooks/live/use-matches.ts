@@ -39,6 +39,9 @@ export function useMatches(
 
 // A matches query NYERS olvasása (merge nélkül) — a TipMatrix score/payout
 // beolvasztásához. Ugyanaz a queryKey, mint a useMatches → közös cache.
+// NINCS saját passzív refetchInterval: a meccs-ablakban a useMatches pollol
+// (ahol mountolva van, közös cache-kulcs), TipMatrix-only oldalon a frissítés
+// focus/invalidáció útján jön. (Phase 2/4 follow-up: aktív polling itt is.)
 export function useMatchesRaw(tournamentId: string): LiveMatchData[] | undefined {
   const { data } = useQuery({
     queryKey: liveKeys.matches(tournamentId),

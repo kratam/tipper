@@ -12,6 +12,7 @@ import { getGroupLeaderboard } from "@/queries/leaderboard";
 export interface LiveBetData {
   betId: string;
   matchId: string;
+  groupId: string;
   result1x2Correct: boolean | null;
   goalDiffCorrect: boolean | null;
   exactScoreCorrect: boolean | null;
@@ -71,6 +72,7 @@ export async function getLiveMatchData(tournamentId: string): Promise<LiveMatchD
     userBets: (betsByMatch.get(m.id) ?? []).map((b) => ({
       betId: b.id,
       matchId: b.matchId,
+      groupId: b.groupId,
       result1x2Correct: b.result1x2Correct,
       goalDiffCorrect: b.goalDiffCorrect,
       exactScoreCorrect: b.exactScoreCorrect,

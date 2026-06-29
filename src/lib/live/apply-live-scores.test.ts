@@ -41,20 +41,20 @@ const round: TipMatrixRound = {
 
 describe("applyLiveScores", () => {
   it("liveData hiányában változatlan round-ot ad (másolatban)", () => {
-    expect(applyLiveScores(round, undefined, "u1")).toEqual(round);
+    expect(applyLiveScores(round, undefined, "u1", "g1")).toEqual(round);
   });
 
   it("a meccs score-ját és status-át frissíti a snapshotból", () => {
     const live: LiveMatchData[] = [
       { matchId: "m1", homeScore: 3, awayScore: 2, status: "finished", userBets: [] },
     ];
-    const out = applyLiveScores(round, live, "u1");
+    const out = applyLiveScores(round, live, "u1", "g1");
     expect(out.matches[0].homeScore).toBe(3);
     expect(out.matches[0].awayScore).toBe(2);
     expect(out.matches[0].status).toBe("finished");
   });
 
-  it("a tippek payout/helyesség mezőit a (userId, matchId) egyezés alapján frissíti", () => {
+  it("a tippek payout/helyesség mezőit a (userId, groupId, matchId) egyezés alapján frissíti", () => {
     const live: LiveMatchData[] = [
       {
         matchId: "m1",
@@ -65,6 +65,7 @@ describe("applyLiveScores", () => {
           {
             betId: "ignored",
             matchId: "m1",
+            groupId: "g1",
             result1x2Correct: true,
             goalDiffCorrect: true,
             exactScoreCorrect: true,
@@ -73,7 +74,7 @@ describe("applyLiveScores", () => {
         ],
       },
     ];
-    const out = applyLiveScores(round, live, "u1");
+    const out = applyLiveScores(round, live, "u1", "g1");
     expect(out.bets[0].payout).toBe(99);
     expect(out.bets[0].exactScoreCorrect).toBe(true);
   });
@@ -110,6 +111,7 @@ describe("applyLiveScores", () => {
           {
             betId: "u1-bet",
             matchId: "m1",
+            groupId: "g1",
             result1x2Correct: true,
             goalDiffCorrect: true,
             exactScoreCorrect: true,
@@ -118,7 +120,7 @@ describe("applyLiveScores", () => {
         ],
       },
     ];
-    const out = applyLiveScores(multiUserRound, live, "u1");
+    const out = applyLiveScores(multiUserRound, live, "u1", "g1");
 
     const u1Row = out.bets.find((b) => b.userId === "u1");
     const u2Row = out.bets.find((b) => b.userId === "u2");
@@ -134,5 +136,51 @@ describe("applyLiveScores", () => {
     expect(u2Row?.result1x2Correct).toBe(false);
     expect(u2Row?.goalDiffCorrect).toBe(false);
     expect(u2Row?.exactScoreCorrect).toBe(false);
+  });
+
+  it("multi-group: a néző (u1) UGYANARRA a meccsre két csoportban tippelt — a g1 mátrix a g1 payout-ot kapja, nem a g2-ét", () => {
+    // A néző u1 ugyanarra a befejezett m1 meccsre tippelt g1-ben ÉS g2-ben,
+    // ELTÉRŐ payouttal (oddsBoost/stake/bónusz miatt). A snapshot userBets-e
+    // NEM csoport-szűrt, és a g2 tipp van ELŐL a listában → a régi liveBets[0]
+    // a ROSSZ (g2) csoport payout-ját írná a g1 mátrix cellájába. A groupId-
+    // szűréssel a g1 mátrix a g1 payout-ot kapja.
+    const live: LiveMatchData[] = [
+      {
+        matchId: "m1",
+        homeScore: 2,
+        awayScore: 1,
+        status: "finished",
+        userBets: [
+          {
+            // g2 SZÁNDÉKOSAN előrébb — liveBets[0] ezt választaná (RED)
+            betId: "u1-g2-bet",
+            matchId: "m1",
+            groupId: "g2",
+            result1x2Correct: false,
+            goalDiffCorrect: false,
+            exactScoreCorrect: false,
+            payout: 7,
+          },
+          {
+            betId: "u1-g1-bet",
+            matchId: "m1",
+            groupId: "g1",
+            result1x2Correct: true,
+            goalDiffCorrect: true,
+            exactScoreCorrect: true,
+            payout: 99,
+          },
+        ],
+      },
+    ];
+    // A round a g1 mátrix (round.bets a g1-re szűrt — u1, payout: null)
+    const out = applyLiveScores(round, live, "u1", "g1");
+    const u1Row = out.bets.find((b) => b.userId === "u1");
+
+    // A g1 payout-ot kapja (99), NEM a g2-ét (7)
+    expect(u1Row?.payout).toBe(99);
+    expect(u1Row?.result1x2Correct).toBe(true);
+    expect(u1Row?.goalDiffCorrect).toBe(true);
+    expect(u1Row?.exactScoreCorrect).toBe(true);
   });
 });
