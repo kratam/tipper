@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { Nav } from "@/components/nav";
+import { QueryProvider } from "@/components/query-provider";
 import { SWRProvider } from "@/components/swr-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { routing } from "@/i18n/routing";
@@ -37,11 +38,13 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <SWRProvider>
-        <Nav user={navUser} activeTournaments={activeTournaments} />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
-        <Toaster />
-      </SWRProvider>
+      <QueryProvider>
+        <SWRProvider>
+          <Nav user={navUser} activeTournaments={activeTournaments} />
+          <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
+          <Toaster />
+        </SWRProvider>
+      </QueryProvider>
     </NextIntlClientProvider>
   );
 }
