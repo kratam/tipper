@@ -120,7 +120,7 @@ await Promise.all([
 return <HydrationBoundary state={dehydrate(qc)}><GroupDetailTabs .../></HydrationBoundary>;
 ```
 
-**Átmeneti megengedés:** ahol a HydrationBoundary-re átállás egy lépésben kockázatos, a meglévő SSR-propot a `useQuery({ initialData })`-ba adjuk kezdőértékként. Cél a HydrationBoundary, de a fázisos átállás megengedi az `initialData`-hidat.
+**Döntés:** a `HydrationBoundary` az egységes minta **minden** oldalon — nem keverünk `initialData`-hidat. Minden élő-domain a megfelelő oldal Server Componentjében `prefetchQuery`-vel töltődik, és `dehydrate`-elve kerül a kliensre. A komponensek kizárólag a `useQuery` hookokból olvasnak, közvetlen SSR-prop átadás (pl. `initialMatrixRound`, `leaderboard` prop) nélkül. Ez egységesebb (egyetlen adat-belépési pont komponensenként), cserébe több meglévő prop-átadást kell hookra cserélni — ezt a fázisok kezelik.
 
 ---
 
