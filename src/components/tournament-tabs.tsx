@@ -402,6 +402,7 @@ export function TournamentTabs({
         topPublicGroups={topPublicGroups}
         currentUserId={currentUserId}
         timeZone={timezone}
+        tournamentId={tournamentId}
       />
     </>
   );

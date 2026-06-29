@@ -573,6 +573,7 @@ export function TipMatrix({
           groups={[betInfo.group]}
           currentUserId={currentUserId}
           timeZone={timeZone}
+          tournamentId={tournamentId}
           open={!!betMatchId}
           onOpenChange={(o) => {
             if (!o) {
