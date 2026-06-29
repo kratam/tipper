@@ -9,22 +9,21 @@ import {
   Lock,
 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import {
-  getTipMatrixBetInfoAction,
-  getTipMatrixRoundAction,
-  type TipMatrixBetInfo,
-} from "@/actions/tip-matrix";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getTipMatrixBetInfoAction, type TipMatrixBetInfo } from "@/actions/tip-matrix";
 import { BetDialog } from "@/components/bet-dialog";
 import { LeaderboardBadges } from "@/components/leaderboard-badges";
 import { TokenIcon } from "@/components/token-icon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useMatchesRaw } from "@/hooks/live/use-matches";
+import { useTipMatrixRound } from "@/hooks/live/use-tip-matrix-round";
 import { Link } from "@/i18n/navigation";
 import { predictionToneClass } from "@/lib/bet-display";
 import { getInitials } from "@/lib/initials";
 import { splitCuratedRows } from "@/lib/leaderboard-utils";
+import { applyLiveScores } from "@/lib/live/apply-live-scores";
 import { betNet, buildMatrixRows, type MatrixRowDisplay, type MatrixScope } from "@/lib/tip-matrix";
 import { cn } from "@/lib/utils";
 import type { TipMatrixBet, TipMatrixMatch, TipMatrixRound } from "@/queries/tip-matrix";
@@ -39,6 +38,7 @@ export interface TipMatrixLeaderboardRow {
 
 interface TipMatrixProps {
   groupId: string;
+  tournamentId: string;
   currentUserId: string;
   timeZone: string;
   leaderboard: TipMatrixLeaderboardRow[];
@@ -58,6 +58,21 @@ interface TipMatrixProps {
 
 const cellKey = (userId: string, matchId: string) => `${userId}__${matchId}`;
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+
+// Üres forduló-placeholder, hogy a useTipMatrixRound hook MINDIG egy nem-null
+// round-dal hívható legyen (feltétel nélküli hook-hívás), akkor is, ha az
+// initialRound null. A tényleges „nincs forduló" UI-t az initialRound==null ág
+// kezeli (a round végül null lesz).
+const EMPTY_ROUND: TipMatrixRound = {
+  roundKey: "",
+  roundKind: "group",
+  roundGroupNumber: null,
+  roundKnockoutTeams: null,
+  roundIsFinal: false,
+  orderedRoundKeys: [],
+  matches: [],
+  bets: [],
+};
 
 /**
  * Avatár a játékos-oszlopban. Mobilon a nevet nem írjuk ki (helyhiány), ezért
@@ -125,6 +140,7 @@ function PlayerAvatarTooltip({
 
 export function TipMatrix({
   groupId,
+  tournamentId,
   currentUserId,
   timeZone,
   leaderboard,
@@ -137,7 +153,6 @@ export function TipMatrix({
 }: TipMatrixProps) {
   const t = useTranslations("tipMatrix");
   const format = useFormatter();
-  const [isPending, startTransition] = useTransition();
 
   // A fejléc meccs-időpontját a felhasználó SAJÁT (böngésző) időzónája szerint
   // mutatjuk, nem a verseny helyszínéé (`timeZone` prop) szerint — a játékos
@@ -150,40 +165,22 @@ export function TipMatrix({
     setUserTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
 
-  const [cache, setCache] = useState<Record<string, TipMatrixRound>>(
-    initialRound ? { [initialRound.roundKey]: initialRound } : {},
-  );
   const [roundKey, setRoundKey] = useState<string | null>(initialRound?.roundKey ?? null);
   const [scope, setScope] = useState<MatrixScope>("total");
   const [gapOpen, setGapOpen] = useState(false);
 
-  const round = roundKey ? cache[roundKey] : null;
-
-  // A round-adat kliens-state-be (`cache`) van zárva, ezért egy sikeres tipp
-  // utáni `router.refresh()` friss `initialRound` propja önmagában NEM frissíti
-  // a táblát (a useState initializer csak mount-kor fut). Ezért az új
-  // `initialRound` propot beolvasztjuk a cache-be, és — ha a megjelenített
-  // forduló ez — a frissített tippek azonnal látszanak.
-  useEffect(() => {
-    if (!initialRound) return;
-    setCache((c) =>
-      c[initialRound.roundKey] === initialRound
-        ? c
-        : { ...c, [initialRound.roundKey]: initialRound },
-    );
-  }, [initialRound]);
-
-  // Sikeres tipp-mutáció után az ÉPP látott fordulót töltjük újra a szerverről.
-  // Ez pontosabb a router.refresh-propnál: akkor is a helyes fordulót frissíti,
-  // ha a felhasználó az alap (initial) fordulóról tovább lapozott.
-  const refreshCurrentRound = useCallback(() => {
-    const key = roundKey;
-    if (!key) return;
-    startTransition(async () => {
-      const data = await getTipMatrixRoundAction(groupId, key);
-      if (data) setCache((c) => ({ ...c, [data.roundKey]: data }));
-    });
-  }, [groupId, roundKey]);
+  // A forduló SZERKEZETE (ki mit tippelt) a tipMatrix query-ből; a változó
+  // score/status/payout a közös `matches` query-ből, applyLiveScores-szal
+  // beolvasztva → mindig konzisztens a MatchCard-dal (egyetlen igazságforrás).
+  // A hookok feltétel NÉLKÜL hívódnak (EMPTY_ROUND placeholder), hogy a
+  // hook-sorrend stabil legyen akkor is, ha az initialRound null.
+  const baseRound = useTipMatrixRound(
+    groupId,
+    initialRound ?? EMPTY_ROUND,
+    roundKey ?? initialRound?.roundKey ?? "",
+  );
+  const liveMatchData = useMatchesRaw(tournamentId);
+  const round = initialRound ? applyLiveScores(baseRound, liveMatchData) : null;
 
   // Meccs-kattintáskor (ha nincs onMatchSelect) a meccs-kártyával AZONOS
   // BetDialog-ot nyitjuk, lustán betöltve az adott meccs bet-infóját.
@@ -254,19 +251,11 @@ export function TipMatrix({
     roundScopeLabel = `1/${(round.roundKnockoutTeams ?? 0) / 2}`;
   }
 
+  // A forduló-lapozás csak a `roundKey`-t állítja; a betöltést a
+  // useTipMatrixRound hook végzi a roundKey változására (közös TanStack cache).
   function goToRound(key: string | null) {
     if (!key) return;
-    if (cache[key]) {
-      setRoundKey(key);
-      return;
-    }
-    startTransition(async () => {
-      const data = await getTipMatrixRoundAction(groupId, key);
-      if (data) {
-        setCache((c) => ({ ...c, [data.roundKey]: data }));
-        setRoundKey(data.roundKey);
-      }
-    });
+    setRoundKey(key);
   }
 
   const meRow = displayRows.find((r) => r.userId === currentUserId);
@@ -460,7 +449,7 @@ export function TipMatrix({
           variant="ghost"
           size="icon-sm"
           onClick={() => goToRound(prevKey)}
-          disabled={!prevKey || isPending}
+          disabled={!prevKey}
           aria-label={t("prevRound")}
         >
           <ChevronLeft className="size-4" />
@@ -470,7 +459,7 @@ export function TipMatrix({
           variant="ghost"
           size="icon-sm"
           onClick={() => goToRound(nextKey)}
-          disabled={!nextKey || isPending}
+          disabled={!nextKey}
           aria-label={t("nextRound")}
         >
           <ChevronRight className="size-4" />
@@ -585,7 +574,6 @@ export function TipMatrix({
           currentUserId={currentUserId}
           timeZone={timeZone}
           open={!!betMatchId}
-          onBetMutated={refreshCurrentRound}
           onOpenChange={(o) => {
             if (!o) {
               setBetMatchId(null);

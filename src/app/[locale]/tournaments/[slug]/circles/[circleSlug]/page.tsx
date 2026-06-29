@@ -122,6 +122,7 @@ export default async function CircleDetailPage({
       {header}
       <CircleDetailTabs
         circleId={circle.id}
+        tournamentId={official.tournamentId}
         isOwner={isOwner}
         currentUserId={user.id}
         memberCount={circle.members.length}

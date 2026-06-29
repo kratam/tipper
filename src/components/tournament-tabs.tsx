@@ -289,6 +289,7 @@ export function TournamentTabs({
         {officialCard && (
           <TournamentBoardPanel
             currentUserId={currentUserId}
+            tournamentId={tournamentId}
             timeZone={timezone}
             officialRank={officialCard.myRank}
             officialProfit={officialCard.myProfit}

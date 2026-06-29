@@ -27,6 +27,7 @@ export interface BoardTab {
 
 export interface TournamentBoardPanelProps {
   currentUserId: string;
+  tournamentId: string;
   timeZone: string;
   officialRank: number | null;
   officialProfit: number;
@@ -41,6 +42,7 @@ export interface TournamentBoardPanelProps {
 
 export function TournamentBoardPanel({
   currentUserId,
+  tournamentId,
   timeZone,
   officialRank,
   officialProfit,
@@ -162,6 +164,7 @@ export function TournamentBoardPanel({
               key={activeTab.key}
               curated
               groupId={activeTab.groupId}
+              tournamentId={tournamentId}
               currentUserId={currentUserId}
               timeZone={timeZone}
               leaderboard={activeTab.leaderboard}

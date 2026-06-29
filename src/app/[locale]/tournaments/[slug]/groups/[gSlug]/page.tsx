@@ -118,6 +118,7 @@ export default async function GroupDetailPage({
 
       <GroupDetailTabs
         groupId={group.id}
+        tournamentId={group.tournamentId}
         isOwner={isOwner}
         isOfficial={group.isOfficial}
         canEditSettings={canEditSettings}

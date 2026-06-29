@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { getLiveMatchData } from "@/actions/live";
+import { getLiveMatchData, type LiveMatchData } from "@/actions/live";
 import type { MatchCardData } from "@/components/match-card";
 import { mergeMatchData } from "@/lib/live/merge-match-data";
 import { liveKeys } from "@/lib/live/query-keys";
@@ -35,4 +35,15 @@ export function useMatches(
   });
 
   return useMemo(() => mergeMatchData(matches, data), [matches, data]);
+}
+
+// A matches query NYERS olvasása (merge nélkül) — a TipMatrix score/payout
+// beolvasztásához. Ugyanaz a queryKey, mint a useMatches → közös cache.
+export function useMatchesRaw(tournamentId: string): LiveMatchData[] | undefined {
+  const { data } = useQuery({
+    queryKey: liveKeys.matches(tournamentId),
+    queryFn: () => getLiveMatchData(tournamentId),
+    enabled: !!tournamentId,
+  });
+  return data;
 }
