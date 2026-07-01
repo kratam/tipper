@@ -57,7 +57,10 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
       data-slot="tabs-trigger"
       className={cn(
         "relative inline-flex h-10 items-center justify-center gap-[7px] whitespace-nowrap rounded-[calc(var(--radius)*0.62)] border-0 px-3.5 font-semibold text-[14px] text-muted-foreground outline-none transition-[color,box-shadow] duration-150 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 max-[560px]:scroll-ml-1 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
-        "data-active:bg-linear-to-b data-active:from-surface-3 data-active:to-surface data-active:text-foreground data-active:shadow-[0_1px_0_var(--border-strong)_inset,0_6px_14px_-10px_rgba(0,0,0,0.7),0_0_0_1px_var(--gold-line)_inset]",
+        "data-active:text-foreground",
+        // Raised gold-bordered pill only in the segmented (default) variant; the line
+        // variant keeps just the gold underline below (no box).
+        "group-data-[variant=default]/tabs-list:data-active:bg-linear-to-b group-data-[variant=default]/tabs-list:data-active:from-surface-3 group-data-[variant=default]/tabs-list:data-active:to-surface group-data-[variant=default]/tabs-list:data-active:shadow-[0_1px_0_var(--border-strong)_inset,0_6px_14px_-10px_rgba(0,0,0,0.7),0_0_0_1px_var(--gold-line)_inset]",
         "after:pointer-events-none after:absolute after:inset-x-[22%] after:bottom-[5px] after:h-[2.5px] after:rounded-full after:bg-gold after:opacity-0 after:shadow-[0_0_8px_var(--gold)] after:transition-opacity data-active:after:opacity-100",
         className,
       )}
