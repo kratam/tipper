@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { Info, Loader2, Lock, Minus, Plus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ReactNode, useState, useTransition } from "react";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRouter } from "@/i18n/navigation";
+import { invalidateAfterBet } from "@/lib/live/invalidate";
 import { formatEffectiveOdds } from "@/lib/odds-display";
 import { clampPerMatch, computeStakePresets } from "@/lib/stake-presets";
 
@@ -44,6 +46,7 @@ export interface GroupBetInfo {
 
 interface BetFormProps {
   matchId: string;
+  tournamentId: string;
   groups: GroupBetInfo[];
   odds: { homeOdds: string; drawOdds: string; awayOdds: string } | null;
   homeTeam: { name: string; logoUrl: string | null };
@@ -137,6 +140,7 @@ function BalanceInfoTooltip({
 
 export function BetForm({
   matchId,
+  tournamentId,
   groups,
   odds,
   homeTeam,
@@ -147,6 +151,7 @@ export function BetForm({
   const t = useTranslations("betting");
   const tMatches = useTranslations("matches");
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isPending, startTransition] = useTransition();
 
   const [homeScore, setHomeScore] = useState<number>(groups[0]?.existingBet?.predictedHome ?? 0);
@@ -198,6 +203,7 @@ export function BetForm({
         description: isUpdate ? t("updateSuccessDesc", params) : t("successDesc", params),
         icon: isUpdate ? "✏️" : "✅",
       });
+      await invalidateAfterBet(queryClient, { tournamentId, groupId });
       router.refresh();
       onBetMutated?.();
       onSuccess?.();
@@ -216,6 +222,7 @@ export function BetForm({
         description: t("cancelSuccessDesc", { group: group?.groupName ?? "" }),
         icon: "🗑️",
       });
+      await invalidateAfterBet(queryClient, { tournamentId, groupId: group?.groupId ?? "" });
       router.refresh();
       onBetMutated?.();
       onSuccess?.();

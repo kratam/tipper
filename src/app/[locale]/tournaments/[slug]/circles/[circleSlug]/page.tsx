@@ -1,13 +1,17 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
+import { getLiveMatchData } from "@/actions/live";
 import { CircleDetailTabs } from "@/components/circle-detail-tabs";
 import { InviteCodeBadge } from "@/components/invite-code-badge";
 import { TournamentLogo } from "@/components/tournament-logo";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { filterAndRerankLeaderboard } from "@/lib/circle-leaderboard";
+import { liveKeys } from "@/lib/live/query-keys";
 import { ensureOfficialMembership } from "@/lib/official-group";
+import { getQueryClient } from "@/lib/query-client";
 import { loadBadgesForUsers } from "@/queries/badges";
 import { getGroupBetsForFinishedMatches } from "@/queries/bets";
 import { getCircleBySlug, getOfficialGroupByTournamentId } from "@/queries/circles";
@@ -100,6 +104,21 @@ export default async function CircleDetailPage({
     ]),
   );
   const userStats = Object.fromEntries([...statsMap.entries()]);
+
+  const queryClient = getQueryClient();
+  await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: liveKeys.matches(official.tournamentId),
+      queryFn: () => getLiveMatchData(official.tournamentId),
+    }),
+    initialMatrixRound
+      ? queryClient.prefetchQuery({
+          queryKey: liveKeys.tipMatrix(official.id, initialMatrixRound.roundKey),
+          queryFn: async () => initialMatrixRound,
+        })
+      : Promise.resolve(),
+  ]);
+
   const bets = groupBetsRaw
     .filter((b) => memberIds.has(b.userId))
     .map((b) => ({
@@ -118,31 +137,34 @@ export default async function CircleDetailPage({
     }));
 
   return (
-    <div className="flex flex-col gap-6">
-      {header}
-      <CircleDetailTabs
-        circleId={circle.id}
-        isOwner={isOwner}
-        currentUserId={user.id}
-        memberCount={circle.members.length}
-        oddsBoost={official.oddsBoost}
-        leaderboard={leaderboard}
-        userBadges={userBadges}
-        userStats={userStats}
-        finishedMatches={finishedMatches.map((m) => ({
-          id: m.id,
-          homeTeam: { name: m.homeTeam.name, logoUrl: m.homeTeam.logoUrl },
-          awayTeam: { name: m.awayTeam.name, logoUrl: m.awayTeam.logoUrl },
-          homeScore: m.homeScore,
-          awayScore: m.awayScore,
-          scheduledAt: m.scheduledAt.toISOString(),
-          round: m.round,
-        }))}
-        bets={bets}
-        officialGroupId={official.id}
-        timeZone={tournament.timezone}
-        initialMatrixRound={initialMatrixRound}
-      />
-    </div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <div className="flex flex-col gap-6">
+        {header}
+        <CircleDetailTabs
+          circleId={circle.id}
+          tournamentId={official.tournamentId}
+          isOwner={isOwner}
+          currentUserId={user.id}
+          memberCount={circle.members.length}
+          oddsBoost={official.oddsBoost}
+          leaderboard={leaderboard}
+          userBadges={userBadges}
+          userStats={userStats}
+          finishedMatches={finishedMatches.map((m) => ({
+            id: m.id,
+            homeTeam: { name: m.homeTeam.name, logoUrl: m.homeTeam.logoUrl },
+            awayTeam: { name: m.awayTeam.name, logoUrl: m.awayTeam.logoUrl },
+            homeScore: m.homeScore,
+            awayScore: m.awayScore,
+            scheduledAt: m.scheduledAt.toISOString(),
+            round: m.round,
+          }))}
+          bets={bets}
+          officialGroupId={official.id}
+          timeZone={tournament.timezone}
+          initialMatrixRound={initialMatrixRound}
+        />
+      </div>
+    </HydrationBoundary>
   );
 }

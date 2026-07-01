@@ -1,11 +1,15 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
+import { getLiveMatchData } from "@/actions/live";
 import { GroupDetailTabs } from "@/components/group-detail-tabs";
 import { GroupPageHeader } from "@/components/group-page-header";
 import { InviteCodeBadge } from "@/components/invite-code-badge";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { hideInactiveAndRerank } from "@/lib/leaderboard-utils";
+import { liveKeys } from "@/lib/live/query-keys";
+import { getQueryClient } from "@/lib/query-client";
 import { loadBadgesForUsers } from "@/queries/badges";
 import { getGroupBetsForFinishedMatches } from "@/queries/bets";
 import { getGroupBySlug } from "@/queries/groups";
@@ -87,6 +91,20 @@ export default async function GroupDetailPage({
     notFound();
   }
 
+  const queryClient = getQueryClient();
+  await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: liveKeys.matches(group.tournamentId),
+      queryFn: () => getLiveMatchData(group.tournamentId),
+    }),
+    initialMatrixRound
+      ? queryClient.prefetchQuery({
+          queryKey: liveKeys.tipMatrix(group.id, initialMatrixRound.roundKey),
+          queryFn: async () => initialMatrixRound,
+        })
+      : Promise.resolve(),
+  ]);
+
   const groupRules = {
     tokenPerMatch: group.tokenPerMatch,
     initialTokens: group.initialTokens,
@@ -99,75 +117,78 @@ export default async function GroupDetailPage({
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <GroupPageHeader
-          tournamentName={group.tournament.name}
-          tournamentSlug={group.tournament.slug}
-          tournamentLogoUrl={group.tournament.logoUrl}
-          groupName={group.name}
-          rules={groupRules}
-          days={upcomingDays}
-        />
-        {!group.isOfficial && (
-          <div className="flex justify-end">
-            <InviteCodeBadge inviteCode={group.inviteCode} />
-          </div>
-        )}
-      </div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <GroupPageHeader
+            tournamentName={group.tournament.name}
+            tournamentSlug={group.tournament.slug}
+            tournamentLogoUrl={group.tournament.logoUrl}
+            groupName={group.name}
+            rules={groupRules}
+            days={upcomingDays}
+          />
+          {!group.isOfficial && (
+            <div className="flex justify-end">
+              <InviteCodeBadge inviteCode={group.inviteCode} />
+            </div>
+          )}
+        </div>
 
-      <GroupDetailTabs
-        groupId={group.id}
-        isOwner={isOwner}
-        isOfficial={group.isOfficial}
-        canEditSettings={canEditSettings}
-        currentUserId={user.id}
-        isPublic={group.isPublic}
-        description={group.description}
-        tournamentStatus={group.tournament.status}
-        matchTimes={matchTimes.map((d) => d.getTime())}
-        timeZone={group.tournament.timezone}
-        initialMatrixRound={initialMatrixRound}
-        leaderboard={leaderboard.map((row) => ({
-          rank: row.rank,
-          userId: row.userId,
-          userName: row.userName,
-          userAvatarUrl: row.userAvatarUrl,
-          profit: row.profit,
-        }))}
-        members={group.members.map((m) => ({
-          id: m.id,
-          userId: m.userId,
-          name: m.user.displayName ?? m.user.name,
-          avatarUrl: m.user.avatarUrl,
-        }))}
-        settings={groupRules}
-        finishedMatches={finishedMatches.map((m) => ({
-          id: m.id,
-          homeTeam: { name: m.homeTeam.name, logoUrl: m.homeTeam.logoUrl },
-          awayTeam: { name: m.awayTeam.name, logoUrl: m.awayTeam.logoUrl },
-          homeScore: m.homeScore,
-          awayScore: m.awayScore,
-          scheduledAt: m.scheduledAt.toISOString(),
-          round: m.round,
-        }))}
-        groupBets={groupBetsRaw.map((b) => ({
-          matchId: b.matchId,
-          userId: b.userId,
-          userName: b.user.displayName ?? b.user.name,
-          userAvatarUrl: b.user.avatarUrl,
-          predictedHome: b.predictedHome,
-          predictedAway: b.predictedAway,
-          stake: b.stake,
-          oddsAtBet: b.oddsAtBet,
-          payout: b.payout,
-          result1x2Correct: b.result1x2Correct,
-          goalDiffCorrect: b.goalDiffCorrect,
-          exactScoreCorrect: b.exactScoreCorrect,
-        }))}
-        userBadges={userBadges}
-        userStats={userStats}
-      />
-    </div>
+        <GroupDetailTabs
+          groupId={group.id}
+          tournamentId={group.tournamentId}
+          isOwner={isOwner}
+          isOfficial={group.isOfficial}
+          canEditSettings={canEditSettings}
+          currentUserId={user.id}
+          isPublic={group.isPublic}
+          description={group.description}
+          tournamentStatus={group.tournament.status}
+          matchTimes={matchTimes.map((d) => d.getTime())}
+          timeZone={group.tournament.timezone}
+          initialMatrixRound={initialMatrixRound}
+          leaderboard={leaderboard.map((row) => ({
+            rank: row.rank,
+            userId: row.userId,
+            userName: row.userName,
+            userAvatarUrl: row.userAvatarUrl,
+            profit: row.profit,
+          }))}
+          members={group.members.map((m) => ({
+            id: m.id,
+            userId: m.userId,
+            name: m.user.displayName ?? m.user.name,
+            avatarUrl: m.user.avatarUrl,
+          }))}
+          settings={groupRules}
+          finishedMatches={finishedMatches.map((m) => ({
+            id: m.id,
+            homeTeam: { name: m.homeTeam.name, logoUrl: m.homeTeam.logoUrl },
+            awayTeam: { name: m.awayTeam.name, logoUrl: m.awayTeam.logoUrl },
+            homeScore: m.homeScore,
+            awayScore: m.awayScore,
+            scheduledAt: m.scheduledAt.toISOString(),
+            round: m.round,
+          }))}
+          groupBets={groupBetsRaw.map((b) => ({
+            matchId: b.matchId,
+            userId: b.userId,
+            userName: b.user.displayName ?? b.user.name,
+            userAvatarUrl: b.user.avatarUrl,
+            predictedHome: b.predictedHome,
+            predictedAway: b.predictedAway,
+            stake: b.stake,
+            oddsAtBet: b.oddsAtBet,
+            payout: b.payout,
+            result1x2Correct: b.result1x2Correct,
+            goalDiffCorrect: b.goalDiffCorrect,
+            exactScoreCorrect: b.exactScoreCorrect,
+          }))}
+          userBadges={userBadges}
+          userStats={userStats}
+        />
+      </div>
+    </HydrationBoundary>
   );
 }

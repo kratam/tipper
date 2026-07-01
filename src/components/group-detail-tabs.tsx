@@ -66,6 +66,7 @@ interface GroupBet {
 
 interface GroupDetailTabsProps {
   groupId: string;
+  tournamentId: string;
   isOwner: boolean;
   isOfficial: boolean;
   canEditSettings: boolean;
@@ -87,6 +88,7 @@ interface GroupDetailTabsProps {
 
 export function GroupDetailTabs({
   groupId,
+  tournamentId,
   isOwner,
   isOfficial,
   canEditSettings,
@@ -185,6 +187,7 @@ export function GroupDetailTabs({
       <TabsContent value="matrix" className="mt-4">
         <TipMatrix
           groupId={groupId}
+          tournamentId={tournamentId}
           currentUserId={currentUserId}
           timeZone={timeZone}
           leaderboard={liveLeaderboard}

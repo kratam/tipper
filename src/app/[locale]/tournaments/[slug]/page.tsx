@@ -1,6 +1,8 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Crown } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
+import { getLiveMatchData } from "@/actions/live";
 import type { BoardTab } from "@/components/tournament-board-panel";
 import { TournamentLogo } from "@/components/tournament-logo";
 import { TournamentTabs } from "@/components/tournament-tabs";
@@ -8,7 +10,9 @@ import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { filterAndRerankLeaderboard } from "@/lib/circle-leaderboard";
 import { hideInactiveAndRerank, pickMiniLeaderboard } from "@/lib/leaderboard-utils";
+import { liveKeys } from "@/lib/live/query-keys";
 import { ensureOfficialMembership } from "@/lib/official-group";
+import { getQueryClient } from "@/lib/query-client";
 import { loadBadgesForUsers } from "@/queries/badges";
 import { getUserBetsForTournament } from "@/queries/bets";
 import { getUserCircles } from "@/queries/circles";
@@ -326,6 +330,12 @@ export default async function TournamentDetailPage({
   );
   const userStats = Object.fromEntries([...statsMap.entries()]);
 
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: liveKeys.matches(tournament.id),
+    queryFn: () => getLiveMatchData(tournament.id),
+  });
+
   // Serialize matches for client component
   const matchesData = matches.map((m) => ({
     id: m.id,
@@ -364,36 +374,38 @@ export default async function TournamentDetailPage({
   }));
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="mt-1.5 mb-2 flex items-center gap-3.5">
-        {tournament.logoUrl ? (
-          <span className="grid size-[46px] place-items-center rounded-xl bg-linear-to-br from-gold to-gold-2 shadow-[0_8px_20px_-8px_var(--gold-2)]">
-            <TournamentLogo src={tournament.logoUrl} alt={tournament.name} size={32} />
-          </span>
-        ) : (
-          <span className="grid size-[46px] place-items-center rounded-xl bg-linear-to-br from-gold to-gold-2 text-gold-ink shadow-[0_8px_20px_-8px_var(--gold-2)]">
-            <Crown className="size-6" />
-          </span>
-        )}
-        <h1 className="font-bold font-mono text-[27px] tracking-[0.01em]">{tournament.name}</h1>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <div className="flex flex-col gap-4">
+        <div className="mt-1.5 mb-2 flex items-center gap-3.5">
+          {tournament.logoUrl ? (
+            <span className="grid size-[46px] place-items-center rounded-xl bg-linear-to-br from-gold to-gold-2 shadow-[0_8px_20px_-8px_var(--gold-2)]">
+              <TournamentLogo src={tournament.logoUrl} alt={tournament.name} size={32} />
+            </span>
+          ) : (
+            <span className="grid size-[46px] place-items-center rounded-xl bg-linear-to-br from-gold to-gold-2 text-gold-ink shadow-[0_8px_20px_-8px_var(--gold-2)]">
+              <Crown className="size-6" />
+            </span>
+          )}
+          <h1 className="font-bold font-mono text-[27px] tracking-[0.01em]">{tournament.name}</h1>
+        </div>
+        <TournamentTabs
+          matches={matchesData}
+          tournamentId={tournament.id}
+          timezone={tournament.timezone}
+          podiumLockDate={tournament.podiumLockDate.toISOString()}
+          teams={tournamentTeams}
+          existingPodiumBet={existingPodiumBet}
+          groupBetInfosByMatch={groupBetInfosByMatch}
+          groupLeaderboards={groupLeaderboards}
+          currentUserId={user.id}
+          topPublicGroups={topPublicGroups}
+          officialCard={officialCard}
+          boardTabs={groupTabs}
+          officialInitialRound={officialInitialRound}
+          userBadges={userBadges}
+          userStats={userStats}
+        />
       </div>
-      <TournamentTabs
-        matches={matchesData}
-        tournamentId={tournament.id}
-        timezone={tournament.timezone}
-        podiumLockDate={tournament.podiumLockDate.toISOString()}
-        teams={tournamentTeams}
-        existingPodiumBet={existingPodiumBet}
-        groupBetInfosByMatch={groupBetInfosByMatch}
-        groupLeaderboards={groupLeaderboards}
-        currentUserId={user.id}
-        topPublicGroups={topPublicGroups}
-        officialCard={officialCard}
-        boardTabs={groupTabs}
-        officialInitialRound={officialInitialRound}
-        userBadges={userBadges}
-        userStats={userStats}
-      />
-    </div>
+    </HydrationBoundary>
   );
 }

@@ -15,7 +15,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useMatchPolling } from "@/hooks/use-match-polling";
+import { useMatches } from "@/hooks/live/use-matches";
 import type { PublicGroupSuggestion } from "@/queries/groups";
 
 interface GroupBetInfo {
@@ -169,8 +169,8 @@ export function TournamentTabs({
   const [selectedMatch, setSelectedMatch] = useState<MatchCardData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  // Live polling: merge fresh score/status/bet data from SWR
-  const liveMatches = useMatchPolling(tournamentId, matches);
+  // Live réteg: a friss score/status/tipp-payout beolvasztása a matches propba.
+  const liveMatches = useMatches(tournamentId, matches);
 
   // Ensure the official group is always first inside each match's group list
   const sortedGroupInfosByMatch = useMemo(() => {
@@ -289,6 +289,7 @@ export function TournamentTabs({
         {officialCard && (
           <TournamentBoardPanel
             currentUserId={currentUserId}
+            tournamentId={tournamentId}
             timeZone={timezone}
             officialRank={officialCard.myRank}
             officialProfit={officialCard.myProfit}
@@ -401,6 +402,7 @@ export function TournamentTabs({
         topPublicGroups={topPublicGroups}
         currentUserId={currentUserId}
         timeZone={timezone}
+        tournamentId={tournamentId}
       />
     </>
   );

@@ -62,6 +62,8 @@ interface BetDialogProps {
   /** Tournament timezone — passed to BetForm so the date header matches the
    * match list's day grouping. */
   timeZone: string;
+  /** A torna azonosítója — átadódik a BetForm-nak az invalidateAfterBet-hez. */
+  tournamentId: string;
   /** Sikeres tipp-mutáció után fut — a tipp-mátrix ezzel tölti újra a fordulót. */
   onBetMutated?: () => void;
 }
@@ -74,6 +76,7 @@ export function BetDialog({
   topPublicGroups = [],
   currentUserId,
   timeZone,
+  tournamentId,
   onBetMutated,
 }: BetDialogProps) {
   const t = useTranslations("matches");
@@ -161,6 +164,7 @@ export function BetDialog({
           ) : !matchStarted && groups.length > 0 ? (
             <BetForm
               matchId={match.id}
+              tournamentId={tournamentId}
               groups={groups}
               odds={odds}
               homeTeam={match.homeTeam}

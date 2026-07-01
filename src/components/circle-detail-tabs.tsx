@@ -49,6 +49,7 @@ interface CircleBet {
 
 interface CircleDetailTabsProps {
   circleId: string;
+  tournamentId: string;
   isOwner: boolean;
   currentUserId: string;
   memberCount: number;
@@ -65,6 +66,7 @@ interface CircleDetailTabsProps {
 
 export function CircleDetailTabs({
   circleId,
+  tournamentId,
   isOwner,
   currentUserId,
   memberCount,
@@ -120,6 +122,7 @@ export function CircleDetailTabs({
       <TabsContent value="matrix" className="mt-4">
         <TipMatrix
           groupId={officialGroupId}
+          tournamentId={tournamentId}
           currentUserId={currentUserId}
           timeZone={timeZone}
           leaderboard={leaderboard}

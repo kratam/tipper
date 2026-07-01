@@ -22,7 +22,7 @@ src/
     bets.ts                — Tipp leadás/módosítás, payout számítás
     groups.ts              — Csoport CRUD, token kiosztás, tag kezelés
     circles.ts             — Kör CRUD (create/join/leave/delete/rename)
-    live.ts                — Real-time polling (SWR)
+    live.ts                — Élő meccs/leaderboard/bet adat (TanStack Query + SWR fetcherek)
     podium-bets.ts         — Dobogós tipp leadás
     profile.ts             — Felhasználói profil (displayName)
   queries/                 — Read-only DB lekérdezések
@@ -50,6 +50,9 @@ src/
     leaderboard-utils.ts   — Rangsorolás segédfüggvények
     circle-leaderboard.ts  — Kör: szűrés + körön belüli újrarangsor (pure, tesztelt)
     utils.ts               — generateInviteCode, slugify, formatDate, cn
+    query-client.ts        — TanStack QueryClient factory (szerver per-request / kliens singleton)
+    live/                  — Kliens élő-adat réteg: query-keys, merge-match-data, apply-live-scores, invalidate (pure, tesztelt)
+  hooks/live/              — Élő-adat hookok: use-matches (+ useMatchesRaw), use-tip-matrix-round
   i18n/                    — next-intl routing + navigation
 messages/                  — hu.json, en.json fordítások
 tests/lib/                 — Vitest unit tesztek
@@ -362,6 +365,22 @@ Ha az API placeholder dátumokat ad (minden meccs egy napra):
 - Override-ok a `match_schedule_overrides` táblában, kézi feltöltéssel (SQL/Neon MCP)
 - Ha a flag be van kapcsolva: `matches.scheduledAt` és `round` felülírása override-ból
 
+## Kliens adat-réteg (élő adatok)
+
+A kliens-oldali élő adatok (meccs score/status, tippek+payout, leaderboard, egyenleg) **TanStack Query**-vel frissülnek. Bevezetve a 2026-06-29 adatréteg-egységesítéssel (Fázis 0+1, PR #7). Az SWR átmenetileg **coexists** (notification-bell, leaderboard-polling, bet-dialog) → a Fázis 2-3-ban kerül kivezetésre. Spec/terv: `docs/superpowers/{specs,plans}/2026-06-29-adatreteg-*`.
+
+**Egy igazságforrás a meccs-eredményre:** a `matches` query (`liveKeys.matches(tournamentId)`, fetcher `getLiveMatchData`) az **egyetlen** forrás a score/status/payout-ra. A `MatchCard` (`useMatches`) és a `TipMatrix` (`useMatchesRaw` + `applyLiveScores`) is ebből olvas → nem tudnak széttartani. (Ez volt a Fázis 1 előtti bug gyökere: a TipMatrix saját `useState`-cache-t tartott, ami meccs végén nem frissült, míg a MatchCard SWR-rel pollozott.)
+
+**Query-kulcs registry** (`lib/live/query-keys.ts`, `liveKeys`): központi, prefix-hierarchikus kulcsok (`tournament > matches`, `group > leaderboard/balance/tipMatrix`) — a prefix-invalidáció egyszerre több nézetet frissít.
+
+**HydrationBoundary:** a meccs-oldalak (tournament / group / circle `page.tsx`) szerver-oldalon `prefetchQuery`-vel töltik a `matches` (+ `tipMatrix`) kulcsot, `dehydrate`-elve a kliensnek (`staleTime` 30s) — nincs dupla fetch, nincs villanás.
+
+**Mutáció → invalidáció:** tippadás/visszavonás után `invalidateAfterBet(qc, {tournamentId, groupId})` (`lib/live/invalidate.ts`) invalidálja a `matches(tid)` + `group(gid)` kulcsokat → minden felület frissül, ahol a tipp/egyenleg/leaderboard megjelenik. A `router.refresh()` egyelőre **megmarad** mellette (a még nem migrált felületek miatt); teljes kivezetése a Fázis 4.
+
+**Polling:** nincs élő score (az odds-api nem adja), ezért a `matches` query csak a **meccs-ablakban** pollozik (`inMatchWindow`, ~1 perc), egyébként ki van kapcsolva. A payout **csoport-specifikus**, ezért az `applyLiveScores` a snapshot-payout-ot CSAK a néző saját, az adott csoportbeli tippjére írja (`bet.userId === currentUserId && liveBet.groupId === groupId`); a score/status (nem csoport-függő) minden meccsre érvényesül.
+
+**Pure logika (tesztelt):** `merge-match-data` (MatchCard-merge `betId`-pontosan), `apply-live-scores` (TipMatrix score/status + szűrt payout), `query-keys`, `invalidate`.
+
 ## Auth flow
 
 1. Google login → Neon Auth (`@neondatabase/auth`)
@@ -426,3 +445,4 @@ QSTASH_TOKEN              — Upstash QStash API token
 - **odds-api provider — nincs `cancelled` státusz**: az odds-api csak `pending`/`live`/`settled`-et küld, így törölt/halasztott mérkőzések **nem kapnak automatikus visszatérítést** odds-api tornán (kézi vagy későbbi finomítás). api-sports tornáknál a `CANC`/`POST` → refund változatlanul működik.
 - **odds-api provider — nincs liga-logó**: az odds-api nem ad logót, így odds-api torna logóját az adminban kézzel kell beállítani.
 - **odds-api odds-szinkron**: az odds `/odds/multi` batchben (10 eventId/hívás) megy a 100/órás limit miatt; egy teljes World Cup odds-sync ~11 odds-hívás + 2 `/events` (a `syncFixtures` és `syncOdds` külön kéri az eseménylistát) ≈ 13 kérés. A rolling órás ablakot a kézi „sync now" gyors ismétlése kimerítheti → `HTTP 429`; ilyenkor a fixtures már létrejött, az odds a következő (nem rate-limitelt) syncen feltöltődik.
+- **TipMatrix passzív frissülés (Fázis 0+1 korlát)**: a más játékosok frissen kiértékelt payout-ja, illetve a csak-TipMatrix-ot mutató oldalakon (circle detail) a meccs-vége eredmény **nem passzív pollinggal** frissül (a `tipMatrix` query `staleTime: Infinity`, a `useMatchesRaw` nem pollozik) — hanem fókusz-váltáskor, navigációkor vagy tippadás-invalidációkor. A `matches`-pollozott oldalakon (tournament) a score/status ~1 percen belül frissül. Teljes megoldás (a `tipMatrix` bevonása a meccs-ablak pollingba) a Fázis 4 része.

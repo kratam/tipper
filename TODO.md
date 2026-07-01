@@ -1,10 +1,11 @@
 # TippCasino — Teendők
 
-> **Utolsó frissítés:** 2026-06-02
+> **Utolsó frissítés:** 2026-06-29
 
 ## Kész
 
 - [x] **Prémium redesign (Fázis 0–9)** — Teljes UI újraépítés a `docs/assets/design_handoff_tippcasino_redesign` hifi handoff szerint: sötét-alapértelmezett „kaszinó" token-rendszer (`globals.css @theme`), Sora + JetBrains Mono fontok, egységes Segmented tab + Button rendszer, minden képernyő tiszta Tailwind utility rebuild-del. Részletek: `ARCHITECTURE.md` → Design system; terv: `docs/superpowers/plans/2026-06-02-tippcasino-redesign.md`. Auth-mögötti képernyők vizuális finomhangolása élő bejelentkezéssel még ajánlott.
+- [x] **Adatréteg egységesítés — Fázis 0+1** (PR #7) — TanStack Query kliens-adat-réteg bevezetése; a MatchCard és a TipMatrix egy közös `matches` igazságforrásra állítva (a meccs-vége konzisztencia-bug javítva); HydrationBoundary prefetch, központi query-kulcs registry, tippadás utáni invalidáció. Részletek: `ARCHITECTURE.md` → Kliens adat-réteg; spec/terv: `docs/superpowers/{specs,plans}/2026-06-29-adatreteg-*`.
 
 ## Deploy előtt
 
@@ -22,6 +23,14 @@
   - Admin: tournament létrehozás, sync, finish with podium
 
 ## Közepes prioritás
+
+### Adatréteg egységesítés — hátralévő fázisok
+
+A Fázis 0+1 (PR #7) lefektette a TanStack-réteget; a folytatás külön PR-ekben:
+
+- [ ] **Fázis 2-3** — leaderboard + balance + notification a TanStack-be; az **SWR teljes kivezetése** (`swr-provider.tsx`, `use-leaderboard-polling.ts`, `swr` dependency).
+- [ ] **Fázis 4** — a `router.refresh()` és `onBetMutated` kivezetése (a cross-surface frissülést teljesen az `invalidateAfterBet` viszi); a `tipMatrix` query bevonása a meccs-ablak pollingba (lásd `ARCHITECTURE.md` → Ismert korlátok: TipMatrix passzív frissülés).
+- [ ] **Fázis 5 (opcionális)** — szerver-oldali cache a drága aggregációkra (`"use cache"` + `revalidateTag`, **nem** `unstable_cache`).
 
 ### Unit test bővítés
 
