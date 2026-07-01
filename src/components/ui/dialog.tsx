@@ -52,7 +52,11 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-bottom-2 data-closed:fade-out-0 data-closed:zoom-out-95 fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl border border-border-strong bg-popover p-4 text-popover-foreground text-sm shadow-[0_18px_40px_-24px_rgba(0,0,0,0.85)] outline-none duration-200 data-closed:animate-out data-open:animate-in sm:max-w-[430px]",
+          // Top-anchored (not vertically centered) so the box grows/shrinks downward
+          // only — content-height changes (e.g. switching tabs) never shift the header
+          // or tab row. Keeps every dialog consistent; per-dialog max-h/overflow still
+          // decide scrolling for tall content.
+          "data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-bottom-2 data-closed:fade-out-0 data-closed:zoom-out-95 fixed top-[8dvh] left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 gap-4 rounded-xl border border-border-strong bg-popover p-4 text-popover-foreground text-sm shadow-[0_18px_40px_-24px_rgba(0,0,0,0.85)] outline-none duration-200 data-closed:animate-out data-open:animate-in sm:max-w-[430px]",
           className,
         )}
         {...props}
