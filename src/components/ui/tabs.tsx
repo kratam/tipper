@@ -123,7 +123,10 @@ function TabsTrigger({
           />
         </>
       )}
-      <span className="relative z-10 inline-flex items-center justify-center gap-[7px] [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0">
+      {/* translateZ(0) promotes the label to its own compositing layer so iOS Safari
+          keeps it above the sliding indicator's transform layer mid-animation (the
+          z-index is already correct; this fixes the WebKit-only paint-order glitch). */}
+      <span className="relative z-10 inline-flex items-center justify-center gap-[7px] [transform:translateZ(0)] [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0">
         {children}
       </span>
     </TabsPrimitive.Trigger>
