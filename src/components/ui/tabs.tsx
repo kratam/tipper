@@ -1,23 +1,53 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
+import { motion, useReducedMotion } from "motion/react";
 import { Tabs as TabsPrimitive } from "radix-ui";
-import type * as React from "react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
+
+/** Tracks the active value + a per-Tabs id so the sliding indicator stays scoped to one row. */
+const TabsActiveContext = React.createContext<{ active?: string; groupId: string }>({
+  groupId: "tabs",
+});
 
 function Tabs({
   className,
   orientation = "horizontal",
+  value,
+  defaultValue,
+  onValueChange,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Root>) {
+  const groupId = React.useId();
+  const [active, setActive] = React.useState<string | undefined>(value ?? defaultValue);
+
+  // Mirror controlled value so the indicator follows external changes too.
+  React.useEffect(() => {
+    if (value !== undefined) setActive(value);
+  }, [value]);
+
+  const handleValueChange = React.useCallback(
+    (next: string) => {
+      setActive(next);
+      onValueChange?.(next);
+    },
+    [onValueChange],
+  );
+
   return (
-    <TabsPrimitive.Root
-      data-slot="tabs"
-      data-orientation={orientation}
-      className={cn("group/tabs flex gap-2 data-horizontal:flex-col", className)}
-      {...props}
-    />
+    <TabsActiveContext.Provider value={{ active, groupId }}>
+      <TabsPrimitive.Root
+        data-slot="tabs"
+        data-orientation={orientation}
+        value={value}
+        defaultValue={defaultValue}
+        onValueChange={handleValueChange}
+        className={cn("group/tabs flex gap-2 data-horizontal:flex-col", className)}
+        {...props}
+      />
+    </TabsActiveContext.Provider>
   );
 }
 
@@ -51,21 +81,52 @@ function TabsList({
   );
 }
 
-function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+function TabsTrigger({
+  className,
+  value,
+  children,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+  const { active, groupId } = React.useContext(TabsActiveContext);
+  const reduceMotion = useReducedMotion();
+  const isActive = active !== undefined && active === value;
+
+  const indicatorTransition = reduceMotion
+    ? { duration: 0 }
+    : ({ type: "spring", stiffness: 450, damping: 38 } as const);
+
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
+      value={value}
       className={cn(
-        "relative inline-flex h-10 items-center justify-center gap-[7px] whitespace-nowrap rounded-[calc(var(--radius)*0.62)] border-0 px-3.5 font-semibold text-[14px] text-muted-foreground outline-none transition-[color,box-shadow] duration-150 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 max-[560px]:scroll-ml-1 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
-        "data-active:text-foreground",
-        // Raised gold-bordered pill only in the segmented (default) variant; the line
-        // variant keeps just the gold underline below (no box).
-        "group-data-[variant=default]/tabs-list:data-active:bg-linear-to-b group-data-[variant=default]/tabs-list:data-active:from-surface-3 group-data-[variant=default]/tabs-list:data-active:to-surface group-data-[variant=default]/tabs-list:data-active:shadow-[0_1px_0_var(--border-strong)_inset,0_6px_14px_-10px_rgba(0,0,0,0.7),0_0_0_1px_var(--gold-line)_inset]",
-        "after:pointer-events-none after:absolute after:inset-x-[22%] after:bottom-[5px] after:h-[2.5px] after:rounded-full after:bg-gold after:opacity-0 after:shadow-[0_0_8px_var(--gold)] after:transition-opacity data-active:after:opacity-100",
+        "relative inline-flex h-10 items-center justify-center whitespace-nowrap rounded-[calc(var(--radius)*0.62)] border-0 px-3.5 font-semibold text-[14px] text-muted-foreground outline-none transition-colors duration-150 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-active:text-foreground max-[560px]:scroll-ml-1",
         className,
       )}
       {...props}
-    />
+    >
+      {isActive && (
+        <>
+          {/* Raised gold-bordered pill — only in the segmented (default) variant. */}
+          <motion.span
+            aria-hidden
+            layoutId={`${groupId}-tab-pill`}
+            transition={indicatorTransition}
+            className="absolute inset-0 rounded-[calc(var(--radius)*0.62)] group-data-[variant=default]/tabs-list:bg-linear-to-b group-data-[variant=default]/tabs-list:from-surface-3 group-data-[variant=default]/tabs-list:to-surface group-data-[variant=default]/tabs-list:shadow-[0_1px_0_var(--border-strong)_inset,0_6px_14px_-10px_rgba(0,0,0,0.7),0_0_0_1px_var(--gold-line)_inset]"
+          />
+          {/* Gold underline glow. */}
+          <motion.span
+            aria-hidden
+            layoutId={`${groupId}-tab-underline`}
+            transition={indicatorTransition}
+            className="absolute inset-x-[22%] bottom-[5px] h-[2.5px] rounded-full bg-gold shadow-[0_0_8px_var(--gold)]"
+          />
+        </>
+      )}
+      <span className="relative z-10 inline-flex items-center justify-center gap-[7px] [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0">
+        {children}
+      </span>
+    </TabsPrimitive.Trigger>
   );
 }
 
