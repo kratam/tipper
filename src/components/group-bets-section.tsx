@@ -28,7 +28,7 @@ export function GroupBetsSection({
 
   return (
     <Tabs defaultValue="tips" className="w-full">
-      <TabsList variant="line" className="w-full">
+      <TabsList className="w-full">
         <TabsTrigger value="tips">{t("tipsTab")}</TabsTrigger>
         <TabsTrigger value="stats">{t("statsTab")}</TabsTrigger>
       </TabsList>
