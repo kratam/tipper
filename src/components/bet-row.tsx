@@ -4,7 +4,9 @@ import type { ReactNode } from "react";
 import { TokenIcon } from "@/components/token-icon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/initials";
+import { classify1x2 } from "@/lib/match-stats";
 import { formatEffectiveOdds } from "@/lib/odds-display";
+import { OUTCOME_GRADIENT } from "@/lib/outcome-colors";
 import type { GroupMemberBet } from "@/queries/bets";
 
 interface BetRowProps {
@@ -47,6 +49,7 @@ export function BetRow({
           : "±0";
 
   const displayName = isCurrentUser ? youLabel : (bet.userDisplayName ?? bet.userName);
+  const outcome = classify1x2(bet.predictedHome, bet.predictedAway);
 
   return (
     <div
@@ -68,7 +71,10 @@ export function BetRow({
       <div className="min-w-0">
         <div className="truncate font-semibold text-[13.5px]">{displayName}</div>
         <div className="mt-px flex items-center gap-[7px] font-mono text-[11px] text-muted-foreground">
-          <span className="font-semibold text-foreground">
+          <span
+            className="rounded-full px-1.5 py-px font-bold text-[10.5px] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),inset_0_-1px_0_rgba(0,0,0,0.15)] [text-shadow:0_1px_1.5px_rgba(0,0,0,0.35)]"
+            style={{ background: OUTCOME_GRADIENT[outcome] }}
+          >
             {bet.predictedHome}–{bet.predictedAway}
           </span>
           {lockedOdds && <span className="tabular-nums">@{lockedOdds}</span>}

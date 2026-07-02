@@ -4,7 +4,8 @@ import { Crosshair } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { TokenIcon } from "@/components/token-icon";
-import { computeMatchStats, type DistributionSlice, type Outcome1x2 } from "@/lib/match-stats";
+import { computeMatchStats, type DistributionSlice } from "@/lib/match-stats";
+import { OUTCOME_GRADIENT } from "@/lib/outcome-colors";
 import type { GroupMemberBet } from "@/queries/bets";
 
 interface MatchStatsTabProps {
@@ -19,13 +20,6 @@ function formatTokens(n: number): string {
   if (n >= 10000) return `${Math.round(n / 100) / 10}k`;
   return String(n);
 }
-
-/** 1 = sky, X = violet, 2 = orange — a prototípus szegmens-színskálája. */
-const OUTCOME_GRADIENT: Record<Outcome1x2, string> = {
-  "1": "linear-gradient(180deg, #38bdf8, #0284c7)",
-  X: "linear-gradient(180deg, #a78bfa, #7c3aed)",
-  "2": "linear-gradient(180deg, #fb923c, #ea580c)",
-};
 
 function StatLabel({ children }: { children: React.ReactNode }) {
   return (
