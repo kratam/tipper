@@ -377,7 +377,9 @@ export function TipMatrix({
               badges={userBadges?.[row.userId]}
               stats={userStats?.[row.userId]}
             />
-            <span className="max-[560px]:hidden">{row.userName}</span>
+            <span className="max-w-[150px] truncate max-[560px]:hidden" title={row.userName}>
+              {row.userName}
+            </span>
           </span>
         </td>
         <td className="border-border border-b px-2.5 py-2 text-center font-bold text-[14px] text-gold">
