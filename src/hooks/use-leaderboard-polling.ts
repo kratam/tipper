@@ -4,7 +4,11 @@ import type { LiveLeaderboardRow } from "@/actions/live";
 import { getLiveLeaderboard } from "@/actions/live";
 import { inMatchWindow } from "@/lib/match-poll-window";
 
-const FIVE_MINUTES = 5 * 60 * 1000;
+// A ranglista élő-frissítése a meccs-pollerrel AZONOS ütemben fut (use-matches.ts
+// → 1 perc). Így meccs-lezáráskor a tipp-payout és az összpont/helyezés együtt
+// mozog; korábban a leaderboard 5 percenként pollozott, ezért a payout már
+// látszott, de a tabella még a régi pontokat mutatta ~5 percig.
+const ONE_MINUTE = 60 * 1000;
 const TICK_MS = 60 * 1000;
 
 interface LeaderboardRow {
@@ -34,7 +38,7 @@ export function useLeaderboardPolling(
   const { data: liveData } = useSWR(
     active ? ["live-leaderboard", groupId] : null,
     () => getLiveLeaderboard(groupId),
-    { refreshInterval: active ? FIVE_MINUTES : 0, revalidateOnFocus: true },
+    { refreshInterval: active ? ONE_MINUTE : 0, revalidateOnFocus: true },
   );
 
   return useMemo(() => {
