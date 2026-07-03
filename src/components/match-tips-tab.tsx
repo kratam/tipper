@@ -48,11 +48,13 @@ export function MatchTipsTab({
     return <p className="py-2 text-center text-muted-foreground text-xs">{t("noBetsYet")}</p>;
   }
 
-  // Expanded: the full ranking in a scrollable box (data is already loaded).
+  // Expanded: the full ranking. No inner scroll box — the list flows into the
+  // dialog's own max-h/overflow, same as the collapsed view, so expanding grows
+  // the modal instead of shrinking it to a fixed-height box.
   if (expanded) {
     return (
       <div className="flex flex-col gap-1.5">
-        <div className="flex max-h-80 flex-col gap-[5px] overflow-y-auto pr-1">
+        <div className="flex flex-col gap-[5px]">
           {ranked.map((bet) => (
             <BetRow
               key={bet.betId}
