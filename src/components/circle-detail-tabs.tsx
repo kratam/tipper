@@ -20,6 +20,7 @@ interface LeaderboardRow {
   userName: string;
   userAvatarUrl: string | null;
   profit: number;
+  classicPoints?: number;
 }
 
 interface FinishedMatch {

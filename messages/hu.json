@@ -590,6 +590,9 @@
   },
   "tipMatrix": {
     "player": "Játékos",
+    "modeToken": "Token",
+    "modeClassic": "Klasszikus",
+    "modeHint": "Váltás a token- és a klasszikus (tét nélküli, 0–3 pontos) számítás közt",
     "live": "ÉLŐ",
     "cancelled": "törölve",
     "hidden": "Rejtett tipp (kezdésig)",

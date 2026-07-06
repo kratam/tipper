@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { calculateBetPayout, calculatePodiumPoints, get1X2 } from "@/lib/scoring";
+import {
+  calculateBetPayout,
+  calculatePodiumPoints,
+  classicPointsFromFlags,
+  get1X2,
+} from "@/lib/scoring";
 
 describe("get1X2", () => {
   it("returns '1' when home > away", () => {
@@ -298,5 +303,53 @@ describe("calculatePodiumPoints", () => {
         settings,
       ),
     ).toBe(120);
+  });
+});
+
+describe("classicPointsFromFlags", () => {
+  it("exact score => 3", () => {
+    expect(
+      classicPointsFromFlags({
+        result1x2Correct: true,
+        goalDiffCorrect: true,
+        exactScoreCorrect: true,
+      }),
+    ).toBe(3);
+  });
+  it("goal difference (not exact) => 2", () => {
+    expect(
+      classicPointsFromFlags({
+        result1x2Correct: true,
+        goalDiffCorrect: true,
+        exactScoreCorrect: false,
+      }),
+    ).toBe(2);
+  });
+  it("outcome only => 1", () => {
+    expect(
+      classicPointsFromFlags({
+        result1x2Correct: true,
+        goalDiffCorrect: false,
+        exactScoreCorrect: false,
+      }),
+    ).toBe(1);
+  });
+  it("wrong outcome => 0", () => {
+    expect(
+      classicPointsFromFlags({
+        result1x2Correct: false,
+        goalDiffCorrect: false,
+        exactScoreCorrect: false,
+      }),
+    ).toBe(0);
+  });
+  it("unscored (null flags) => null", () => {
+    expect(
+      classicPointsFromFlags({
+        result1x2Correct: null,
+        goalDiffCorrect: null,
+        exactScoreCorrect: null,
+      }),
+    ).toBeNull();
   });
 });

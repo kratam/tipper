@@ -15,6 +15,7 @@ import { getQueryClient } from "@/lib/query-client";
 import { loadBadgesForUsers } from "@/queries/badges";
 import { getGroupBetsForFinishedMatches } from "@/queries/bets";
 import { getCircleBySlug, getOfficialGroupByTournamentId } from "@/queries/circles";
+import { getGroupClassicPoints } from "@/queries/classic-points";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
 import { getFinishedMatchesForTournament } from "@/queries/matches";
 import { loadPlayerStatsForUsers } from "@/queries/profile";
@@ -85,15 +86,23 @@ export default async function CircleDetailPage({
 
   const circleMemberIds = circle.members.map((m) => m.userId);
 
-  const [leaderboardRaw, finishedMatches, groupBetsRaw, initialMatrixRound, badgesMap, statsMap] =
-    await Promise.all([
-      getGroupLeaderboard(official.id),
-      getFinishedMatchesForTournament(official.tournamentId, tournament.useFlagFallback),
-      getGroupBetsForFinishedMatches(official.id),
-      getTipMatrixRound(official.id, tournament.id, tournament.useFlagFallback, user.id, null),
-      loadBadgesForUsers(circleMemberIds),
-      loadPlayerStatsForUsers(circleMemberIds),
-    ]);
+  const [
+    leaderboardRaw,
+    finishedMatches,
+    groupBetsRaw,
+    initialMatrixRound,
+    badgesMap,
+    statsMap,
+    classicByUser,
+  ] = await Promise.all([
+    getGroupLeaderboard(official.id),
+    getFinishedMatchesForTournament(official.tournamentId, tournament.useFlagFallback),
+    getGroupBetsForFinishedMatches(official.id),
+    getTipMatrixRound(official.id, tournament.id, tournament.useFlagFallback, user.id, null),
+    loadBadgesForUsers(circleMemberIds),
+    loadPlayerStatsForUsers(circleMemberIds),
+    getGroupClassicPoints(official.id),
+  ]);
 
   const leaderboard = filterAndRerankLeaderboard(leaderboardRaw, memberIds);
   // Convert Map → plain object before crossing the server→client boundary
@@ -147,7 +156,10 @@ export default async function CircleDetailPage({
           currentUserId={user.id}
           memberCount={circle.members.length}
           oddsBoost={official.oddsBoost}
-          leaderboard={leaderboard}
+          leaderboard={leaderboard.map((row) => ({
+            ...row,
+            classicPoints: classicByUser.get(row.userId) ?? 0,
+          }))}
           userBadges={userBadges}
           userStats={userStats}
           finishedMatches={finishedMatches.map((m) => ({

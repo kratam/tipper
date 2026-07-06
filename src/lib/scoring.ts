@@ -91,3 +91,21 @@ export function calculatePodiumPoints(
   }
   return points;
 }
+
+/**
+ * Klasszikus (token nélküli) pont egy lepontozott tippre: kimenet-találat (+1),
+ * gólkülönbség-találat (+1), pontos eredmény (+1) → 0..3. A flageket a scoring
+ * cron írja a `bets`-be; ha még nincs pontozva (`null`), `null`-t adunk.
+ */
+export function classicPointsFromFlags(flags: {
+  result1x2Correct: boolean | null;
+  goalDiffCorrect: boolean | null;
+  exactScoreCorrect: boolean | null;
+}): number | null {
+  if (flags.result1x2Correct == null) return null;
+  return (
+    (flags.result1x2Correct ? 1 : 0) +
+    (flags.goalDiffCorrect ? 1 : 0) +
+    (flags.exactScoreCorrect ? 1 : 0)
+  );
+}

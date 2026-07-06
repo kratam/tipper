@@ -4,6 +4,8 @@
  * Tesztelve: tests/lib/tip-matrix.test.ts.
  */
 
+import { classicPointsFromFlags } from "@/lib/scoring";
+
 export type MatchStatus = "scheduled" | "live" | "finished" | "cancelled";
 
 export interface RoundMatchInput {
@@ -197,6 +199,7 @@ export function betNet(payout: number | null, stake: number): number | null {
 }
 
 export type MatrixScope = "total" | "round";
+export type MatrixMode = "token" | "classic";
 
 /** A ranglista egy sora a mátrix-megjelenítéshez (globális adatok). */
 export interface MatrixRowInput {
@@ -205,9 +208,11 @@ export interface MatrixRowInput {
   userName: string;
   userAvatarUrl: string | null;
   profit: number;
+  /** Teljes klasszikus (token nélküli) összpont — a `classic`+`total` nézethez. */
+  classicPoints?: number;
 }
 
-/** A mátrix egy megjelenítendő sora — `value`/`rank` a választott `scope` szerint. */
+/** A mátrix egy megjelenítendő sora — `value`/`rank` a választott nézet szerint. */
 export interface MatrixRowDisplay {
   rank: number;
   userId: string;
@@ -216,23 +221,39 @@ export interface MatrixRowDisplay {
   value: number;
 }
 
+interface MatrixBetInput {
+  userId: string;
+  payout: number | null;
+  stake: number;
+  result1x2Correct?: boolean | null;
+  goalDiffCorrect?: boolean | null;
+  exactScoreCorrect?: boolean | null;
+}
+
 /**
- * A Tipp-tábla sorait állítja össze a választott hatókör szerint.
+ * A Tipp-tábla sorait állítja össze a választott nézet (scope × mode) szerint.
  *
- * - `"total"`: a bemeneti (globális) sorrend és helyezés változatlan, az érték a
- *   teljes `profit`.
- * - `"round"`: az érték az adott forduló nettó pontja userenként (`betNet`
- *   összege a `payout != null` tippekre; lepontozatlan tipp kimarad), a sorok
- *   csökkenő pont szerint újrarendezve. Holtversenynél a stabil rendezés a
- *   bemeneti globális sorrendet tartja; a helyezés az új sorrend `index + 1`-e
- *   (megegyezik a globális leaderboard szekvenciális rank-konvenciójával).
+ * - `token` + `total`: a bemeneti (globális) sorrend és helyezés változatlan,
+ *   az érték a teljes token-`profit`.
+ * - `classic` + `total`: az érték a user teljes klasszikus összpontja
+ *   (`classicPoints`), csökkenő pont szerint újrarendezve.
+ * - `*` + `round`: az érték az adott forduló userenkénti összege — `token`-nél a
+ *   nettó (`betNet`), `classic`-nél a 0–3 pont (`classicPointsFromFlags`) —, a
+ *   lepontozatlan tipp (`null`) kimarad. Csökkenő érték szerint újrarendezve.
+ *
+ * A lepontozatlan tipp kihagyása egyben az adatvédelmi garancia is: pontozott
+ * tipp csak lockolt (befejezett) meccsen van, amit minden néző lát; más
+ * felhasználó jövőbeli tippje (null) sosem kerül a forduló-értékbe.
+ * Holtversenynél a stabil rendezés a bemeneti sorrendet tartja; a helyezés az
+ * új sorrend `index + 1`-e.
  */
 export function buildMatrixRows(
   rows: readonly MatrixRowInput[],
-  bets: readonly { userId: string; payout: number | null; stake: number }[],
+  bets: readonly MatrixBetInput[],
   scope: MatrixScope,
+  mode: MatrixMode = "token",
 ): MatrixRowDisplay[] {
-  if (scope === "total") {
+  if (scope === "total" && mode === "token") {
     return rows.map((r) => ({
       rank: r.rank,
       userId: r.userId,
@@ -242,15 +263,22 @@ export function buildMatrixRows(
     }));
   }
 
-  const scoreByUser = new Map<string, number>();
-  for (const b of bets) {
-    const net = betNet(b.payout, b.stake);
-    // A null (még le nem pontozott) tipp kimarad — ez egyben az adatvédelmi
-    // garancia is: lepontozott tipp csak lockolt (befejezett) meccsen van, amit
-    // minden néző lát; a más-felhasználó jövőbeli tippje (null payout) sosem
-    // kerülhet a forduló-pontba (lásd filterRoundBetsForViewer).
-    if (net == null) continue;
-    scoreByUser.set(b.userId, (scoreByUser.get(b.userId) ?? 0) + net);
+  const valueByUser = new Map<string, number>();
+  if (scope === "total") {
+    for (const r of rows) valueByUser.set(r.userId, r.classicPoints ?? 0);
+  } else {
+    for (const b of bets) {
+      const v =
+        mode === "token"
+          ? betNet(b.payout, b.stake)
+          : classicPointsFromFlags({
+              result1x2Correct: b.result1x2Correct ?? null,
+              goalDiffCorrect: b.goalDiffCorrect ?? null,
+              exactScoreCorrect: b.exactScoreCorrect ?? null,
+            });
+      if (v == null) continue;
+      valueByUser.set(b.userId, (valueByUser.get(b.userId) ?? 0) + v);
+    }
   }
 
   return rows
@@ -258,7 +286,7 @@ export function buildMatrixRows(
       userId: r.userId,
       userName: r.userName,
       userAvatarUrl: r.userAvatarUrl,
-      value: scoreByUser.get(r.userId) ?? 0,
+      value: valueByUser.get(r.userId) ?? 0,
     }))
     .sort((a, b) => b.value - a.value)
     .map((r, index) => ({ ...r, rank: index + 1 }));

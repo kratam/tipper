@@ -590,6 +590,9 @@
   },
   "tipMatrix": {
     "player": "Player",
+    "modeToken": "Token",
+    "modeClassic": "Classic",
+    "modeHint": "Switch between token and classic (stake-free, 0–3 point) scoring",
     "live": "LIVE",
     "cancelled": "cancelled",
     "hidden": "Hidden tip (until kickoff)",

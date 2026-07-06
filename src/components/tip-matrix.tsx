@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeftRight,
   ChevronUp,
   Lock,
 } from "lucide-react";
@@ -19,11 +20,13 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMatchesRaw } from "@/hooks/live/use-matches";
 import { useTipMatrixRound } from "@/hooks/live/use-tip-matrix-round";
+import { usePersistedMatrixMode } from "@/hooks/use-persisted-matrix-mode";
 import { Link } from "@/i18n/navigation";
 import { predictionToneClass } from "@/lib/bet-display";
 import { getInitials } from "@/lib/initials";
 import { splitCuratedRows } from "@/lib/leaderboard-utils";
 import { applyLiveScores } from "@/lib/live/apply-live-scores";
+import { classicPointsFromFlags } from "@/lib/scoring";
 import { betNet, buildMatrixRows, type MatrixRowDisplay, type MatrixScope } from "@/lib/tip-matrix";
 import { cn } from "@/lib/utils";
 import type { TipMatrixBet, TipMatrixMatch, TipMatrixRound } from "@/queries/tip-matrix";
@@ -34,6 +37,7 @@ export interface TipMatrixLeaderboardRow {
   userName: string;
   userAvatarUrl: string | null;
   profit: number;
+  classicPoints?: number;
 }
 
 interface TipMatrixProps {
@@ -167,6 +171,7 @@ export function TipMatrix({
 
   const [roundKey, setRoundKey] = useState<string | null>(initialRound?.roundKey ?? null);
   const [scope, setScope] = useState<MatrixScope>("total");
+  const [mode, toggleMode] = usePersistedMatrixMode();
   const [gapOpen, setGapOpen] = useState(false);
 
   // A forduló SZERKEZETE (ki mit tippelt) a tipMatrix query-ből; a változó
@@ -212,8 +217,8 @@ export function TipMatrix({
   }, [round]);
 
   const displayRows = useMemo(
-    () => buildMatrixRows(leaderboard, round?.bets ?? [], scope),
-    [leaderboard, round, scope],
+    () => buildMatrixRows(leaderboard, round?.bets ?? [], scope, mode),
+    [leaderboard, round, scope, mode],
   );
 
   if (!round) {
@@ -338,17 +343,29 @@ export function TipMatrix({
       oddsAtBet: bet.oddsAtBet,
     });
     const net = betNet(bet.payout, bet.stake);
+    const classic = classicPointsFromFlags(bet);
+
+    const sub =
+      mode === "classic" ? (
+        classic == null ? (
+          <span className="text-[10px] text-faint">…</span>
+        ) : (
+          <span className={cn("text-[10px]", classic > 0 ? "text-gold" : "text-faint")}>
+            {classic}
+          </span>
+        )
+      ) : net == null ? (
+        <span className="text-[10px] text-faint">…</span>
+      ) : (
+        <span className={cn("text-[10px]", net >= 0 ? "text-win" : "text-loss")}>
+          {signed(net)}
+        </span>
+      );
 
     return (
       <span className="flex flex-col items-center leading-tight">
         <span className={cn("text-[13px]", tone)}>{pred}</span>
-        {net == null ? (
-          <span className="text-[10px] text-faint">…</span>
-        ) : (
-          <span className={cn("text-[10px]", net >= 0 ? "text-win" : "text-loss")}>
-            {signed(net)}
-          </span>
-        )}
+        {sub}
       </span>
     );
   }
@@ -480,11 +497,28 @@ export function TipMatrix({
             <tr>
               <th
                 className={cn(
-                  "sticky left-0 z-[2] border-border border-b bg-surface-2 px-2.5 py-1.5 text-left text-[11px] text-muted-foreground",
+                  "sticky left-0 z-[2] border-border border-b bg-surface-2 p-0 text-left text-[11px] text-muted-foreground",
                   curated && "top-0",
                 )}
               >
-                {t("player")}
+                <button
+                  type="button"
+                  onClick={toggleMode}
+                  aria-pressed={mode === "classic"}
+                  title={t("modeHint")}
+                  className="flex w-full cursor-pointer flex-col items-start px-2.5 py-1.5 hover:bg-surface-3"
+                >
+                  <span>{t("player")}</span>
+                  <span
+                    className={cn(
+                      "mt-1 flex items-center gap-0.5 whitespace-nowrap text-[10px]",
+                      mode === "classic" ? "text-gold" : "text-faint",
+                    )}
+                  >
+                    <ChevronsLeftRight className="size-2.5 shrink-0" aria-hidden="true" />
+                    {mode === "classic" ? t("modeClassic") : t("modeToken")}
+                  </span>
+                </button>
               </th>
               <th
                 className={cn(
@@ -496,15 +530,16 @@ export function TipMatrix({
                   type="button"
                   onClick={() => setScope((s) => (s === "total" ? "round" : "total"))}
                   aria-pressed={scope === "round"}
-                  className="flex w-full flex-col items-center px-2.5 py-1.5 hover:bg-surface-3"
+                  className="flex w-full cursor-pointer flex-col items-center px-2.5 py-1.5 hover:bg-surface-3"
                 >
                   <span>Σ</span>
                   <span
                     className={cn(
-                      "mt-1 whitespace-nowrap text-[10px]",
+                      "mt-1 flex items-center gap-0.5 whitespace-nowrap text-[10px]",
                       scope === "round" ? "text-gold" : "text-faint",
                     )}
                   >
+                    <ChevronsLeftRight className="size-2.5 shrink-0" aria-hidden="true" />
                     {scope === "round" ? roundScopeLabel : t("scopeTotal")}
                   </span>
                 </button>
