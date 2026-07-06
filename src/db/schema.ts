@@ -44,6 +44,9 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   displayName: text("display_name"),
   avatarUrl: text("avatar_url"),
+  // Valódi feltöltött Google-fotó (true) vs generált monogram (false); null = még
+  // nem detektált. A login-sync tölti (avatar-detect.ts), a lánc ez alapján dönt.
+  avatarIsReal: boolean("avatar_is_real"),
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
