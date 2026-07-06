@@ -115,6 +115,15 @@ export function distributeBonusPools(input: {
   return { goalDiffPerHitter, exactScorePerHitter };
 }
 
+/**
+ * A dobogó-bónusz per-játékos token-egysége. A meccsszám-arányos „floor"-hoz
+ * horgonyzott: pct%-a a csoport (tokenPerMatch × meccsszám) keretének. Lefelé
+ * kerekít. A torna végén egyszer, a `finishTournament`-ben hívva.
+ */
+export function computePodiumUnit(pct: number, tokenPerMatch: number, matchCount: number): number {
+  return Math.floor((pct / 100) * tokenPerMatch * matchCount);
+}
+
 interface PodiumPrediction {
   gold: string;
   silver: string;
