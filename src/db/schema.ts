@@ -148,8 +148,8 @@ export const groups = pgTable(
     initialTokens: integer("initial_tokens").default(200).notNull(),
     bonusGoalDiffPct: real("bonus_goal_diff_pct").default(2).notNull(),
     bonusExactScorePct: real("bonus_exact_score_pct").default(3).notNull(),
-    bonusPodiumMention: integer("bonus_podium_mention").default(20).notNull(),
-    bonusPodiumExact: integer("bonus_podium_exact").default(20).notNull(),
+    bonusPodiumMentionPct: real("bonus_podium_mention_pct").default(1.5).notNull(),
+    bonusPodiumExactPct: real("bonus_podium_exact_pct").default(3).notNull(),
     oddsBoost: real("odds_boost").default(1.0).notNull(),
     // DB default for new rows; rows created before migration 0014 were backfilled to 100.
     lossPercentage: integer("loss_percentage").default(90).notNull(),
