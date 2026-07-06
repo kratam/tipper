@@ -146,8 +146,6 @@ export const groups = pgTable(
       .notNull(),
     tokenPerMatch: integer("token_per_match").default(100).notNull(),
     initialTokens: integer("initial_tokens").default(200).notNull(),
-    bonusGoalDiff: integer("bonus_goal_diff").default(5).notNull(),
-    bonusExactScore: integer("bonus_exact_score").default(10).notNull(),
     bonusGoalDiffPct: real("bonus_goal_diff_pct").default(2).notNull(),
     bonusExactScorePct: real("bonus_exact_score_pct").default(3).notNull(),
     bonusPodiumMention: integer("bonus_podium_mention").default(20).notNull(),
