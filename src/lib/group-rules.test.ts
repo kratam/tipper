@@ -4,8 +4,8 @@ import { buildRuleSections, type GroupRules } from "@/lib/group-rules";
 const base: GroupRules = {
   tokenPerMatch: 100,
   initialTokens: 200,
-  bonusGoalDiff: 30,
-  bonusExactScore: 50,
+  bonusGoalDiffPct: 2,
+  bonusExactScorePct: 3,
   bonusPodiumMention: 20,
   bonusPodiumExact: 20,
   oddsBoost: 1.15,
@@ -22,8 +22,8 @@ describe("buildRuleSections", () => {
     expect(findRow(sections, "initialTokens")?.value).toBe("200");
     expect(findRow(sections, "tokenPerMatch")?.value).toBe("100");
     expect(findRow(sections, "oddsBoost")?.value).toBe("×1.15");
-    expect(findRow(sections, "bonusGoalDiff")?.value).toBe("+30");
-    expect(findRow(sections, "bonusExactScore")?.value).toBe("+50");
+    expect(findRow(sections, "bonusGoalDiff")?.value).toBe("2%");
+    expect(findRow(sections, "bonusExactScore")?.value).toBe("3%");
   });
 
   it("derives refund from lossPercentage (100 - loss)", () => {
@@ -60,8 +60,8 @@ describe("buildRuleSections", () => {
   });
 
   it("hides individual zero-value bonus rows", () => {
-    const sections = buildRuleSections({ ...base, bonusGoalDiff: 0 });
+    const sections = buildRuleSections({ ...base, bonusGoalDiffPct: 0 });
     expect(findRow(sections, "bonusGoalDiff")).toBeUndefined();
-    expect(findRow(sections, "bonusExactScore")?.value).toBe("+50");
+    expect(findRow(sections, "bonusExactScore")?.value).toBe("3%");
   });
 });
