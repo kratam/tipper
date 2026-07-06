@@ -7,7 +7,15 @@ import {
 } from "@/lib/leaderboard-utils";
 
 function makeEntry(rank: number, userId: string, profit: number, betCount = 1): LeaderboardEntry {
-  return { rank, userId, userName: `User ${userId}`, userAvatarUrl: null, gravatarHash: null, profit, betCount };
+  return {
+    rank,
+    userId,
+    userName: `User ${userId}`,
+    userAvatarUrl: null,
+    gravatarHash: null,
+    profit,
+    betCount,
+  };
 }
 
 describe("pickMiniLeaderboard", () => {

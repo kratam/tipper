@@ -2,10 +2,42 @@ import { describe, expect, it } from "vitest";
 import { filterAndRerankLeaderboard } from "@/lib/circle-leaderboard";
 
 const officialRows = [
-  { rank: 1, userId: "a", userName: "Anna", userAvatarUrl: null, gravatarHash: null, profit: 500, betCount: 1 },
-  { rank: 2, userId: "b", userName: "Bea", userAvatarUrl: null, gravatarHash: null, profit: 300, betCount: 1 },
-  { rank: 3, userId: "c", userName: "Cili", userAvatarUrl: null, gravatarHash: null, profit: 100, betCount: 1 },
-  { rank: 4, userId: "d", userName: "Dani", userAvatarUrl: null, gravatarHash: null, profit: -50, betCount: 1 },
+  {
+    rank: 1,
+    userId: "a",
+    userName: "Anna",
+    userAvatarUrl: null,
+    gravatarHash: null,
+    profit: 500,
+    betCount: 1,
+  },
+  {
+    rank: 2,
+    userId: "b",
+    userName: "Bea",
+    userAvatarUrl: null,
+    gravatarHash: null,
+    profit: 300,
+    betCount: 1,
+  },
+  {
+    rank: 3,
+    userId: "c",
+    userName: "Cili",
+    userAvatarUrl: null,
+    gravatarHash: null,
+    profit: 100,
+    betCount: 1,
+  },
+  {
+    rank: 4,
+    userId: "d",
+    userName: "Dani",
+    userAvatarUrl: null,
+    gravatarHash: null,
+    profit: -50,
+    betCount: 1,
+  },
 ];
 
 describe("filterAndRerankLeaderboard", () => {
@@ -17,7 +49,8 @@ describe("filterAndRerankLeaderboard", () => {
         officialRank: 2,
         userId: "b",
         userName: "Bea",
-        userAvatarUrl: null, gravatarHash: null,
+        userAvatarUrl: null,
+        gravatarHash: null,
         profit: 300,
         betCount: 1,
       },
@@ -26,7 +59,8 @@ describe("filterAndRerankLeaderboard", () => {
         officialRank: 4,
         userId: "d",
         userName: "Dani",
-        userAvatarUrl: null, gravatarHash: null,
+        userAvatarUrl: null,
+        gravatarHash: null,
         profit: -50,
         betCount: 1,
       },
@@ -52,7 +86,8 @@ describe("filterAndRerankLeaderboard", () => {
         officialRank: 3,
         userId: "c",
         userName: "Cili",
-        userAvatarUrl: null, gravatarHash: null,
+        userAvatarUrl: null,
+        gravatarHash: null,
         profit: 100,
         betCount: 1,
       },
@@ -65,10 +100,42 @@ describe("filterAndRerankLeaderboard", () => {
 
   it("kiszűri a nem-tippelő kör-tagot, ha van tippelő tag", () => {
     const rows = [
-      { rank: 1, userId: "a", userName: "A", userAvatarUrl: null, gravatarHash: null, profit: 500, betCount: 1 },
-      { rank: 2, userId: "c", userName: "C", userAvatarUrl: null, gravatarHash: null, profit: 100, betCount: 1 },
-      { rank: 3, userId: "b", userName: "B", userAvatarUrl: null, gravatarHash: null, profit: 0, betCount: 0 },
-      { rank: 4, userId: "d", userName: "D", userAvatarUrl: null, gravatarHash: null, profit: -50, betCount: 1 },
+      {
+        rank: 1,
+        userId: "a",
+        userName: "A",
+        userAvatarUrl: null,
+        gravatarHash: null,
+        profit: 500,
+        betCount: 1,
+      },
+      {
+        rank: 2,
+        userId: "c",
+        userName: "C",
+        userAvatarUrl: null,
+        gravatarHash: null,
+        profit: 100,
+        betCount: 1,
+      },
+      {
+        rank: 3,
+        userId: "b",
+        userName: "B",
+        userAvatarUrl: null,
+        gravatarHash: null,
+        profit: 0,
+        betCount: 0,
+      },
+      {
+        rank: 4,
+        userId: "d",
+        userName: "D",
+        userAvatarUrl: null,
+        gravatarHash: null,
+        profit: -50,
+        betCount: 1,
+      },
     ];
     const result = filterAndRerankLeaderboard(rows, new Set(["c", "b", "d"]));
     expect(result.map((r) => r.userId)).toEqual(["c", "d"]);
@@ -78,9 +145,33 @@ describe("filterAndRerankLeaderboard", () => {
   it("officialRank a csoport-szintű SZŰRT ranglistából jön (nem a nyers rangból)", () => {
     // 'b' nem tippelt → a szűrt csoport-listában 'c' a 2. (nem a 3.).
     const rows = [
-      { rank: 1, userId: "a", userName: "A", userAvatarUrl: null, gravatarHash: null, profit: 500, betCount: 1 },
-      { rank: 2, userId: "b", userName: "B", userAvatarUrl: null, gravatarHash: null, profit: 0, betCount: 0 },
-      { rank: 3, userId: "c", userName: "C", userAvatarUrl: null, gravatarHash: null, profit: -50, betCount: 1 },
+      {
+        rank: 1,
+        userId: "a",
+        userName: "A",
+        userAvatarUrl: null,
+        gravatarHash: null,
+        profit: 500,
+        betCount: 1,
+      },
+      {
+        rank: 2,
+        userId: "b",
+        userName: "B",
+        userAvatarUrl: null,
+        gravatarHash: null,
+        profit: 0,
+        betCount: 0,
+      },
+      {
+        rank: 3,
+        userId: "c",
+        userName: "C",
+        userAvatarUrl: null,
+        gravatarHash: null,
+        profit: -50,
+        betCount: 1,
+      },
     ];
     const result = filterAndRerankLeaderboard(rows, new Set(["c"]));
     expect(result).toEqual([
@@ -89,7 +180,8 @@ describe("filterAndRerankLeaderboard", () => {
         officialRank: 2,
         userId: "c",
         userName: "C",
-        userAvatarUrl: null, gravatarHash: null,
+        userAvatarUrl: null,
+        gravatarHash: null,
         profit: -50,
         betCount: 1,
       },
@@ -99,8 +191,24 @@ describe("filterAndRerankLeaderboard", () => {
   it("kör edge case: ha a kör tagjai közül senki sem tippelt, mind látszik", () => {
     // A csoportban 'a' tippelt, de a kör tagja csak a nem-tippelő 'b'.
     const rows = [
-      { rank: 1, userId: "a", userName: "A", userAvatarUrl: null, gravatarHash: null, profit: 500, betCount: 1 },
-      { rank: 2, userId: "b", userName: "B", userAvatarUrl: null, gravatarHash: null, profit: 0, betCount: 0 },
+      {
+        rank: 1,
+        userId: "a",
+        userName: "A",
+        userAvatarUrl: null,
+        gravatarHash: null,
+        profit: 500,
+        betCount: 1,
+      },
+      {
+        rank: 2,
+        userId: "b",
+        userName: "B",
+        userAvatarUrl: null,
+        gravatarHash: null,
+        profit: 0,
+        betCount: 0,
+      },
     ];
     const result = filterAndRerankLeaderboard(rows, new Set(["b"]));
     expect(result.map((r) => r.userId)).toEqual(["b"]);
