@@ -171,7 +171,7 @@ export function Nav({ user, activeTournaments }: NavProps) {
                       googleAvatarUrl={user.avatarUrl}
                       gravatarHash={user.gravatarHash}
                       className="size-7"
-                      fallbackClassName="text-xs"
+                      fallbackClassName="text-[10px]"
                     />
                     <span className="max-w-30 truncate font-semibold text-[13.5px] max-[700px]:hidden">
                       {displayedName}

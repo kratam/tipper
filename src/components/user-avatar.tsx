@@ -71,7 +71,7 @@ export function UserAvatar({
           a monogram az elsődleges tartalom → azonnal (delay nélkül) jelenjen meg. */}
       <AvatarFallback
         delayMs={src ? 600 : undefined}
-        className={cn(bgClass, "text-white", fallbackClassName)}
+        className={cn(bgClass, "text-white tracking-tight", fallbackClassName)}
       >
         {getInitials(name)}
       </AvatarFallback>
