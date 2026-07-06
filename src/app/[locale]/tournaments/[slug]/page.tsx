@@ -16,6 +16,7 @@ import { getQueryClient } from "@/lib/query-client";
 import { loadBadgesForUsers } from "@/queries/badges";
 import { getUserBetsForTournament } from "@/queries/bets";
 import { getUserCircles } from "@/queries/circles";
+import { getGroupClassicPoints } from "@/queries/classic-points";
 import {
   getBatchProjectedBalances,
   getTopPublicGroupsForTournament,
@@ -97,7 +98,10 @@ export default async function TournamentDetailPage({
     ),
     Promise.all(
       relevantGroups.map(async (gm) => {
-        const rawLeaderboard = await getGroupLeaderboard(gm.group.id);
+        const [rawLeaderboard, classicByUser] = await Promise.all([
+          getGroupLeaderboard(gm.group.id),
+          getGroupClassicPoints(gm.group.id),
+        ]);
         const leaderboard = hideInactiveAndRerank(rawLeaderboard);
         const mini = pickMiniLeaderboard(leaderboard, user.id, gm.group.isOfficial ? 5 : 3);
         const myEntry = leaderboard.find((e) => e.userId === user.id);
@@ -110,12 +114,14 @@ export default async function TournamentDetailPage({
           myProfit: myEntry?.profit ?? 0,
           myRank: myEntry?.rank ?? null,
           rawLeaderboard,
+          classicByUser,
           fullLeaderboard: leaderboard.map((e) => ({
             rank: e.rank,
             userId: e.userId,
             userName: e.userName,
             userAvatarUrl: e.userAvatarUrl,
             profit: e.profit,
+            classicPoints: classicByUser.get(e.userId) ?? 0,
           })),
           miniLeaderboard: mini.map((e) => ({
             rank: e.rank,
@@ -294,6 +300,11 @@ export default async function TournamentDetailPage({
   }
   // Körök (a hivatalos csoport tippjeire épülnek, read-only)
   if (officialGroup) {
+    // A kör klasszikus pontjai a hivatalos csoport klasszikus pontjaiból jönnek
+    // (a kör read-only vetülete a hivatalos ranglistának).
+    const officialClassicByUser =
+      groupLeaderboards.find((l) => l.groupId === officialGroup.id)?.classicByUser ??
+      new Map<string, number>();
     for (const circle of userCircles) {
       const memberIds = new Set(circle.members.map((m) => m.userId));
       const filtered = filterAndRerankLeaderboard(officialRawLeaderboard, memberIds);
@@ -307,6 +318,7 @@ export default async function TournamentDetailPage({
           userName: e.userName,
           userAvatarUrl: e.userAvatarUrl,
           profit: e.profit,
+          classicPoints: officialClassicByUser.get(e.userId) ?? 0,
         })),
         detailHref: `/tournaments/${tournament.slug}/circles/${circle.slug}`,
         readOnly: true,
