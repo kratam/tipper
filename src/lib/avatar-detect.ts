@@ -1,33 +1,50 @@
 /**
  * Google-avatar valódiság-detektálás.
  *
- * A Google MINDIG ad `picture` URL-t: ha a usernek nincs feltöltött fotója, egy
- * generált monogramot (egyszínű háttér + egy betű) ad, amit URL-ből nem lehet
- * megkülönböztetni a valódi fotótól. Empirikus mérés a userbázison: a generált
- * monogramok pár tucat egyedi színt tartalmaznak (~60–110), a valódi fotók több
- * ezret (4000+). Ez a szín-szám tehát megbízható diszkriminátor.
+ * A Google MINDIG ad `picture` URL-t: ha a usernek nincs feltöltött képe, egy generált
+ * betű-monogramot ad (egyszínű háttér + egy betű), amit URL-ből nem lehet megkülönböztetni
+ * a feltöltött képtől.
  *
- * A tiszta rész (countUniqueColors, isLikelyRealPhoto) unit-tesztelt; a képletöltő +
- * dekódoló detectAvatarIsReal a `sharp`-ot DINAMIKUSAN importálja, hogy a natív modul
- * ne húzódjon be a tesztekbe / kliens bundle-be.
+ * A megbízható jel a DOMINÁNS-SZÍN ARÁNY: a generált monogramnak egyetlen telített
+ * háttérszíne a kép túlnyomó részét (>85%) kitölti; a feltöltött képeknek — legyen az
+ * fénykép, fekete-fehér portré vagy rajz — nincs ilyen domináns egyszínű háttere.
+ * (A korábbi egyedi-szín-SZÁM heurisztika elbukott: a fekete-fehér fotók és a vektoros
+ * rajzok is kevés színűek, mint a monogramok.)
+ *
+ * A tiszta rész unit-tesztelt; a képletöltő + dekódoló `detectAvatarIsReal` a `sharp`-ot
+ * DINAMIKUSAN importálja, hogy a natív modul ne kerüljön a tesztekbe / kliens bundle-be.
  */
 
-/** A generált monogramok (~110) és a valódi fotók (~4600) közti tiszta szakadék közepe. */
-export const REAL_PHOTO_COLOR_THRESHOLD = 1000;
+/**
+ * E fölött a kép egyszínű-hátterű generált monogram. Prod-mérés: a monogramok domináns
+ * aránya 89–97%, a feltöltött képeké ≤77% — a 0.86 a köztes rés biztonságos közepe,
+ * kissé a feltöltött képek felé húzva (a téves „monogram" rosszabb, mint egy megmaradt
+ * generált avatar).
+ */
+export const MONOGRAM_DOMINANT_THRESHOLD = 0.86;
 
-/** Egyedi RGB-színek száma egy nyers pixel-bufferben (az alfa-csatornát figyelmen kívül hagyva). */
-export function countUniqueColors(buffer: Buffer, channels: number): number {
-  const seen = new Set<number>();
+/**
+ * A leggyakoribb (4 bit/csatornára kvantált) szín aránya a képen. A kvantálás az
+ * anti-alias árnyalatokat egy vödörbe vonja, így a monogram egyszínű háttere egyetlen
+ * domináns vödörként jelenik meg.
+ */
+export function dominantColorRatio(buffer: Buffer, channels: number): number {
+  const hist = new Map<number, number>();
+  let total = 0;
   for (let i = 0; i + 2 < buffer.length; i += channels) {
-    // RGB egyetlen 24-bites egészbe pakolva (alfa kihagyva)
-    seen.add((buffer[i] << 16) | (buffer[i + 1] << 8) | buffer[i + 2]);
+    const q = ((buffer[i] >> 4) << 8) | ((buffer[i + 1] >> 4) << 4) | (buffer[i + 2] >> 4);
+    hist.set(q, (hist.get(q) ?? 0) + 1);
+    total++;
   }
-  return seen.size;
+  if (total === 0) return 0;
+  let max = 0;
+  for (const count of hist.values()) if (count > max) max = count;
+  return max / total;
 }
 
-/** Valódi fotó-e a kép a benne lévő egyedi színek száma alapján. */
-export function isLikelyRealPhoto(uniqueColors: number): boolean {
-  return uniqueColors >= REAL_PHOTO_COLOR_THRESHOLD;
+/** Generált (egyszínű-hátterű) monogram-e a kép a domináns-szín arány alapján. */
+export function isGeneratedMonogram(dominantRatio: number): boolean {
+  return dominantRatio > MONOGRAM_DOMINANT_THRESHOLD;
 }
 
 /**
@@ -42,23 +59,23 @@ export function pickGoogleAvatarUrl(
   return avatarIsReal === false ? null : avatarUrl;
 }
 
-/** A Google-avatar URL-t fix 96px-es négyzetre normalizálja (konzisztens színszámhoz). */
-function normalizeToS96(url: string): string {
-  return `${url.replace(/=s\d+(-c)?$/, "")}=s96-c`;
+/** A Google-avatar URL-t fix 64px-es négyzetre normalizálja (konzisztens méréshez). */
+function normalizeToS64(url: string): string {
+  return `${url.replace(/=s\d+(-c)?$/, "")}=s64-c`;
 }
 
 /**
- * Letölti a Google-avatart és eldönti, valódi feltöltött fotó-e (vagy generált
- * monogram). Hiba esetén `null` (ismeretlen) — a hívó dönt, hogyan kezeli.
+ * Letölti a Google-avatart és eldönti, valódi feltöltött kép-e (vagy generált monogram).
+ * Hiba esetén `null` (ismeretlen) — a hívó dönt, hogyan kezeli.
  */
 export async function detectAvatarIsReal(avatarUrl: string): Promise<boolean | null> {
   try {
-    const res = await fetch(normalizeToS96(avatarUrl), { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(normalizeToS64(avatarUrl), { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return null;
     const input = Buffer.from(await res.arrayBuffer());
     const { default: sharp } = await import("sharp");
     const { data, info } = await sharp(input).raw().toBuffer({ resolveWithObject: true });
-    return isLikelyRealPhoto(countUniqueColors(data, info.channels));
+    return !isGeneratedMonogram(dominantColorRatio(data, info.channels));
   } catch {
     return null;
   }

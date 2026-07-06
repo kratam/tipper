@@ -171,7 +171,7 @@ export function GroupLeaderboardContent({
                     googleAvatarUrl={row.userAvatarUrl}
                     gravatarHash={row.gravatarHash}
                     className="size-7"
-                    fallbackClassName="text-xs"
+                    fallbackClassName="text-[13px]"
                   />
                 </Link>
                 {/* accordion toggle: name, badges, profit, chevron */}

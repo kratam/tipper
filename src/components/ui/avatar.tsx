@@ -43,7 +43,10 @@ function AvatarFallback({
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
       className={cn(
-        "flex size-full items-center justify-center rounded-full bg-muted text-muted-foreground text-sm group-data-[size=sm]/avatar:text-xs",
+        // overflow-hidden: a monogram a kör alakra vágódik, sosem lóg a peremen túl
+        // (a shadcn Root-ban ez benne van, a mi nova-preset Root-unkból az after:border
+        // miatt kimaradt). leading-none: pontos függőleges közép.
+        "flex size-full items-center justify-center overflow-hidden rounded-full bg-muted text-muted-foreground text-sm leading-none group-data-[size=sm]/avatar:text-xs",
         className,
       )}
       {...props}

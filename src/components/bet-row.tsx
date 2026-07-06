@@ -68,7 +68,7 @@ export function BetRow({
         googleAvatarUrl={bet.userAvatarUrl}
         gravatarHash={bet.gravatarHash}
         className="size-[26px] shrink-0"
-        fallbackClassName="font-mono text-[9px]"
+        fallbackClassName="text-[12px]"
         alt={displayName}
         loading="lazy"
       />

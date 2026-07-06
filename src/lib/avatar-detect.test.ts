@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
-  countUniqueColors,
-  isLikelyRealPhoto,
+  dominantColorRatio,
+  isGeneratedMonogram,
+  MONOGRAM_DOMINANT_THRESHOLD,
   pickGoogleAvatarUrl,
-  REAL_PHOTO_COLOR_THRESHOLD,
 } from "./avatar-detect";
 
 describe("pickGoogleAvatarUrl", () => {
   const url = "https://lh3.googleusercontent.com/a/ACg8oc...";
 
-  it("valódi fotónál (true) megtartja a Google-képet", () => {
+  it("valódi képnél (true) megtartja a Google-képet", () => {
     expect(pickGoogleAvatarUrl(url, true)).toBe(url);
   });
 
@@ -27,48 +27,50 @@ describe("pickGoogleAvatarUrl", () => {
   });
 });
 
-describe("countUniqueColors", () => {
-  it("egyszínű bufferre 1-et ad (3 csatorna)", () => {
-    const buf = Buffer.from([255, 0, 0, 255, 0, 0, 255, 0, 0]);
-    expect(countUniqueColors(buf, 3)).toBe(1);
+describe("dominantColorRatio", () => {
+  it("egyszínű bufferre 1.0 (a teljes kép egy szín)", () => {
+    const buf = Buffer.from([200, 30, 30, 200, 30, 30, 200, 30, 30]);
+    expect(dominantColorRatio(buf, 3)).toBe(1);
   });
 
-  it("két különböző színt megszámol", () => {
-    const buf = Buffer.from([255, 0, 0, 0, 255, 0]);
-    expect(countUniqueColors(buf, 3)).toBe(2);
+  it("fele-fele két színnél 0.5", () => {
+    // 2 pixel piros, 2 pixel zöld (más kvant-vödör)
+    const buf = Buffer.from([200, 0, 0, 200, 0, 0, 0, 200, 0, 0, 200, 0]);
+    expect(dominantColorRatio(buf, 3)).toBe(0.5);
   });
 
-  it("ismétlődő színeket egyszer számol", () => {
-    const buf = Buffer.from([1, 2, 3, 1, 2, 3, 9, 9, 9, 1, 2, 3]);
-    expect(countUniqueColors(buf, 3)).toBe(2);
+  it("a közeli árnyalatokat egy vödörbe vonja (kvantálás)", () => {
+    // 240 és 255 ugyanabba a 4-bites vödörbe esik (>>4 = 15) → 1 domináns
+    const buf = Buffer.from([255, 0, 0, 240, 0, 0, 241, 0, 0]);
+    expect(dominantColorRatio(buf, 3)).toBe(1);
   });
 
-  it("kezeli a 4 csatornát (RGBA) — az alfát figyelmen kívül hagyja a színnél", () => {
-    // két pixel, azonos RGB, eltérő alfa → 1 szín
+  it("kezeli a 4 csatornát (RGBA)", () => {
     const buf = Buffer.from([10, 20, 30, 255, 10, 20, 30, 128]);
-    expect(countUniqueColors(buf, 4)).toBe(1);
+    expect(dominantColorRatio(buf, 4)).toBe(1);
   });
 
   it("üres bufferre 0", () => {
-    expect(countUniqueColors(Buffer.from([]), 3)).toBe(0);
+    expect(dominantColorRatio(Buffer.from([]), 3)).toBe(0);
   });
 });
 
-describe("isLikelyRealPhoto", () => {
-  it("a mért generált monogramok (kevés szín) NEM valódi fotók", () => {
-    // Andris=62, Attila=111 — a userbázis mért generált avatarjai
-    expect(isLikelyRealPhoto(62)).toBe(false);
-    expect(isLikelyRealPhoto(111)).toBe(false);
+describe("isGeneratedMonogram", () => {
+  it("a mért monogramok (nagy domináns háttér) generáltak", () => {
+    // prod: a monogramok domináns aránya 0.89–0.97
+    expect(isGeneratedMonogram(0.89)).toBe(true);
+    expect(isGeneratedMonogram(0.97)).toBe(true);
   });
 
-  it("a mért valódi fotók (sok szín) valódiak", () => {
-    // György=4620, Mominho=6554 — mért valódi fotók
-    expect(isLikelyRealPhoto(4620)).toBe(true);
-    expect(isLikelyRealPhoto(6554)).toBe(true);
+  it("a feltöltött képek (fotó, fekete-fehér, rajz) NEM monogramok", () => {
+    // prod: Kornél fekete-fehér fotó 0.77, Emma rajz 0.50, fényképek ≤0.27
+    expect(isGeneratedMonogram(0.77)).toBe(false);
+    expect(isGeneratedMonogram(0.5)).toBe(false);
+    expect(isGeneratedMonogram(0.16)).toBe(false);
   });
 
-  it("a küszöb alatt NEM valódi, a küszöbön/felette valódi", () => {
-    expect(isLikelyRealPhoto(REAL_PHOTO_COLOR_THRESHOLD - 1)).toBe(false);
-    expect(isLikelyRealPhoto(REAL_PHOTO_COLOR_THRESHOLD)).toBe(true);
+  it("a küszöbön NEM, fölötte igen", () => {
+    expect(isGeneratedMonogram(MONOGRAM_DOMINANT_THRESHOLD)).toBe(false);
+    expect(isGeneratedMonogram(MONOGRAM_DOMINANT_THRESHOLD + 0.01)).toBe(true);
   });
 });
