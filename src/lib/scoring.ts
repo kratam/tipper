@@ -6,53 +6,60 @@ export function get1X2(home: number, away: number): Outcome {
   return "2";
 }
 
-interface BetPayoutInput {
+function partialRefund(stake: number, lossPercentage: number): number {
+  const clamped = Math.max(0, Math.min(100, lossPercentage));
+  return Math.round((stake * (100 - clamped)) / 100);
+}
+
+export interface BaseBetPayoutInput {
   predictedHome: number;
   predictedAway: number;
   actualHome: number;
   actualAway: number;
   stake: number;
   oddsAtBet: number | null;
-  groupSettings: {
-    bonusGoalDiff: number;
-    bonusExactScore: number;
-    oddsBoost: number;
-    lossPercentage: number;
-  };
+  oddsBoost: number;
+  lossPercentage: number;
 }
 
-interface BetPayoutResult {
-  payout: number;
+export interface BaseBetPayoutResult {
+  basePayout: number;
   result1x2Correct: boolean;
   goalDiffCorrect: boolean;
   exactScoreCorrect: boolean;
 }
 
-function partialRefund(stake: number, lossPercentage: number): number {
-  const clamped = Math.max(0, Math.min(100, lossPercentage));
-  return Math.round((stake * (100 - clamped)) / 100);
-}
-
-export function calculateBetPayout(input: BetPayoutInput): BetPayoutResult {
-  const { predictedHome, predictedAway, actualHome, actualAway, stake, oddsAtBet, groupSettings } =
-    input;
+/**
+ * Tippenkénti pure alap-payout (bónusz NÉLKÜL) + a három találat-flag.
+ * A dinamikus gólkülönbség/pontos eredmény bónusz a meccs ÖSSZES találójától
+ * függ (pool szétosztása), ezért külön fázisban (distributeBonusPools) adódik
+ * hozzá a scoreMatch-ben — nem itt.
+ */
+export function calculateBaseBetPayout(input: BaseBetPayoutInput): BaseBetPayoutResult {
+  const {
+    predictedHome,
+    predictedAway,
+    actualHome,
+    actualAway,
+    stake,
+    oddsAtBet,
+    oddsBoost,
+    lossPercentage,
+  } = input;
 
   if (oddsAtBet === null) {
     return {
-      payout: partialRefund(stake, groupSettings.lossPercentage),
+      basePayout: partialRefund(stake, lossPercentage),
       result1x2Correct: false,
       goalDiffCorrect: false,
       exactScoreCorrect: false,
     };
   }
 
-  const predicted1X2 = get1X2(predictedHome, predictedAway);
-  const actual1X2 = get1X2(actualHome, actualAway);
-  const result1x2Correct = predicted1X2 === actual1X2;
-
+  const result1x2Correct = get1X2(predictedHome, predictedAway) === get1X2(actualHome, actualAway);
   if (!result1x2Correct) {
     return {
-      payout: partialRefund(stake, groupSettings.lossPercentage),
+      basePayout: partialRefund(stake, lossPercentage),
       result1x2Correct: false,
       goalDiffCorrect: false,
       exactScoreCorrect: false,
@@ -61,12 +68,51 @@ export function calculateBetPayout(input: BetPayoutInput): BetPayoutResult {
 
   const goalDiffCorrect = predictedHome - predictedAway === actualHome - actualAway;
   const exactScoreCorrect = predictedHome === actualHome && predictedAway === actualAway;
+  const basePayout = Math.round(stake * oddsAtBet * oddsBoost);
+  return { basePayout, result1x2Correct, goalDiffCorrect, exactScoreCorrect };
+}
 
-  let payout = Math.round(stake * oddsAtBet * groupSettings.oddsBoost);
-  if (goalDiffCorrect) payout += groupSettings.bonusGoalDiff;
-  if (exactScoreCorrect) payout += groupSettings.bonusExactScore;
+/**
+ * A meccs aktív tippelőinek összes lifetime budgetje (a „játékban lévő tokenek"):
+ * fejenként initialTokens + tokenPerMatch × addigi meccsek + rendezett tét-nettók.
+ * Ez a dinamikus bónusz-pool alapja. Mindig ≥ 0 a gyakorlatban, és a torna
+ * során nő. A nyers ledger-egyenleg helyett ezt használjuk, mert az mid-torna
+ * torzított (a jövőbeli tétek már levonódtak, de a jövőbeli osztás még nem).
+ */
+export function computePoolBase(input: {
+  initialTokens: number;
+  tokenPerMatch: number;
+  matchesToDate: number;
+  bettorResolvedNets: number[];
+}): number {
+  const { initialTokens, tokenPerMatch, matchesToDate, bettorResolvedNets } = input;
+  const perBettorFloor = initialTokens + tokenPerMatch * matchesToDate;
+  return bettorResolvedNets.reduce((sum, net) => sum + perBettorFloor + net, 0);
+}
 
-  return { payout, result1x2Correct, goalDiffCorrect, exactScoreCorrect };
+/**
+ * A pool a bázis P%-a, egyenlően szétosztva az adott szint találói között
+ * (lefelé kerekítve; a maradék nem minteledik). A gólkülönbség- és
+ * pontos-eredmény-pool külön és halmozható (pontos eredmény ⊆ gólkülönbség →
+ * a telitalálós mindkét poolból részesedik). 0 találó → 0 az adott szinten.
+ */
+export function distributeBonusPools(input: {
+  poolBase: number;
+  goalDiffHitters: number;
+  exactScoreHitters: number;
+  goalDiffPct: number;
+  exactScorePct: number;
+}): { goalDiffPerHitter: number; exactScorePerHitter: number } {
+  const pool = Math.max(0, input.poolBase);
+  const goalDiffPerHitter =
+    input.goalDiffHitters > 0
+      ? Math.floor((pool * input.goalDiffPct) / 100 / input.goalDiffHitters)
+      : 0;
+  const exactScorePerHitter =
+    input.exactScoreHitters > 0
+      ? Math.floor((pool * input.exactScorePct) / 100 / input.exactScoreHitters)
+      : 0;
+  return { goalDiffPerHitter, exactScorePerHitter };
 }
 
 interface PodiumPrediction {
