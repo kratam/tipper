@@ -24,6 +24,9 @@ describe("buildRuleSections", () => {
     expect(findRow(sections, "oddsBoost")?.value).toBe("×1.15");
     expect(findRow(sections, "bonusGoalDiff")?.value).toBe("2%");
     expect(findRow(sections, "bonusExactScore")?.value).toBe("3%");
+    expect(findRow(sections, "bonusGoalDiff")?.explainKey).toBe("bonusGoalDiffExplain");
+    expect(findRow(sections, "bonusGoalDiff")?.explainParams).toEqual({ pct: 2 });
+    expect(findRow(sections, "bonusExactScore")?.explainKey).toBe("bonusExactScoreExplain");
   });
 
   it("derives refund from lossPercentage (100 - loss)", () => {

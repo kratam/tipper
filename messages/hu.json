@@ -118,7 +118,7 @@
     "howToPlayBetting": "Tippelés",
     "howToPlayBettingDesc": "Jósold meg a pontos végeredményt (pl. 3:1), és döntsd el, mennyi tokent teszel fel. Akár jövőbeli meccsekre is tippelhetsz előre. A meccs kezdetéig bármikor módosíthatod a tippedet.",
     "howToPlayScoring": "Pontszámítás",
-    "howToPlayScoringDesc": "Helyes tippért a tét és az odds szorzatát kapod vissza, a hivatalosnál magasabb kifizetéssel. Bónusz jár, ha a gólkülönbség is stimmel — és még több, ha a pontos eredményt is eltalálod. A bónusz mérete a meccsre tippelők tokenállományától függ, így a torna során végig arányos marad. Rossz tippnél a tét nagy részét elveszted, de egy kis részét visszakapod.",
+    "howToPlayScoringDesc": "Helyes tippért a tét és az odds szorzatát kapod vissza, a hivatalosnál magasabb kifizetéssel. Ha a gólkülönbséget is eltalálod, bónusz jár, a pontos eredményért pedig még nagyobb. Ez a bónusz nem fix: a meccsre tippelők tokenjeinek egy részéből jön össze, és az eltalálók osztoznak rajta. Így ahogy nőnek a tétek a torna vége felé, úgy nő a bónusz is. Rossz tippnél a tét nagy részét elveszted, de egy kis részét visszakapod.",
     "howToPlayOdds": "Odds olvasása",
     "howToPlayOddsDesc": "Minden meccsnél három odds látszik: 1 (hazai győzelem), X (döntetlen), 2 (vendég győzelem). A szám azt mutatja, hányszorosát éri a tét — minél nagyobb a meglepetés, annál nagyobb a nyeremény.",
     "howToPlayLockedOdds": "Lekötött odds",
@@ -285,6 +285,8 @@
     "rulesPodium": "Dobogó tipp",
     "rulesLoss": "Vesztés",
     "oddsBoostExplain": "A nyeremény {pct}%-kal több az eredeti oddsnál.",
+    "bonusGoalDiffExplain": "A meccsre tippelők tokenjeinek {pct}%-a oszlik el a gólkülönbséget eltalálók közt.",
+    "bonusExactScoreExplain": "A meccsre tippelők tokenjeinek {pct}%-a oszlik el a pontos eredményt eltalálók közt.",
     "refund": "Visszatérítés",
     "refundExplain": "Vesztett meccs után a tét {pct}%-át visszakapod.",
     "refundExplainFull": "Bukáskor a teljes tétet elveszíted.",
@@ -541,9 +543,9 @@
       {
         "heading": "Hogyan kapok bónuszt?",
         "items": [
-          "Ha eltalálod a gólkülönbséget, fix bónuszt kapsz.",
-          "Ha a pontos végeredményt is eltalálod, még nagyobb bónusz jár.",
-          "A bónusz nem függ a téttől — ezért érdemes mindenre legalább 1 tokennel tippelni."
+          "Ha eltalálod a gólkülönbséget, bónuszt kapsz, a pontos végeredményért pedig még nagyobbat.",
+          "A bónusz nem fix: a meccsre tippelők tokenjeiből áll össze egy közös keret, és ezen az eltalálók osztoznak. Minél több token forog a játékban, annál nagyobb, így a torna vége felé sokat számíthat.",
+          "Nem a tét nagyságától függ, hanem attól, hogy eltaláltad-e. Ezért érdemes mindenre legalább 1 tokennel tippelni."
         ]
       },
       {

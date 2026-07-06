@@ -118,7 +118,7 @@
     "howToPlayBetting": "Betting",
     "howToPlayBettingDesc": "Predict the exact final score (e.g. 3:1) and choose your stake. You can even bet on upcoming matches in advance. Update any time before the match starts.",
     "howToPlayScoring": "Scoring",
-    "howToPlayScoringDesc": "Get the outcome right and you win back stake × odds, with a payout higher than the official odds. Bonus if the goal difference matches too — even more for the exact score. The bonus scales with the tokens held by the players who bet on the match, so it stays proportionate throughout the tournament. On a wrong prediction you lose most of your stake but get a small part back.",
+    "howToPlayScoringDesc": "Get the outcome right and you win back stake × odds, with a payout higher than the official odds. Match the goal difference and you get a bonus; nail the exact score and it's bigger still. This bonus isn't fixed: it comes from a slice of the tokens held by everyone who bet on the match, split among those who got it right. So as the stakes grow toward the end of the tournament, the bonus grows too. On a wrong prediction you lose most of your stake but get a small part back.",
     "howToPlayOdds": "Reading the odds",
     "howToPlayOddsDesc": "Every match shows three odds: 1 (home win), X (draw), 2 (away win). The number is how many times your stake it pays — the bigger the upset, the bigger the win.",
     "howToPlayLockedOdds": "Locked-in odds",
@@ -285,6 +285,8 @@
     "rulesPodium": "Podium prediction",
     "rulesLoss": "Loss",
     "oddsBoostExplain": "Winnings are {pct}% higher than the base odds.",
+    "bonusGoalDiffExplain": "{pct}% of the tokens held by everyone who bet on the match, split among those who got the goal difference right.",
+    "bonusExactScoreExplain": "{pct}% of the tokens held by everyone who bet on the match, split among those who got the exact score right.",
     "refund": "Refund",
     "refundExplain": "After a lost match you get {pct}% of your stake back.",
     "refundExplainFull": "On a loss you lose your entire stake.",
@@ -541,9 +543,9 @@
       {
         "heading": "How do I earn a bonus?",
         "items": [
-          "If you get the goal difference right, you earn a fixed bonus.",
-          "If you also nail the exact result, you earn an even bigger bonus.",
-          "The bonus doesn't depend on your stake — so it's worth betting at least 1 token on everything."
+          "Get the goal difference right and you earn a bonus; nail the exact score and it's bigger still.",
+          "The bonus isn't fixed: it's a shared pool made up of the tokens held by everyone who bet on the match, split among those who got it right. The more tokens in play, the bigger it gets, so it can matter a lot toward the end of the tournament.",
+          "It doesn't depend on your stake, only on whether you got it right. So it's worth betting at least 1 token on everything."
         ]
       },
       {

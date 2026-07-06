@@ -61,12 +61,19 @@ export function buildRuleSections(rules: GroupRules): RuleSection[] {
     },
   ];
   if (rules.bonusGoalDiffPct > 0) {
-    scoringRows.push({ labelKey: "bonusGoalDiff", value: `${rules.bonusGoalDiffPct}%` });
+    scoringRows.push({
+      labelKey: "bonusGoalDiff",
+      value: `${rules.bonusGoalDiffPct}%`,
+      explainKey: "bonusGoalDiffExplain",
+      explainParams: { pct: rules.bonusGoalDiffPct },
+    });
   }
   if (rules.bonusExactScorePct > 0) {
     scoringRows.push({
       labelKey: "bonusExactScore",
       value: `${rules.bonusExactScorePct}%`,
+      explainKey: "bonusExactScoreExplain",
+      explainParams: { pct: rules.bonusExactScorePct },
     });
   }
   sections.push({ titleKey: "rulesScoring", rows: scoringRows });
