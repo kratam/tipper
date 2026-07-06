@@ -73,9 +73,9 @@ export function UserAvatar({
         delayMs={src ? 600 : undefined}
         className={cn(bgClass, "text-white tracking-tight", fallbackClassName)}
       >
-        {/* A Sora nagy ascentje miatt a nagybetűk a kör közepe FÖLÉ ülnek; a ~0.11em
+        {/* A Sora nagy ascentje miatt a nagybetűk a kör közepe FÖLÉ ülnek; a 0.08em
             lefelé told optikailag középre hozza. em-alapú → minden mérethez arányos. */}
-        <span className="block translate-y-[0.11em]">{getInitials(name)}</span>
+        <span className="block translate-y-[0.08em]">{getInitials(name)}</span>
       </AvatarFallback>
     </Avatar>
   );
