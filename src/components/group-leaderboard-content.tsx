@@ -8,11 +8,10 @@ import { BetBonusCell } from "@/components/bet-bonus-cell";
 import { LeaderboardBadges } from "@/components/leaderboard-badges";
 import { TeamLogo } from "@/components/team-logo";
 import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/user-avatar";
 import { Link } from "@/i18n/navigation";
 import { predictionToneClass } from "@/lib/bet-display";
-import { getInitials } from "@/lib/initials";
 import { formatEffectiveOdds } from "@/lib/odds-display";
 
 interface LeaderboardRow {
@@ -20,6 +19,7 @@ interface LeaderboardRow {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
+  gravatarHash: string | null;
   profit: number;
   officialRank?: number;
 }
@@ -166,10 +166,13 @@ export function GroupLeaderboardContent({
                 </span>
                 {/* avatar as profile link */}
                 <Link href={`/u/${row.userId}`} className="mx-2.5 flex shrink-0 py-2.5">
-                  <Avatar className="size-7">
-                    <AvatarImage src={row.userAvatarUrl ?? undefined} />
-                    <AvatarFallback className="text-xs">{getInitials(row.userName)}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    name={row.userName}
+                    googleAvatarUrl={row.userAvatarUrl}
+                    gravatarHash={row.gravatarHash}
+                    className="size-7"
+                    fallbackClassName="text-xs"
+                  />
                 </Link>
                 {/* accordion toggle: name, badges, profit, chevron */}
                 <AccordionPrimitive.Trigger className="group/acc flex flex-1 items-center gap-2.5 py-2.5 pr-3 text-left outline-none">

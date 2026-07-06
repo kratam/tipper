@@ -19,6 +19,7 @@ interface LeaderboardRow {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
+  gravatarHash: string | null;
   profit: number;
   classicPoints?: number;
 }
@@ -38,6 +39,7 @@ interface CircleBet {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
+  gravatarHash: string | null;
   predictedHome: number;
   predictedAway: number;
   stake: number;

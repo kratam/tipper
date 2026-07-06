@@ -207,6 +207,7 @@ export interface MatrixRowInput {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
+  gravatarHash: string | null;
   profit: number;
   /** Teljes klasszikus (token nélküli) összpont — a `classic`+`total` nézethez. */
   classicPoints?: number;
@@ -218,6 +219,7 @@ export interface MatrixRowDisplay {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
+  gravatarHash: string | null;
   value: number;
 }
 
@@ -259,6 +261,7 @@ export function buildMatrixRows(
       userId: r.userId,
       userName: r.userName,
       userAvatarUrl: r.userAvatarUrl,
+      gravatarHash: r.gravatarHash,
       value: r.profit,
     }));
   }
@@ -286,6 +289,7 @@ export function buildMatrixRows(
       userId: r.userId,
       userName: r.userName,
       userAvatarUrl: r.userAvatarUrl,
+      gravatarHash: r.gravatarHash,
       value: valueByUser.get(r.userId) ?? 0,
     }))
     .sort((a, b) => b.value - a.value)

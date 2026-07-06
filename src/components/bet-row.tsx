@@ -2,8 +2,7 @@
 
 import type { ReactNode } from "react";
 import { TokenIcon } from "@/components/token-icon";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getInitials } from "@/lib/initials";
+import { UserAvatar } from "@/components/user-avatar";
 import { classify1x2 } from "@/lib/match-stats";
 import { formatEffectiveOdds } from "@/lib/odds-display";
 import { OUTCOME_GRADIENT } from "@/lib/outcome-colors";
@@ -64,10 +63,15 @@ export function BetRow({
       ) : (
         <span className="text-center text-faint">·</span>
       )}
-      <Avatar className="size-[26px] shrink-0">
-        <AvatarImage src={bet.userAvatarUrl ?? undefined} alt={displayName} loading="lazy" />
-        <AvatarFallback className="font-mono text-[9px]">{getInitials(displayName)}</AvatarFallback>
-      </Avatar>
+      <UserAvatar
+        name={displayName}
+        googleAvatarUrl={bet.userAvatarUrl}
+        gravatarHash={bet.gravatarHash}
+        className="size-[26px] shrink-0"
+        fallbackClassName="font-mono text-[9px]"
+        alt={displayName}
+        loading="lazy"
+      />
       <div className="min-w-0">
         <div className="truncate font-semibold text-[13.5px]">{displayName}</div>
         <div className="mt-px flex items-center gap-[7px] font-mono text-[11px] text-muted-foreground">

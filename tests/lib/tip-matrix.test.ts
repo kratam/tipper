@@ -237,9 +237,33 @@ describe("betNet", () => {
 
 describe("buildMatrixRows", () => {
   const lb: MatrixRowInput[] = [
-    { rank: 1, userId: "u1", userName: "Anna", userAvatarUrl: null, profit: 42, classicPoints: 5 },
-    { rank: 2, userId: "u2", userName: "Béla", userAvatarUrl: null, profit: 30, classicPoints: 9 },
-    { rank: 3, userId: "u3", userName: "Cili", userAvatarUrl: null, profit: 10, classicPoints: 7 },
+    {
+      rank: 1,
+      userId: "u1",
+      userName: "Anna",
+      userAvatarUrl: null,
+      gravatarHash: null,
+      profit: 42,
+      classicPoints: 5,
+    },
+    {
+      rank: 2,
+      userId: "u2",
+      userName: "Béla",
+      userAvatarUrl: null,
+      gravatarHash: null,
+      profit: 30,
+      classicPoints: 9,
+    },
+    {
+      rank: 3,
+      userId: "u3",
+      userName: "Cili",
+      userAvatarUrl: null,
+      gravatarHash: null,
+      profit: 10,
+      classicPoints: 7,
+    },
   ];
 
   it("total scope: unchanged order, value=profit, original rank", () => {

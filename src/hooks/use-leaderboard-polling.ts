@@ -16,6 +16,7 @@ interface LeaderboardRow {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
+  gravatarHash: string | null;
   profit: number;
   classicPoints?: number;
 }
@@ -50,6 +51,7 @@ export function useLeaderboardPolling(
       userId: row.userId,
       userName: row.userName,
       userAvatarUrl: row.userAvatarUrl,
+      gravatarHash: row.gravatarHash,
       profit: row.profit,
       classicPoints: classicByUser.get(row.userId) ?? 0,
     }));

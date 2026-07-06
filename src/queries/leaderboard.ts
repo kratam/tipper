@@ -2,6 +2,7 @@ import "server-only";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { bets, groupMembers, matches, tokenLedger, users } from "@/db/schema";
+import { gravatarHash } from "@/lib/gravatar-hash";
 
 export async function getGroupLeaderboard(groupId: string) {
   // All group members appear; profit only counts resolved matches.
@@ -11,6 +12,7 @@ export async function getGroupLeaderboard(groupId: string) {
       userId: groupMembers.userId,
       userName: sql<string>`COALESCE(${users.displayName}, ${users.name})`.as("user_name"),
       userAvatarUrl: users.avatarUrl,
+      userEmail: users.email,
       profit: sql<number>`COALESCE(SUM(CASE WHEN ${matches.status} IN ('finished', 'cancelled') THEN ${tokenLedger.amount} ELSE 0 END), 0)`,
       betCount: sql<number>`COUNT(DISTINCT ${bets.id})::int`,
     })
@@ -27,15 +29,24 @@ export async function getGroupLeaderboard(groupId: string) {
     .leftJoin(bets, eq(tokenLedger.referenceId, bets.id))
     .leftJoin(matches, eq(bets.matchId, matches.id))
     .where(eq(groupMembers.groupId, groupId))
-    .groupBy(groupMembers.userId, users.id, users.name, users.displayName, users.avatarUrl)
+    .groupBy(
+      groupMembers.userId,
+      users.id,
+      users.name,
+      users.displayName,
+      users.avatarUrl,
+      users.email,
+    )
     .orderBy(
       desc(
         sql`COALESCE(SUM(CASE WHEN ${matches.status} IN ('finished', 'cancelled') THEN ${tokenLedger.amount} ELSE 0 END), 0)`,
       ),
     );
 
-  return rows.map((row, index) => ({
+  return rows.map(({ userEmail, ...row }, index) => ({
     ...row,
+    // Az email nem kerül a kliensre; a Gravatar-hasht szerver oldalon számoljuk.
+    gravatarHash: gravatarHash(userEmail),
     rank: index + 1,
   }));
 }

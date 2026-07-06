@@ -7,6 +7,7 @@ import { GroupPageHeader } from "@/components/group-page-header";
 import { InviteCodeBadge } from "@/components/invite-code-badge";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { gravatarHash } from "@/lib/gravatar-hash";
 import { hideInactiveAndRerank } from "@/lib/leaderboard-utils";
 import { liveKeys } from "@/lib/live/query-keys";
 import { getQueryClient } from "@/lib/query-client";
@@ -156,6 +157,7 @@ export default async function GroupDetailPage({
             userId: row.userId,
             userName: row.userName,
             userAvatarUrl: row.userAvatarUrl,
+            gravatarHash: row.gravatarHash,
             profit: row.profit,
             classicPoints: classicByUser.get(row.userId) ?? 0,
           }))}
@@ -164,6 +166,7 @@ export default async function GroupDetailPage({
             userId: m.userId,
             name: m.user.displayName ?? m.user.name,
             avatarUrl: m.user.avatarUrl,
+            gravatarHash: gravatarHash(m.user.email),
           }))}
           settings={groupRules}
           finishedMatches={finishedMatches.map((m) => ({
@@ -180,6 +183,7 @@ export default async function GroupDetailPage({
             userId: b.userId,
             userName: b.user.displayName ?? b.user.name,
             userAvatarUrl: b.user.avatarUrl,
+            gravatarHash: gravatarHash(b.user.email),
             predictedHome: b.predictedHome,
             predictedAway: b.predictedAway,
             stake: b.stake,

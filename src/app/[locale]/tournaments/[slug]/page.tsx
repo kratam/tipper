@@ -120,6 +120,7 @@ export default async function TournamentDetailPage({
             userId: e.userId,
             userName: e.userName,
             userAvatarUrl: e.userAvatarUrl,
+            gravatarHash: e.gravatarHash,
             profit: e.profit,
             classicPoints: classicByUser.get(e.userId) ?? 0,
           })),
@@ -128,6 +129,7 @@ export default async function TournamentDetailPage({
             userId: e.userId,
             userName: e.userName,
             userAvatarUrl: e.userAvatarUrl,
+            gravatarHash: e.gravatarHash,
             profit: e.profit,
           })),
         };
@@ -317,6 +319,7 @@ export default async function TournamentDetailPage({
           userId: e.userId,
           userName: e.userName,
           userAvatarUrl: e.userAvatarUrl,
+          gravatarHash: e.gravatarHash,
           profit: e.profit,
           classicPoints: officialClassicByUser.get(e.userId) ?? 0,
         })),

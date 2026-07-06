@@ -3,6 +3,7 @@ export interface LeaderboardEntry {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
+  gravatarHash: string | null;
   profit: number;
   betCount: number;
 }

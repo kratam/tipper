@@ -51,6 +51,16 @@
   --color-silver: #c0c0c0;
   --color-nav-bg: var(--nav-bg);
 
+  /* avatar monogram-fallback paletta (névből determinisztikusan választva) */
+  --color-avatar-1: var(--avatar-1);
+  --color-avatar-2: var(--avatar-2);
+  --color-avatar-3: var(--avatar-3);
+  --color-avatar-4: var(--avatar-4);
+  --color-avatar-5: var(--avatar-5);
+  --color-avatar-6: var(--avatar-6);
+  --color-avatar-7: var(--avatar-7);
+  --color-avatar-8: var(--avatar-8);
+
   --radius-sm: calc(var(--radius) * 0.55);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -100,6 +110,18 @@
   --gold-soft: color-mix(in oklab, #f0b850 16%, transparent);
   --gold-line: color-mix(in oklab, #f0b850 38%, transparent);
   --nav-bg: #0e1320;
+
+  /* avatar monogram-fallback paletta — telített, fehér monogrammal AA-kontraszt;
+     témától független (a .dark nem írja felül), így a listákban stabil a szín */
+  --avatar-1: #c0392b;
+  --avatar-2: #b8541c;
+  --avatar-3: #1f8a5b;
+  --avatar-4: #0f7d87;
+  --avatar-5: #2f6bb8;
+  --avatar-6: #5b52c9;
+  --avatar-7: #8e44ad;
+  --avatar-8: #b93d7e;
+
   --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 10px 22px -20px rgba(60, 45, 15, 0.45);
   --card-shadow-hover: 0 16px 30px -22px rgba(60, 45, 15, 0.4), 0 0 0 1px var(--gold-line) inset;
   color-scheme: light;
