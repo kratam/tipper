@@ -8,7 +8,6 @@ import { deleteGroup, leaveGroup, removeMember, updateGroupSettings } from "@/ac
 import { GroupLeaderboardContent } from "@/components/group-leaderboard-content";
 import { GroupResultsContent } from "@/components/group-results-content";
 import { TipMatrix } from "@/components/tip-matrix";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -16,10 +15,10 @@ import { NumericInput } from "@/components/ui/numeric-input";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { UserAvatar } from "@/components/user-avatar";
 import { useLeaderboardPolling } from "@/hooks/use-leaderboard-polling";
 import { useRouter } from "@/i18n/navigation";
 import type { GroupRules } from "@/lib/group-rules";
-import { getInitials } from "@/lib/initials";
 import type { TipMatrixRound } from "@/queries/tip-matrix";
 
 interface LeaderboardRow {
@@ -27,6 +26,7 @@ interface LeaderboardRow {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
+  gravatarHash: string | null;
   profit: number;
   classicPoints?: number;
 }
@@ -36,6 +36,7 @@ interface MemberInfo {
   userId: string;
   name: string;
   avatarUrl: string | null;
+  gravatarHash: string | null;
 }
 
 type GroupSettings = GroupRules;
@@ -55,6 +56,7 @@ interface GroupBet {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
+  gravatarHash: string | null;
   predictedHome: number;
   predictedAway: number;
   stake: number;
@@ -387,10 +389,13 @@ export function GroupDetailTabs({
                   key={member.id}
                   className="flex items-center gap-2.5 border-border border-b py-2 last:border-b-0"
                 >
-                  <Avatar className="size-[30px]">
-                    <AvatarImage src={member.avatarUrl ?? undefined} />
-                    <AvatarFallback className="text-xs">{getInitials(member.name)}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    name={member.name}
+                    googleAvatarUrl={member.avatarUrl}
+                    gravatarHash={member.gravatarHash}
+                    className="size-[30px]"
+                    fallbackClassName="text-xs"
+                  />
                   <span className="flex-1 truncate font-medium text-[13.5px]">{member.name}</span>
                   {member.userId !== currentUserId && (
                     <button

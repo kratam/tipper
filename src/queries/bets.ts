@@ -3,6 +3,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { getLocale } from "next-intl/server";
 import { db } from "@/db";
 import { bets, groupMembers, matches } from "@/db/schema";
+import { gravatarHash } from "@/lib/gravatar-hash";
 import type { Locale } from "@/lib/providers/types";
 import { withMatchTeamDisplay } from "@/queries/team-display";
 
@@ -21,6 +22,7 @@ export interface GroupMemberBet {
   userName: string;
   userDisplayName: string | null;
   userAvatarUrl: string | null;
+  gravatarHash: string | null;
   predictedHome: number;
   predictedAway: number;
   stake: number;
@@ -68,6 +70,7 @@ export async function getGroupBetsForStartedMatch(
       userName: bet.user.name,
       userDisplayName: bet.user.displayName,
       userAvatarUrl: bet.user.avatarUrl,
+      gravatarHash: gravatarHash(bet.user.email),
       predictedHome: bet.predictedHome,
       predictedAway: bet.predictedAway,
       stake: bet.stake,

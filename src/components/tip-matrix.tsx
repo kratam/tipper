@@ -15,15 +15,14 @@ import { getTipMatrixBetInfoAction, type TipMatrixBetInfo } from "@/actions/tip-
 import { BetDialog } from "@/components/bet-dialog";
 import { LeaderboardBadges } from "@/components/leaderboard-badges";
 import { TokenIcon } from "@/components/token-icon";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { UserAvatar } from "@/components/user-avatar";
 import { useMatchesRaw } from "@/hooks/live/use-matches";
 import { useTipMatrixRound } from "@/hooks/live/use-tip-matrix-round";
 import { usePersistedMatrixMode } from "@/hooks/use-persisted-matrix-mode";
 import { Link } from "@/i18n/navigation";
 import { predictionToneClass } from "@/lib/bet-display";
-import { getInitials } from "@/lib/initials";
 import { splitCuratedRows } from "@/lib/leaderboard-utils";
 import { applyLiveScores } from "@/lib/live/apply-live-scores";
 import { classicPointsFromFlags } from "@/lib/scoring";
@@ -36,6 +35,7 @@ export interface TipMatrixLeaderboardRow {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
+  gravatarHash: string | null;
   profit: number;
   classicPoints?: number;
 }
@@ -88,12 +88,14 @@ function PlayerAvatarTooltip({
   userId,
   name,
   avatarUrl,
+  gravatarHash,
   badges,
   stats,
 }: {
   userId: string;
   name: string;
   avatarUrl: string | null;
+  gravatarHash: string | null;
   badges?: Array<{ badgeKey: string; tier: number }>;
   stats?: { totalBets: number; hitRate: number };
 }) {
@@ -112,10 +114,13 @@ function PlayerAvatarTooltip({
             className="inline-flex cursor-pointer rounded-full"
             aria-label={name}
           >
-            <Avatar className="size-[22px]">
-              <AvatarImage src={avatarUrl ?? undefined} alt="" />
-              <AvatarFallback>{getInitials(name)}</AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              name={name}
+              googleAvatarUrl={avatarUrl}
+              gravatarHash={gravatarHash}
+              className="size-[22px]"
+              alt=""
+            />
           </button>
         </TooltipTrigger>
         <TooltipContent
@@ -391,6 +396,7 @@ export function TipMatrix({
               userId={row.userId}
               name={row.userName}
               avatarUrl={row.userAvatarUrl}
+              gravatarHash={row.gravatarHash}
               badges={userBadges?.[row.userId]}
               stats={userStats?.[row.userId]}
             />

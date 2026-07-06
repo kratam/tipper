@@ -5,6 +5,7 @@ import { GroupVsCircleNote } from "@/components/group-vs-circle-note";
 import { Button } from "@/components/ui/button";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { gravatarHash } from "@/lib/gravatar-hash";
 import { getUserCircles } from "@/queries/circles";
 
 export default async function CirclesPage() {
@@ -23,6 +24,7 @@ export default async function CirclesPage() {
       userId: m.userId,
       name: m.user.displayName ?? m.user.name,
       avatarUrl: m.user.avatarUrl,
+      gravatarHash: gravatarHash(m.user.email),
     })),
   }));
 

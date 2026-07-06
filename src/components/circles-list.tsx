@@ -6,16 +6,16 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { deleteCircle, leaveCircle } from "@/actions/circles";
 import { InviteCodeBadge } from "@/components/invite-code-badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UserAvatar } from "@/components/user-avatar";
 import { useRouter } from "@/i18n/navigation";
-import { getInitials } from "@/lib/initials";
 
 interface CircleMember {
   userId: string;
   name: string;
   avatarUrl: string | null;
+  gravatarHash: string | null;
 }
 
 interface CircleItem {
@@ -78,10 +78,13 @@ export function CirclesList({ circles }: { circles: CircleItem[] }) {
                   key={m.userId}
                   className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 py-0.5 pr-2.5 pl-0.5 text-[12.5px]"
                 >
-                  <Avatar className="size-5">
-                    <AvatarImage src={m.avatarUrl ?? undefined} />
-                    <AvatarFallback className="text-[8px]">{getInitials(m.name)}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    name={m.name}
+                    googleAvatarUrl={m.avatarUrl}
+                    gravatarHash={m.gravatarHash}
+                    className="size-5"
+                    fallbackClassName="text-[8px]"
+                  />
                   {m.name}
                 </span>
               ))}

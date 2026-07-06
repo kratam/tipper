@@ -21,7 +21,6 @@ import { DisplayNameDialog } from "@/components/display-name-dialog";
 import { HelpDialog } from "@/components/help-dialog";
 import { NotificationBell } from "@/components/notification-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,9 +28,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { UserAvatar } from "@/components/user-avatar";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth/client";
-import { getInitials } from "@/lib/initials";
 
 interface ActiveTournament {
   id: string;
@@ -47,6 +46,7 @@ interface NavProps {
     displayName: string | null;
     email: string;
     avatarUrl: string | null;
+    gravatarHash: string | null;
     isAdmin: boolean;
   } | null;
   activeTournaments: ActiveTournament[];
@@ -86,7 +86,6 @@ export function Nav({ user, activeTournaments }: NavProps) {
   }
 
   const displayedName = user?.displayName ?? user?.name;
-  const initials = displayedName ? getInitials(displayedName) : "?";
 
   return (
     <>
@@ -167,10 +166,13 @@ export function Nav({ user, activeTournaments }: NavProps) {
                     type="button"
                     className="hidden h-[38px] items-center gap-2 rounded-sm border border-white/[0.09] bg-white/[0.06] py-1 pr-2 pl-1 text-[#f2f5fb] transition hover:bg-white/[0.11] md:flex"
                   >
-                    <Avatar className="size-7">
-                      <AvatarImage src={user.avatarUrl ?? undefined} />
-                      <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      name={displayedName ?? "?"}
+                      googleAvatarUrl={user.avatarUrl}
+                      gravatarHash={user.gravatarHash}
+                      className="size-7"
+                      fallbackClassName="text-xs"
+                    />
                     <span className="max-w-30 truncate font-semibold text-[13.5px] max-[700px]:hidden">
                       {displayedName}
                     </span>
@@ -244,10 +246,13 @@ export function Nav({ user, activeTournaments }: NavProps) {
             {user ? (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 px-2 py-2">
-                  <Avatar className="size-8">
-                    <AvatarImage src={user.avatarUrl ?? undefined} />
-                    <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    name={displayedName ?? "?"}
+                    googleAvatarUrl={user.avatarUrl}
+                    gravatarHash={user.gravatarHash}
+                    className="size-8"
+                    fallbackClassName="text-xs"
+                  />
                   <span className="font-medium text-sm">{displayedName}</span>
                 </div>
                 {activeTournaments.slice(0, MAX_HEADER_TOURNAMENTS).map((tournament) => (

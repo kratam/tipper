@@ -7,11 +7,10 @@ import { useState } from "react";
 import { BetBonusCell } from "@/components/bet-bonus-cell";
 import { TeamLogo } from "@/components/team-logo";
 import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { UserAvatar } from "@/components/user-avatar";
 import { predictionToneClass } from "@/lib/bet-display";
-import { getInitials } from "@/lib/initials";
 import { formatEffectiveOdds } from "@/lib/odds-display";
 
 interface FinishedMatch {
@@ -29,6 +28,7 @@ interface GroupBet {
   userId: string;
   userName: string;
   userAvatarUrl: string | null;
+  gravatarHash: string | null;
   predictedHome: number;
   predictedAway: number;
   stake: number;
@@ -157,12 +157,13 @@ export function GroupResultsContent({
                           >
                             {/* Player */}
                             <div className="flex flex-1 items-center gap-1.5 overflow-hidden">
-                              <Avatar className="size-5">
-                                <AvatarImage src={bet.userAvatarUrl ?? undefined} />
-                                <AvatarFallback className="text-[9px]">
-                                  {getInitials(bet.userName)}
-                                </AvatarFallback>
-                              </Avatar>
+                              <UserAvatar
+                                name={bet.userName}
+                                googleAvatarUrl={bet.userAvatarUrl}
+                                gravatarHash={bet.gravatarHash}
+                                className="size-5"
+                                fallbackClassName="text-[9px]"
+                              />
                               <span className="truncate text-xs">{bet.userName}</span>
                             </div>
                             {/* Prediction */}

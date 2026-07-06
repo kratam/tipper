@@ -4,10 +4,9 @@ import type { ReactNode } from "react";
 import { EditDisplayNameButton } from "@/components/edit-display-name-button";
 import { TeamLogo } from "@/components/team-logo";
 import { TrophyCabinet } from "@/components/trophy-cabinet";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
-import { getInitials } from "@/lib/initials";
 import { cn } from "@/lib/utils";
 import { getProfile, type StatMatch } from "@/queries/profile";
 
@@ -30,18 +29,20 @@ export default async function ProfilePage({
   const profile = await getProfile(userId, user.id, locale as "hu" | "en");
   if (!profile) notFound();
 
-  const initials = getInitials(profile.displayName);
-
   const { stats } = profile;
 
   return (
     <div className="flex flex-col gap-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Avatar className="size-16">
-          <AvatarImage src={profile.avatarUrl ?? undefined} />
-          <AvatarFallback className="text-xl">{initials}</AvatarFallback>
-        </Avatar>
+        <UserAvatar
+          name={profile.displayName}
+          googleAvatarUrl={profile.avatarUrl}
+          gravatarHash={profile.gravatarHash}
+          sizePx={128}
+          className="size-16"
+          fallbackClassName="text-xl"
+        />
         <h1 className="font-bold font-heading text-2xl tracking-tight">{profile.displayName}</h1>
         {user.id === userId && <EditDisplayNameButton currentDisplayName={user.displayName} />}
       </div>
