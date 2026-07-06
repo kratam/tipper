@@ -66,7 +66,13 @@ export function UserAvatar({
   return (
     <Avatar className={className} size={size}>
       {src ? <AvatarImage src={src} alt={alt ?? name} loading={loading} /> : null}
-      <AvatarFallback className={cn(bgClass, "text-white", fallbackClassName)}>
+      {/* Ha van kép, a monogram renderelését késleltetjük, hogy a (jellemzően gyors /
+          cache-elt) kép betöltése előtt NE villanjon fel a színes fallback. Kép nélkül
+          a monogram az elsődleges tartalom → azonnal (delay nélkül) jelenjen meg. */}
+      <AvatarFallback
+        delayMs={src ? 600 : undefined}
+        className={cn(bgClass, "text-white", fallbackClassName)}
+      >
         {getInitials(name)}
       </AvatarFallback>
     </Avatar>
