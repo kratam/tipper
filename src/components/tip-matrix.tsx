@@ -119,7 +119,7 @@ function PlayerAvatarTooltip({
               googleAvatarUrl={avatarUrl}
               gravatarHash={gravatarHash}
               className="size-[22px]"
-              fallbackClassName="text-[9px]"
+              fallbackClassName="text-[10px]"
               alt=""
             />
           </button>

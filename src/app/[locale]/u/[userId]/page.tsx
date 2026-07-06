@@ -41,7 +41,7 @@ export default async function ProfilePage({
           gravatarHash={profile.gravatarHash}
           sizePx={128}
           className="size-16"
-          fallbackClassName="text-xl"
+          fallbackClassName="text-[28px]"
         />
         <h1 className="font-bold font-heading text-2xl tracking-tight">{profile.displayName}</h1>
         {user.id === userId && <EditDisplayNameButton currentDisplayName={user.displayName} />}

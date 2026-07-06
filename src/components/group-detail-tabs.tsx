@@ -394,7 +394,7 @@ export function GroupDetailTabs({
                     googleAvatarUrl={member.avatarUrl}
                     gravatarHash={member.gravatarHash}
                     className="size-[30px]"
-                    fallbackClassName="text-xs"
+                    fallbackClassName="text-sm"
                   />
                   <span className="flex-1 truncate font-medium text-[13.5px]">{member.name}</span>
                   {member.userId !== currentUserId && (

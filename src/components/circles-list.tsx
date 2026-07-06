@@ -83,7 +83,7 @@ export function CirclesList({ circles }: { circles: CircleItem[] }) {
                     googleAvatarUrl={m.avatarUrl}
                     gravatarHash={m.gravatarHash}
                     className="size-5"
-                    fallbackClassName="text-[8px]"
+                    fallbackClassName="text-[9px]"
                   />
                   {m.name}
                 </span>
