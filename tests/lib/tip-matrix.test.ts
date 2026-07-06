@@ -237,9 +237,9 @@ describe("betNet", () => {
 
 describe("buildMatrixRows", () => {
   const lb: MatrixRowInput[] = [
-    { rank: 1, userId: "u1", userName: "Anna", userAvatarUrl: null, profit: 42 },
-    { rank: 2, userId: "u2", userName: "Béla", userAvatarUrl: null, profit: 30 },
-    { rank: 3, userId: "u3", userName: "Cili", userAvatarUrl: null, profit: 10 },
+    { rank: 1, userId: "u1", userName: "Anna", userAvatarUrl: null, profit: 42, classicPoints: 5 },
+    { rank: 2, userId: "u2", userName: "Béla", userAvatarUrl: null, profit: 30, classicPoints: 9 },
+    { rank: 3, userId: "u3", userName: "Cili", userAvatarUrl: null, profit: 10, classicPoints: 7 },
   ];
 
   it("total scope: unchanged order, value=profit, original rank", () => {
@@ -274,6 +274,63 @@ describe("buildMatrixRows", () => {
     const out = buildMatrixRows(lb, [], "round");
     expect(out.map((r) => r.userId)).toEqual(["u1", "u2", "u3"]);
     expect(out.map((r) => r.value)).toEqual([0, 0, 0]);
+    expect(out.map((r) => r.rank)).toEqual([1, 2, 3]);
+  });
+
+  it("classic total: value=classicPoints, reordered desc, ranks 1..n", () => {
+    const out = buildMatrixRows(lb, [], "total", "classic");
+    expect(out.map((r) => r.userId)).toEqual(["u2", "u3", "u1"]);
+    expect(out.map((r) => r.value)).toEqual([9, 7, 5]);
+    expect(out.map((r) => r.rank)).toEqual([1, 2, 3]);
+  });
+
+  it("classic round: sums 0-3 points per user, skips unscored, reorders desc", () => {
+    const bets = [
+      // u1: exact (3) + outcome (1) => 4
+      {
+        userId: "u1",
+        payout: 0,
+        stake: 0,
+        result1x2Correct: true,
+        goalDiffCorrect: true,
+        exactScoreCorrect: true,
+      },
+      {
+        userId: "u1",
+        payout: 0,
+        stake: 0,
+        result1x2Correct: true,
+        goalDiffCorrect: false,
+        exactScoreCorrect: false,
+      },
+      // u2: goal diff (2) => 2
+      {
+        userId: "u2",
+        payout: 0,
+        stake: 0,
+        result1x2Correct: true,
+        goalDiffCorrect: true,
+        exactScoreCorrect: false,
+      },
+      // u3: unscored => skip => 0
+      {
+        userId: "u3",
+        payout: null,
+        stake: 0,
+        result1x2Correct: null,
+        goalDiffCorrect: null,
+        exactScoreCorrect: null,
+      },
+    ];
+    const out = buildMatrixRows(lb, bets, "round", "classic");
+    expect(out.map((r) => r.userId)).toEqual(["u1", "u2", "u3"]);
+    expect(out.map((r) => r.value)).toEqual([4, 2, 0]);
+    expect(out.map((r) => r.rank)).toEqual([1, 2, 3]);
+  });
+
+  it("defaults to token mode when mode omitted (total unchanged)", () => {
+    const out = buildMatrixRows(lb, [], "total");
+    expect(out.map((r) => r.value)).toEqual([42, 30, 10]);
     expect(out.map((r) => r.rank)).toEqual([1, 2, 3]);
   });
 });
