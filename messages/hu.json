@@ -124,7 +124,7 @@
     "howToPlayLockedOdds": "Lekötött odds",
     "howToPlayLockedOddsDesc": "A tipped a leadáskori oddson rögzül — ezt a 🔒 lakat mutatja. Ha közben változik az odds, a már leadott tipped nyereményét nem érinti. Ha módosítasz, az akkor érvényes odds számít.",
     "howToPlayPodium": "Dobogós tipp",
-    "howToPlayPodiumDesc": "A versenysorozat kezdete előtt megjósolhatod az első három csapat sorrendjét. Minden helyes pozícióért bónusz jár.",
+    "howToPlayPodiumDesc": "A torna kezdete előtt megtippelheted az első három helyezettet. A bónusz a torna végén jár, és nem fix: a meccsek számához igazodik, így egy hosszabb sorozatban többet ér.",
     "howToPlayLeaderboard": "Ranglista",
     "howToPlayLeaderboardDesc": "Minden versenysorozathoz tartozik egy Ranglista csoport, amibe automatikusan bekerülsz, és mindenki ellen versenyzel.",
     "howToPlayGroups": "Csoportok",
@@ -287,8 +287,8 @@
     "oddsBoostExplain": "A nyeremény {pct}%-kal több az eredeti oddsnál.",
     "bonusGoalDiffExplain": "A meccsre tippelők tokenjeinek {pct}%-a oszlik el a gólkülönbséget eltalálók közt.",
     "bonusExactScoreExplain": "A meccsre tippelők tokenjeinek {pct}%-a oszlik el a pontos eredményt eltalálók közt.",
-    "bonusPodiumMentionExplain": "A csoport meccsenkénti token-keretének {pct}%-a a torna meccsszámával szorozva — minden dobogóra eltalált csapatért, a torna végén egyszer jóváírva.",
-    "bonusPodiumExactExplain": "A csoport meccsenkénti token-keretének {pct}%-a a torna meccsszámával szorozva — a pontos helyezés eltalálásáért, az említés bónusz tetejére.",
+    "bonusPodiumMentionExplain": "A dobogóra eltalált csapatokért jár, a torna végén. A csoport meccsenkénti keretének {pct}%-a a meccsek számával felszorozva, így hosszabb tornán nagyobb.",
+    "bonusPodiumExactExplain": "A pontos helyezésért, az említés bónusz fölé. Szintén a meccsenkénti keret {pct}%-a a meccsek számával felszorozva.",
     "refund": "Visszatérítés",
     "refundExplain": "Vesztett meccs után a tét {pct}%-át visszakapod.",
     "refundExplainFull": "Bukáskor a teljes tétet elveszíted.",
@@ -553,8 +553,9 @@
       {
         "heading": "Mi az a dobogós tipp?",
         "items": [
-          "A VB kezdete előtt megtippelheted az első három helyezettet.",
-          "Minden eltalált csapatért és pontos helyezésért plusz token jár a VB végén."
+          "A torna kezdete előtt megtippelheted az első három helyezettet.",
+          "Minden csapatért, akit a dobogóra eltalálsz, bónusz jár, a pontos helyezésért pedig még nagyobb.",
+          "A bónusz nem fix: a meccsek számához igazodik, így egy hosszabb sorozatban nagyobb. A torna végén kapod meg, egyszerre. Sokat érhet, de nem ez dönti el a ranglistát."
         ]
       },
       {

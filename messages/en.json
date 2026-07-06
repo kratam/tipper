@@ -124,7 +124,7 @@
     "howToPlayLockedOdds": "Locked-in odds",
     "howToPlayLockedOddsDesc": "Your bet locks to the odds when you place it — shown by the 🔒 lock. Later odds changes don't affect a bet you've already placed. If you change it, the odds valid at that moment apply.",
     "howToPlayPodium": "Podium prediction",
-    "howToPlayPodiumDesc": "Before the tournament starts, predict the top 3 teams in order. You earn bonus tokens for each correct position.",
+    "howToPlayPodiumDesc": "Before the tournament starts, predict the top three teams. The bonus is paid at the end and isn't fixed: it scales with the number of matches, so a longer tournament is worth more.",
     "howToPlayLeaderboard": "Ranglista",
     "howToPlayLeaderboardDesc": "Every tournament has a leaderboard group called Ranglista that you join automatically, where you compete against everyone.",
     "howToPlayGroups": "Groups",
@@ -287,8 +287,8 @@
     "oddsBoostExplain": "Winnings are {pct}% higher than the base odds.",
     "bonusGoalDiffExplain": "{pct}% of the tokens held by everyone who bet on the match, split among those who got the goal difference right.",
     "bonusExactScoreExplain": "{pct}% of the tokens held by everyone who bet on the match, split among those who got the exact score right.",
-    "bonusPodiumMentionExplain": "{pct}% of the group's per-match token allowance times the number of matches — for each team you correctly place on the podium, credited once when the tournament ends.",
-    "bonusPodiumExactExplain": "{pct}% of the group's per-match token allowance times the number of matches — for getting the exact placement right, on top of the mention bonus.",
+    "bonusPodiumMentionExplain": "For every team you correctly place on the podium, paid at the end of the tournament. It's {pct}% of the group's per-match allowance times the number of matches, so a longer tournament pays more.",
+    "bonusPodiumExactExplain": "For getting the exact position right, on top of the mention bonus. Also {pct}% of the per-match allowance times the number of matches.",
     "refund": "Refund",
     "refundExplain": "After a lost match you get {pct}% of your stake back.",
     "refundExplainFull": "On a loss you lose your entire stake.",
@@ -553,8 +553,9 @@
       {
         "heading": "What is the podium prediction?",
         "items": [
-          "Before the World Cup starts, you can predict the top three teams.",
-          "Every correct team and exact position earns extra tokens at the end of the World Cup."
+          "Before the tournament starts, you can predict the top three teams.",
+          "You earn a bonus for every team you correctly place on the podium, and more for getting the exact position right.",
+          "The bonus isn't fixed: it scales with the number of matches in the tournament, so it's bigger in a longer one. You get it once, at the end. It can matter, but it won't decide the leaderboard."
         ]
       },
       {
