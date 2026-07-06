@@ -183,6 +183,13 @@
       "when": 1783330192774,
       "tag": "0025_goofy_hardball",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1783366806912,
+      "tag": "0026_ancient_hannibal_king",
+      "breakpoints": true
     }
   ]
 }

@@ -7,6 +7,7 @@ import { SWRProvider } from "@/components/swr-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { routing } from "@/i18n/routing";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { pickGoogleAvatarUrl } from "@/lib/avatar-detect";
 import { gravatarHash } from "@/lib/gravatar-hash";
 import { getActiveTournaments } from "@/queries/tournaments";
 
@@ -32,7 +33,7 @@ export default async function LocaleLayout({
         name: user.name,
         displayName: user.displayName,
         email: user.email,
-        avatarUrl: user.avatarUrl,
+        avatarUrl: pickGoogleAvatarUrl(user.avatarUrl, user.avatarIsReal),
         gravatarHash: gravatarHash(user.email),
         isAdmin: user.isAdmin,
       }

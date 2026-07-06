@@ -1,9 +1,11 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { cache } from "react";
 import { db } from "@/db";
 import { users } from "@/db/schema";
+import { detectAvatarIsReal } from "@/lib/avatar-detect";
 
 // Direct read-only session fetch — avoids cookies().set() which Next.js prohibits
 // in Server Components. The auth SDK internally caches sessions via Set-Cookie,
@@ -63,9 +65,25 @@ export const getCurrentUser = cache(async () => {
           email: authUser.email,
           name: authUser.name ?? authUser.email,
           avatarUrl: authUser.image ?? null,
+          // Ha a Google-kép URL-je változott, a valódiság-flag elavul → újra kell
+          // detektálni (null), különben megtartjuk a korábbi eredményt.
+          avatarIsReal: sql`CASE WHEN ${users.avatarUrl} IS DISTINCT FROM ${authUser.image ?? null} THEN NULL ELSE ${users.avatarIsReal} END`,
         },
       })
       .returning();
+
+    // Ha még nincs eldöntve, hogy a Google-kép valódi fotó vagy generált monogram,
+    // a válasz ELKÜLDÉSE UTÁN (after) detektáljuk — nem lassítja a rendert. Amint
+    // beáll a flag, a következő login már nem futtatja újra.
+    if (user.avatarUrl && user.avatarIsReal === null) {
+      const { id, avatarUrl } = user;
+      after(async () => {
+        const isReal = await detectAvatarIsReal(avatarUrl);
+        if (isReal !== null) {
+          await db.update(users).set({ avatarIsReal: isReal }).where(eq(users.id, id));
+        }
+      });
+    }
 
     return user;
   } catch (error) {

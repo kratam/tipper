@@ -8,6 +8,7 @@ import { InviteCodeBadge } from "@/components/invite-code-badge";
 import { TournamentLogo } from "@/components/tournament-logo";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { pickGoogleAvatarUrl } from "@/lib/avatar-detect";
 import { filterAndRerankLeaderboard } from "@/lib/circle-leaderboard";
 import { gravatarHash } from "@/lib/gravatar-hash";
 import { liveKeys } from "@/lib/live/query-keys";
@@ -135,7 +136,7 @@ export default async function CircleDetailPage({
       matchId: b.matchId,
       userId: b.userId,
       userName: b.user.displayName ?? b.user.name,
-      userAvatarUrl: b.user.avatarUrl,
+      userAvatarUrl: pickGoogleAvatarUrl(b.user.avatarUrl, b.user.avatarIsReal),
       gravatarHash: gravatarHash(b.user.email),
       predictedHome: b.predictedHome,
       predictedAway: b.predictedAway,

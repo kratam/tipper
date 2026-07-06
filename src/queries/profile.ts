@@ -2,6 +2,7 @@ import "server-only";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { bets, circleMembers, groupMembers, groups, users } from "@/db/schema";
+import { pickGoogleAvatarUrl } from "@/lib/avatar-detect";
 import type { StoredBadge } from "@/lib/badges/evaluate";
 import { gravatarHash } from "@/lib/gravatar-hash";
 import type { Locale } from "@/lib/providers/types";
@@ -130,7 +131,7 @@ export async function getProfile(
   if (officialGroupIds.length === 0) {
     return {
       displayName: user.displayName ?? user.name,
-      avatarUrl: user.avatarUrl ?? null,
+      avatarUrl: pickGoogleAvatarUrl(user.avatarUrl, user.avatarIsReal),
       gravatarHash: gravatarHash(user.email),
       badges: userBadges,
       stats: emptyStats,
@@ -188,7 +189,7 @@ export async function getProfile(
 
   return {
     displayName: user.displayName ?? user.name,
-    avatarUrl: user.avatarUrl ?? null,
+    avatarUrl: pickGoogleAvatarUrl(user.avatarUrl, user.avatarIsReal),
     gravatarHash: gravatarHash(user.email),
     badges: userBadges,
     stats: {

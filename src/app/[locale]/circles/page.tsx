@@ -5,6 +5,7 @@ import { GroupVsCircleNote } from "@/components/group-vs-circle-note";
 import { Button } from "@/components/ui/button";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import { pickGoogleAvatarUrl } from "@/lib/avatar-detect";
 import { gravatarHash } from "@/lib/gravatar-hash";
 import { getUserCircles } from "@/queries/circles";
 
@@ -23,7 +24,7 @@ export default async function CirclesPage() {
     members: circle.members.map((m) => ({
       userId: m.userId,
       name: m.user.displayName ?? m.user.name,
-      avatarUrl: m.user.avatarUrl,
+      avatarUrl: pickGoogleAvatarUrl(m.user.avatarUrl, m.user.avatarIsReal),
       gravatarHash: gravatarHash(m.user.email),
     })),
   }));
