@@ -113,8 +113,8 @@ export default async function GroupDetailPage({
     initialTokens: group.initialTokens,
     bonusGoalDiffPct: group.bonusGoalDiffPct,
     bonusExactScorePct: group.bonusExactScorePct,
-    bonusPodiumMention: group.bonusPodiumMention,
-    bonusPodiumExact: group.bonusPodiumExact,
+    bonusPodiumMentionPct: group.bonusPodiumMentionPct,
+    bonusPodiumExactPct: group.bonusPodiumExactPct,
     oddsBoost: group.oddsBoost,
     lossPercentage: group.lossPercentage,
   };

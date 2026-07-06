@@ -1,14 +1,14 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { groupMembers, groups, podiumBets, tokenLedger, tournaments } from "@/db/schema";
+import { groupMembers, groups, matches, podiumBets, tokenLedger, tournaments } from "@/db/schema";
 import { fetchLeagueLogoUrl } from "@/lib/api-sports";
 import { getCurrentUser } from "@/lib/auth/user-sync";
 import { evaluateTournamentBadges } from "@/lib/badges/award";
 import { createOfficialGroup } from "@/lib/official-group";
 import type { ProviderId } from "@/lib/providers/types";
-import { calculatePodiumPoints } from "@/lib/scoring";
+import { calculatePodiumPoints, computePodiumUnit } from "@/lib/scoring";
 import { backfillTournamentLogos, distributeTokensForTournament, syncTournament } from "@/lib/sync";
 import { slugify } from "@/lib/utils";
 
@@ -226,6 +226,14 @@ export async function finishTournament(input: FinishTournamentInput) {
 
   const actual = { gold: goldTeamId, silver: silverTeamId, bronze: bronzeTeamId };
 
+  // A dobogó-bónusz horgonya: a torna nem-cancelled meccseinek száma (a
+  // token-floor gerince). A torna végén ~az összes meccs.
+  const activeMatches = await db.query.matches.findMany({
+    where: and(eq(matches.tournamentId, tournamentId), ne(matches.status, "cancelled")),
+    columns: { id: true },
+  });
+  const matchCount = activeMatches.length;
+
   // All groups in this tournament
   const tournamentGroups = await db.query.groups.findMany({
     where: eq(groups.tournamentId, tournamentId),
@@ -243,8 +251,16 @@ export async function finishTournament(input: FinishTournamentInput) {
 
     for (const group of userGroups) {
       const points = calculatePodiumPoints(prediction, actual, {
-        bonusPodiumMention: group.bonusPodiumMention,
-        bonusPodiumExact: group.bonusPodiumExact,
+        bonusPodiumMention: computePodiumUnit(
+          group.bonusPodiumMentionPct,
+          group.tokenPerMatch,
+          matchCount,
+        ),
+        bonusPodiumExact: computePodiumUnit(
+          group.bonusPodiumExactPct,
+          group.tokenPerMatch,
+          matchCount,
+        ),
       });
 
       if (points > 0) {

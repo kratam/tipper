@@ -15,7 +15,7 @@ interface PublicGroup {
   initialTokens: number;
   bonusGoalDiffPct: number;
   bonusExactScorePct: number;
-  bonusPodiumMention: number;
+  bonusPodiumMentionPct: number;
   oddsBoost: number;
   lossPercentage: number;
   tournament: {

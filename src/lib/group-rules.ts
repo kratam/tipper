@@ -7,8 +7,8 @@ export interface GroupRules {
   initialTokens: number;
   bonusGoalDiffPct: number;
   bonusExactScorePct: number;
-  bonusPodiumMention: number;
-  bonusPodiumExact: number;
+  bonusPodiumMentionPct: number;
+  bonusPodiumExactPct: number;
   oddsBoost: number;
   lossPercentage: number;
 }
@@ -79,16 +79,20 @@ export function buildRuleSections(rules: GroupRules): RuleSection[] {
   sections.push({ titleKey: "rulesScoring", rows: scoringRows });
 
   const podiumRows: RuleRow[] = [];
-  if (rules.bonusPodiumMention > 0) {
+  if (rules.bonusPodiumMentionPct > 0) {
     podiumRows.push({
       labelKey: "bonusPodiumMention",
-      value: `+${rules.bonusPodiumMention}`,
+      value: `${rules.bonusPodiumMentionPct}%`,
+      explainKey: "bonusPodiumMentionExplain",
+      explainParams: { pct: rules.bonusPodiumMentionPct },
     });
   }
-  if (rules.bonusPodiumExact > 0) {
+  if (rules.bonusPodiumExactPct > 0) {
     podiumRows.push({
       labelKey: "bonusPodiumExact",
-      value: `+${rules.bonusPodiumExact}`,
+      value: `${rules.bonusPodiumExactPct}%`,
+      explainKey: "bonusPodiumExactExplain",
+      explainParams: { pct: rules.bonusPodiumExactPct },
     });
   }
   if (podiumRows.length > 0) {

@@ -123,8 +123,8 @@ export async function getTipMatrixBetInfoAction(
     lossPercentage: group.lossPercentage,
     bonusGoalDiffPct: group.bonusGoalDiffPct,
     bonusExactScorePct: group.bonusExactScorePct,
-    bonusPodiumMention: group.bonusPodiumMention,
-    bonusPodiumExact: group.bonusPodiumExact,
+    bonusPodiumMentionPct: group.bonusPodiumMentionPct,
+    bonusPodiumExactPct: group.bonusPodiumExactPct,
     existingBet: existing
       ? {
           id: existing.id,

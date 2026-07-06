@@ -40,8 +40,8 @@ interface GroupBetInfo {
   lossPercentage: number;
   bonusGoalDiffPct: number;
   bonusExactScorePct: number;
-  bonusPodiumMention: number;
-  bonusPodiumExact: number;
+  bonusPodiumMentionPct: number;
+  bonusPodiumExactPct: number;
   existingBet: {
     id: string;
     predictedHome: number;

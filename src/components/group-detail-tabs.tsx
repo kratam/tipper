@@ -323,8 +323,8 @@ export function GroupDetailTabs({
                         {t("bonusPodiumMention")}
                       </Label>
                       <NumericInput
-                        value={settings.bonusPodiumMention}
-                        onChange={(val) => setSettings({ ...settings, bonusPodiumMention: val })}
+                        value={settings.bonusPodiumMentionPct}
+                        onChange={(val) => setSettings({ ...settings, bonusPodiumMentionPct: val })}
                         min={0}
                         className="font-mono"
                       />
@@ -334,8 +334,8 @@ export function GroupDetailTabs({
                         {t("bonusPodiumExact")}
                       </Label>
                       <NumericInput
-                        value={settings.bonusPodiumExact}
-                        onChange={(val) => setSettings({ ...settings, bonusPodiumExact: val })}
+                        value={settings.bonusPodiumExactPct}
+                        onChange={(val) => setSettings({ ...settings, bonusPodiumExactPct: val })}
                         min={0}
                         className="font-mono"
                       />

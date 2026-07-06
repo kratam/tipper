@@ -161,8 +161,8 @@ export default async function TournamentDetailPage({
       lossPercentage: number;
       bonusGoalDiffPct: number;
       bonusExactScorePct: number;
-      bonusPodiumMention: number;
-      bonusPodiumExact: number;
+      bonusPodiumMentionPct: number;
+      bonusPodiumExactPct: number;
       existingBet: {
         id: string;
         predictedHome: number;
@@ -194,8 +194,8 @@ export default async function TournamentDetailPage({
         lossPercentage: gm.group.lossPercentage,
         bonusGoalDiffPct: gm.group.bonusGoalDiffPct,
         bonusExactScorePct: gm.group.bonusExactScorePct,
-        bonusPodiumMention: gm.group.bonusPodiumMention,
-        bonusPodiumExact: gm.group.bonusPodiumExact,
+        bonusPodiumMentionPct: gm.group.bonusPodiumMentionPct,
+        bonusPodiumExactPct: gm.group.bonusPodiumExactPct,
         existingBet: existingBet
           ? {
               id: existingBet.id,
@@ -222,8 +222,8 @@ export default async function TournamentDetailPage({
           initialTokens: og.initialTokens,
           bonusGoalDiffPct: og.bonusGoalDiffPct,
           bonusExactScorePct: og.bonusExactScorePct,
-          bonusPodiumMention: og.bonusPodiumMention,
-          bonusPodiumExact: og.bonusPodiumExact,
+          bonusPodiumMentionPct: og.bonusPodiumMentionPct,
+          bonusPodiumExactPct: og.bonusPodiumExactPct,
           oddsBoost: og.oddsBoost,
           lossPercentage: og.lossPercentage,
           myProfit: lb?.myProfit ?? 0,
@@ -267,8 +267,8 @@ export default async function TournamentDetailPage({
         initialTokens: officialGroup.initialTokens,
         bonusGoalDiffPct: officialGroup.bonusGoalDiffPct,
         bonusExactScorePct: officialGroup.bonusExactScorePct,
-        bonusPodiumMention: officialGroup.bonusPodiumMention,
-        bonusPodiumExact: officialGroup.bonusPodiumExact,
+        bonusPodiumMentionPct: officialGroup.bonusPodiumMentionPct,
+        bonusPodiumExactPct: officialGroup.bonusPodiumExactPct,
         oddsBoost: officialGroup.oddsBoost,
         lossPercentage: officialGroup.lossPercentage,
       },
@@ -290,8 +290,8 @@ export default async function TournamentDetailPage({
         initialTokens: gm.group.initialTokens,
         bonusGoalDiffPct: gm.group.bonusGoalDiffPct,
         bonusExactScorePct: gm.group.bonusExactScorePct,
-        bonusPodiumMention: gm.group.bonusPodiumMention,
-        bonusPodiumExact: gm.group.bonusPodiumExact,
+        bonusPodiumMentionPct: gm.group.bonusPodiumMentionPct,
+        bonusPodiumExactPct: gm.group.bonusPodiumExactPct,
         oddsBoost: gm.group.oddsBoost,
         lossPercentage: gm.group.lossPercentage,
       },

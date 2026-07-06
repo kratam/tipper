@@ -136,13 +136,13 @@ Frissítendő hivatkozások (`bonusPodiumMention` / `bonusPodiumExact` → `*Pct
   megfelelő label/help szöveggel. Az űrlap-default `bonusPodiumMentionPct: 1.5`,
   `bonusPodiumExactPct: 3`.
 - **Szabály-dialog** (`src/lib/group-rules.ts`, `buildRuleSections` +
-  `GroupRules` típus): a `+100` formátum helyett a **kiszámolt token-érték**
-  (`≈ 156` / `≈ 312`), a csoport `tokenPerMatch × aktuális meccsszám` alapján —
-  konkrét, és pontosan azt mutatja, amit a játékos kap. Ehhez a `matchCount`-ot át
-  kell adni a `buildRuleSections`-nek (a `GroupRules` mellé paraméterként, nem a
-  típusba, mert torna-szintű adat). A `bonusPodiumMention`/`bonusPodiumExact` sorok
-  most a pct mezőkből számolják az értéket; a magyarázat frissül (dinamikus, a
-  torna végi tokenszinthez igazodik).
+  `GroupRules` típus): a `+100` formátum helyett **`{pct}%`**, a meccs-bónusz
+  (`bonusGoalDiff`) mintájára — value = `"1,5%"` és mellé **magyarázó szöveg**,
+  ami elmondja, mihez képest (a meccs-token-keret %-a × meccsszám, a torna végén
+  egyszer jóváírva). Ez konzisztens az órákkal ezelőtt élesített meccs-bónusz
+  UI-val, és nem igényel `matchCount`-plumbingot a render-helyeken. A
+  `bonusPodiumMention`/`bonusPodiumExact` sorok a pct mezőkből olvasnak, 0 pct →
+  a sor kimarad, mindkettő 0 → a dobogó-szekció kimarad.
 - Típus-hivatkozások frissítése: `src/components/tournament-tabs.tsx`,
   `src/components/public-groups-section.tsx`,
   `src/components/public-group-dialog.tsx`, `src/components/bet-form.tsx`,
@@ -170,9 +170,9 @@ Frissítendő hivatkozások (`bonusPodiumMention` / `bonusPodiumExact` → `*Pct
   `pct = 0`, változó `matchCount` / `tokenPerMatch`, fél-százalék.
 - `calculatePodiumPoints` meglévő tesztjei **változatlanul** állnak (abszolút
   értékekkel hívva).
-- `buildRuleSections` teszt (`src/lib/group-rules.test.ts`): a dobogó-sor a
-  `matchCount`-ból számolt token-értéket mutatja; `pct = 0` → nincs sor; üres
-  dobogó-szekció kimarad.
+- `buildRuleSections` teszt (`src/lib/group-rules.test.ts`): a dobogó-sor
+  `"{pct}%"` értéket és explain-kulcsot mutat; `pct = 0` → nincs sor; mindkét
+  pct 0 → üres dobogó-szekció kimarad (a meglévő teszt frissítése az új mezőkre).
 
 ## Nyitott kérdések
 

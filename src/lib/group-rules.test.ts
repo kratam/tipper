@@ -6,8 +6,8 @@ const base: GroupRules = {
   initialTokens: 200,
   bonusGoalDiffPct: 2,
   bonusExactScorePct: 3,
-  bonusPodiumMention: 20,
-  bonusPodiumExact: 20,
+  bonusPodiumMentionPct: 1.5,
+  bonusPodiumExactPct: 3,
   oddsBoost: 1.15,
   lossPercentage: 90,
 };
@@ -27,6 +27,9 @@ describe("buildRuleSections", () => {
     expect(findRow(sections, "bonusGoalDiff")?.explainKey).toBe("bonusGoalDiffExplain");
     expect(findRow(sections, "bonusGoalDiff")?.explainParams).toEqual({ pct: 2 });
     expect(findRow(sections, "bonusExactScore")?.explainKey).toBe("bonusExactScoreExplain");
+    expect(findRow(sections, "bonusPodiumMention")?.value).toBe("1.5%");
+    expect(findRow(sections, "bonusPodiumExact")?.value).toBe("3%");
+    expect(findRow(sections, "bonusPodiumMention")?.explainKey).toBe("bonusPodiumMentionExplain");
   });
 
   it("derives refund from lossPercentage (100 - loss)", () => {
@@ -56,8 +59,8 @@ describe("buildRuleSections", () => {
   it("hides the podium section when both podium bonuses are 0", () => {
     const sections = buildRuleSections({
       ...base,
-      bonusPodiumMention: 0,
-      bonusPodiumExact: 0,
+      bonusPodiumMentionPct: 0,
+      bonusPodiumExactPct: 0,
     });
     expect(sections.find((s) => s.titleKey === "rulesPodium")).toBeUndefined();
   });
