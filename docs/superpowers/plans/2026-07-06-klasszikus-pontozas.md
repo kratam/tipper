@@ -564,6 +564,8 @@ import { classicPointsFromFlags } from "@/lib/scoring";
 import { usePersistedMatrixMode } from "@/hooks/use-persisted-matrix-mode";
 ```
 
+A meglévő `lucide-react` importhoz (ahol `ChevronDown, ChevronLeft, …` van) told hozzá a `ChevronsLeftRight` ikont — ez a „váltó" affordancia mindkét fejléc-kapcsolón.
+
 A `betNet, buildMatrixRows, ...` import a `@/lib/tip-matrix`-ból bővüljön `MatrixMode`-dal, ha típusként kell — de közvetlenül nem hivatkozunk rá, így nem kötelező.
 
 A komponens törzsében a `const [scope, setScope] = useState<MatrixScope>("total");` mellé:
@@ -612,9 +614,9 @@ A `displayRows` memo hívásába add át a `mode`-ot:
 
 > A `tone` (tippelt eredmény színe) változatlan marad — csak az al-szám vált.
 
-- [ ] **Step 4: A1 sarok — a játékos-fejléc `<th>` legyen mód-kapcsoló**
+- [ ] **Step 4: A1 sarok — a játékos-fejléc `<th>` legyen mód-kapcsoló + kattintható-affordancia**
 
-`src/components/tip-matrix.tsx`, a `<thead>` első `<th>`-ját (a `{t("player")}`-t tartalmazó, `sticky left-0 z-[2]` cella) cseréld le erre (a Σ-fejléc toggle mintáját tükrözi: `p-0` th + teljes szélességű, paddingelt gomb + két egymás alatti felirat, aktív módban arany):
+`src/components/tip-matrix.tsx`, a `<thead>` első `<th>`-ját (a `{t("player")}`-t tartalmazó, `sticky left-0 z-[2]` cella) cseréld le erre (a Σ-fejléc toggle mintáját tükrözi: `p-0` th + teljes szélességű, paddingelt gomb + két egymás alatti felirat, aktív módban arany). **UX (user-visszajelzés):** a gomb `cursor-pointer` (különben az egérmutató nem jelzi a kattinthatóságot), és a mód-felirat elé egy kis `ChevronsLeftRight` (`‹›`) ikon kerül, ami jelzi, hogy váltóról van szó — az ikon `size-2.5` (10px), így a fejléc **nem szélesedik** érdemben:
 
 ```tsx
               <th
@@ -628,19 +630,44 @@ A `displayRows` memo hívásába add át a `mode`-ot:
                   onClick={toggleMode}
                   aria-pressed={mode === "classic"}
                   title={t("modeHint")}
-                  className="flex w-full flex-col items-start px-2.5 py-1.5 hover:bg-surface-3"
+                  className="flex w-full cursor-pointer flex-col items-start px-2.5 py-1.5 hover:bg-surface-3"
                 >
                   <span>{t("player")}</span>
                   <span
                     className={cn(
-                      "mt-1 whitespace-nowrap text-[10px]",
+                      "mt-1 flex items-center gap-0.5 whitespace-nowrap text-[10px]",
                       mode === "classic" ? "text-gold" : "text-faint",
                     )}
                   >
+                    <ChevronsLeftRight className="size-2.5 shrink-0" aria-hidden="true" />
                     {mode === "classic" ? t("modeClassic") : t("modeToken")}
                   </span>
                 </button>
               </th>
+```
+
+- [ ] **Step 4b: Σ fejléc kapcsoló — ugyanaz az affordancia (megosztott, konzisztens javítás)**
+
+A user visszajelzése szerint a meglévő Σ (`total ↔ forduló`) kapcsolón **sem** vált az egérmutató, és nem elég egyértelmű, hogy váltó. Ugyanabban a `<thead>`-ben a Σ-fejléc `<button>`-jét (a `setScope`-ot hívó, `aria-pressed={scope === "round"}`) hozd konzisztenciába az A1-gyel: `cursor-pointer` + a scope-felirat elé ugyanaz a kis ikon. Cseréld a Σ-gomb belsejét erre (a gomb `onClick`/`aria-pressed` változatlan, csak a `className`-be kerül `cursor-pointer`, és a második `<span>` kap ikont + `flex items-center gap-0.5`):
+
+```tsx
+                <button
+                  type="button"
+                  onClick={() => setScope((s) => (s === "total" ? "round" : "total"))}
+                  aria-pressed={scope === "round"}
+                  className="flex w-full cursor-pointer flex-col items-center px-2.5 py-1.5 hover:bg-surface-3"
+                >
+                  <span>Σ</span>
+                  <span
+                    className={cn(
+                      "mt-1 flex items-center gap-0.5 whitespace-nowrap text-[10px]",
+                      scope === "round" ? "text-gold" : "text-faint",
+                    )}
+                  >
+                    <ChevronsLeftRight className="size-2.5 shrink-0" aria-hidden="true" />
+                    {scope === "round" ? roundScopeLabel : t("scopeTotal")}
+                  </span>
+                </button>
 ```
 
 - [ ] **Step 5: i18n kulcsok**
@@ -684,6 +711,7 @@ Majd `beam 3000` (a laptopra), és egy csoport-oldalon a Tipp-tábla tabon:
 - A bal-felső cella „Játékos / Token" — kattintásra „Játékos / Klasszikus" (arany).
 - Klasszikus módban a lezárt meccsek cellái a tippelt eredmény alatt **0–3 pontot** mutatnak (nem az előjeles token-nettót).
 - A Σ oszlop és a sorrend átvált a klasszikus összpontra; a Σ-fejléc `total ↔ forduló` továbbra is működik mindkét módban.
+- **Kattintható-affordancia:** az A1 mód-kapcsoló ÉS a Σ kapcsoló fölé húzva az egérmutató `pointer` (kéz) lesz, és mindkettőnél látszik a kis `‹›` váltó-ikon a felirat előtt; a fejléc nem lett érezhetően szélesebb.
 - Oldal-újratöltés után a mód megmarad (localStorage); egy kör-oldalon ugyanaz a mód aktív.
 
 Expected: mind a négy pont teljesül.

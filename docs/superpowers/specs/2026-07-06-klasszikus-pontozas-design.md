@@ -111,8 +111,9 @@ Tükrözi a jelenlegi token-megoldás felépítését:
   (exactScoreCorrect)::int)` a csoport `finished` meccsű, lepontozott tippjeire.
   Ugyanúgy prop-ként érkezik, ahogy a token `leaderboard.profit` most.
 
-**Holtverseny:** pont csökkenő, majd `userName` növekvő (egyszerű, determinisztikus).
-Ez a `round`-ág mostani `sort`-jával konzisztens rank-konvenció (`index + 1`).
+**Holtverseny:** pont csökkenő, majd a **bemeneti (token-profit) sorrend** marad
+(stabil rendezés) — a `round`-ág meglévő konvenciójával egyezően, hogy a két
+kapcsoló ne adjon eltérő tie-break-et. A helyezés az új sorrend `index + 1`-e.
 
 ## A mód-választás megjegyzése
 
