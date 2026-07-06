@@ -13,8 +13,8 @@ interface PublicGroup {
   description: string | null;
   tokenPerMatch: number;
   initialTokens: number;
-  bonusGoalDiff: number;
-  bonusExactScore: number;
+  bonusGoalDiffPct: number;
+  bonusExactScorePct: number;
   bonusPodiumMention: number;
   oddsBoost: number;
   lossPercentage: number;

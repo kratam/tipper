@@ -24,8 +24,8 @@ interface PublicGroupDialogProps {
     description: string | null;
     tokenPerMatch: number;
     initialTokens: number;
-    bonusGoalDiff: number;
-    bonusExactScore: number;
+    bonusGoalDiffPct: number;
+    bonusExactScorePct: number;
     bonusPodiumMention: number;
     oddsBoost: number;
     lossPercentage: number;
@@ -131,8 +131,8 @@ export function PublicGroupDialog({
               <div className="grid grid-cols-2 gap-2">
                 <RuleBox label={t("tokenPerMatch")} value={String(group.tokenPerMatch)} />
                 <RuleBox label={t("initialTokens")} value={String(group.initialTokens)} />
-                <RuleBox label={t("bonusGoalDiff")} value={`+${group.bonusGoalDiff}`} />
-                <RuleBox label={t("bonusExactScore")} value={`+${group.bonusExactScore}`} />
+                <RuleBox label={t("bonusGoalDiff")} value={`${group.bonusGoalDiffPct}%`} />
+                <RuleBox label={t("bonusExactScore")} value={`${group.bonusExactScorePct}%`} />
                 <RuleBox label={t("oddsBoostLabel")} value={`${group.oddsBoost}x`} />
                 <RuleBox label={t("lossPercentage")} value={`${group.lossPercentage}%`} />
                 <RuleBox label={t("podiumBonus")} value={`+${group.bonusPodiumMention}`} />

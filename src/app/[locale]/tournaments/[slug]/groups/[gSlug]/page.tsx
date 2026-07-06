@@ -111,8 +111,8 @@ export default async function GroupDetailPage({
   const groupRules = {
     tokenPerMatch: group.tokenPerMatch,
     initialTokens: group.initialTokens,
-    bonusGoalDiff: group.bonusGoalDiff,
-    bonusExactScore: group.bonusExactScore,
+    bonusGoalDiffPct: group.bonusGoalDiffPct,
+    bonusExactScorePct: group.bonusExactScorePct,
     bonusPodiumMention: group.bonusPodiumMention,
     bonusPodiumExact: group.bonusPodiumExact,
     oddsBoost: group.oddsBoost,

@@ -18,8 +18,8 @@ interface CreateGroupInput {
   description?: string;
   tokenPerMatch?: number;
   initialTokens?: number;
-  bonusGoalDiff?: number;
-  bonusExactScore?: number;
+  bonusGoalDiffPct?: number;
+  bonusExactScorePct?: number;
   bonusPodiumMention?: number;
   bonusPodiumExact?: number;
   oddsBoost?: number;
@@ -59,8 +59,8 @@ export async function createGroup(input: CreateGroupInput) {
       tournamentId: input.tournamentId,
       ...(input.tokenPerMatch != null && { tokenPerMatch: input.tokenPerMatch }),
       ...(input.initialTokens != null && { initialTokens: input.initialTokens }),
-      ...(input.bonusGoalDiff != null && { bonusGoalDiff: input.bonusGoalDiff }),
-      ...(input.bonusExactScore != null && { bonusExactScore: input.bonusExactScore }),
+      ...(input.bonusGoalDiffPct != null && { bonusGoalDiffPct: input.bonusGoalDiffPct }),
+      ...(input.bonusExactScorePct != null && { bonusExactScorePct: input.bonusExactScorePct }),
       ...(input.bonusPodiumMention != null && { bonusPodiumMention: input.bonusPodiumMention }),
       ...(input.bonusPodiumExact != null && { bonusPodiumExact: input.bonusPodiumExact }),
       ...(input.oddsBoost != null && { oddsBoost: input.oddsBoost }),
@@ -138,8 +138,8 @@ interface GroupSettings {
   description?: string | null;
   tokenPerMatch?: number;
   initialTokens?: number;
-  bonusGoalDiff?: number;
-  bonusExactScore?: number;
+  bonusGoalDiffPct?: number;
+  bonusExactScorePct?: number;
   bonusPodiumMention?: number;
   bonusPodiumExact?: number;
   oddsBoost?: number;

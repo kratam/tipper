@@ -41,8 +41,8 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
   const [settings, setSettings] = useState({
     tokenPerMatch: 100,
     initialTokens: 200,
-    bonusGoalDiff: 5,
-    bonusExactScore: 10,
+    bonusGoalDiffPct: 2,
+    bonusExactScorePct: 3,
     bonusPodiumMention: 20,
     bonusPodiumExact: 20,
     oddsBoost: 1.0,
@@ -178,8 +178,8 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
                 <div className="flex flex-col gap-1">
                   <Label className="text-xs">{t("bonusGoalDiff")}</Label>
                   <NumericInput
-                    value={settings.bonusGoalDiff}
-                    onChange={(val) => setSettings({ ...settings, bonusGoalDiff: val })}
+                    value={settings.bonusGoalDiffPct}
+                    onChange={(val) => setSettings({ ...settings, bonusGoalDiffPct: val })}
                     min={0}
                     className="font-mono"
                   />
@@ -187,8 +187,8 @@ export function CreateGroupForm({ tournaments }: CreateGroupFormProps) {
                 <div className="flex flex-col gap-1">
                   <Label className="text-xs">{t("bonusExactScore")}</Label>
                   <NumericInput
-                    value={settings.bonusExactScore}
-                    onChange={(val) => setSettings({ ...settings, bonusExactScore: val })}
+                    value={settings.bonusExactScorePct}
+                    onChange={(val) => setSettings({ ...settings, bonusExactScorePct: val })}
                     min={0}
                     className="font-mono"
                   />

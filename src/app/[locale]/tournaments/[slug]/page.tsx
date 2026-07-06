@@ -159,8 +159,8 @@ export default async function TournamentDetailPage({
       otherActiveStakes: number;
       oddsBoost: number;
       lossPercentage: number;
-      bonusGoalDiff: number;
-      bonusExactScore: number;
+      bonusGoalDiffPct: number;
+      bonusExactScorePct: number;
       bonusPodiumMention: number;
       bonusPodiumExact: number;
       existingBet: {
@@ -192,8 +192,8 @@ export default async function TournamentDetailPage({
         otherActiveStakes: bal?.otherActiveStakes ?? 0,
         oddsBoost: gm.group.oddsBoost,
         lossPercentage: gm.group.lossPercentage,
-        bonusGoalDiff: gm.group.bonusGoalDiff,
-        bonusExactScore: gm.group.bonusExactScore,
+        bonusGoalDiffPct: gm.group.bonusGoalDiffPct,
+        bonusExactScorePct: gm.group.bonusExactScorePct,
         bonusPodiumMention: gm.group.bonusPodiumMention,
         bonusPodiumExact: gm.group.bonusPodiumExact,
         existingBet: existingBet
@@ -220,8 +220,8 @@ export default async function TournamentDetailPage({
           tournamentSlug: tournament.slug,
           tokenPerMatch: og.tokenPerMatch,
           initialTokens: og.initialTokens,
-          bonusGoalDiff: og.bonusGoalDiff,
-          bonusExactScore: og.bonusExactScore,
+          bonusGoalDiffPct: og.bonusGoalDiffPct,
+          bonusExactScorePct: og.bonusExactScorePct,
           bonusPodiumMention: og.bonusPodiumMention,
           bonusPodiumExact: og.bonusPodiumExact,
           oddsBoost: og.oddsBoost,
@@ -265,8 +265,8 @@ export default async function TournamentDetailPage({
       rules: {
         tokenPerMatch: officialGroup.tokenPerMatch,
         initialTokens: officialGroup.initialTokens,
-        bonusGoalDiff: officialGroup.bonusGoalDiff,
-        bonusExactScore: officialGroup.bonusExactScore,
+        bonusGoalDiffPct: officialGroup.bonusGoalDiffPct,
+        bonusExactScorePct: officialGroup.bonusExactScorePct,
         bonusPodiumMention: officialGroup.bonusPodiumMention,
         bonusPodiumExact: officialGroup.bonusPodiumExact,
         oddsBoost: officialGroup.oddsBoost,
@@ -288,8 +288,8 @@ export default async function TournamentDetailPage({
       rules: {
         tokenPerMatch: gm.group.tokenPerMatch,
         initialTokens: gm.group.initialTokens,
-        bonusGoalDiff: gm.group.bonusGoalDiff,
-        bonusExactScore: gm.group.bonusExactScore,
+        bonusGoalDiffPct: gm.group.bonusGoalDiffPct,
+        bonusExactScorePct: gm.group.bonusExactScorePct,
         bonusPodiumMention: gm.group.bonusPodiumMention,
         bonusPodiumExact: gm.group.bonusPodiumExact,
         oddsBoost: gm.group.oddsBoost,

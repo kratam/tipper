@@ -121,8 +121,8 @@ export async function getTipMatrixBetInfoAction(
     otherActiveStakes: bal?.otherActiveStakes ?? 0,
     oddsBoost: group.oddsBoost,
     lossPercentage: group.lossPercentage,
-    bonusGoalDiff: group.bonusGoalDiff,
-    bonusExactScore: group.bonusExactScore,
+    bonusGoalDiffPct: group.bonusGoalDiffPct,
+    bonusExactScorePct: group.bonusExactScorePct,
     bonusPodiumMention: group.bonusPodiumMention,
     bonusPodiumExact: group.bonusPodiumExact,
     existingBet: existing
