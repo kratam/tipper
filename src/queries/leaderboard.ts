@@ -11,7 +11,11 @@ export async function getGroupLeaderboard(groupId: string) {
     .select({
       userId: groupMembers.userId,
       userName: sql<string>`COALESCE(${users.displayName}, ${users.name})`.as("user_name"),
-      userAvatarUrl: users.avatarUrl,
+      // Csak a valódi feltöltött Google-fotót adjuk tovább; a generált monogramot
+      // (avatar_is_real = false) elrejtjük → a lánc a Gravatarra/monogramra esik.
+      userAvatarUrl: sql<
+        string | null
+      >`CASE WHEN ${users.avatarIsReal} IS NOT FALSE THEN ${users.avatarUrl} END`,
       userEmail: users.email,
       profit: sql<number>`COALESCE(SUM(CASE WHEN ${matches.status} IN ('finished', 'cancelled') THEN ${tokenLedger.amount} ELSE 0 END), 0)`,
       betCount: sql<number>`COUNT(DISTINCT ${bets.id})::int`,
@@ -35,6 +39,7 @@ export async function getGroupLeaderboard(groupId: string) {
       users.name,
       users.displayName,
       users.avatarUrl,
+      users.avatarIsReal,
       users.email,
     )
     .orderBy(
