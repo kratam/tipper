@@ -12,6 +12,7 @@ import { liveKeys } from "@/lib/live/query-keys";
 import { getQueryClient } from "@/lib/query-client";
 import { loadBadgesForUsers } from "@/queries/badges";
 import { getGroupBetsForFinishedMatches } from "@/queries/bets";
+import { getGroupClassicPoints } from "@/queries/classic-points";
 import { getGroupBySlug } from "@/queries/groups";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
 import {
@@ -49,6 +50,7 @@ export default async function GroupDetailPage({
     initialMatrixRound,
     badgesMap,
     statsMap,
+    classicByUser,
   ] = await Promise.all([
     getGroupLeaderboard(group.id),
     getFinishedMatchesForTournament(group.tournamentId, group.tournament.useFlagFallback),
@@ -71,6 +73,7 @@ export default async function GroupDetailPage({
     ),
     loadBadgesForUsers(memberIds),
     loadPlayerStatsForUsers(memberIds),
+    getGroupClassicPoints(group.id),
   ]);
 
   const leaderboard = hideInactiveAndRerank(leaderboardRaw);
@@ -154,6 +157,7 @@ export default async function GroupDetailPage({
             userName: row.userName,
             userAvatarUrl: row.userAvatarUrl,
             profit: row.profit,
+            classicPoints: classicByUser.get(row.userId) ?? 0,
           }))}
           members={group.members.map((m) => ({
             id: m.id,

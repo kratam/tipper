@@ -34,6 +34,7 @@ export interface TipMatrixLeaderboardRow {
   userName: string;
   userAvatarUrl: string | null;
   profit: number;
+  classicPoints?: number;
 }
 
 interface TipMatrixProps {

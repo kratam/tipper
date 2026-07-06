@@ -17,6 +17,7 @@ interface LeaderboardRow {
   userName: string;
   userAvatarUrl: string | null;
   profit: number;
+  classicPoints?: number;
 }
 
 export function useLeaderboardPolling(
@@ -43,12 +44,14 @@ export function useLeaderboardPolling(
 
   return useMemo(() => {
     if (!liveData) return [...initialData];
+    const classicByUser = new Map(initialData.map((r) => [r.userId, r.classicPoints]));
     return liveData.map((row: LiveLeaderboardRow) => ({
       rank: row.rank,
       userId: row.userId,
       userName: row.userName,
       userAvatarUrl: row.userAvatarUrl,
       profit: row.profit,
+      classicPoints: classicByUser.get(row.userId) ?? 0,
     }));
   }, [initialData, liveData]);
 }

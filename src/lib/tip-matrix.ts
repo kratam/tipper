@@ -268,7 +268,14 @@ export function buildMatrixRows(
     for (const r of rows) valueByUser.set(r.userId, r.classicPoints ?? 0);
   } else {
     for (const b of bets) {
-      const v = mode === "token" ? betNet(b.payout, b.stake) : classicPointsFromFlags(b);
+      const v =
+        mode === "token"
+          ? betNet(b.payout, b.stake)
+          : classicPointsFromFlags({
+              result1x2Correct: b.result1x2Correct ?? null,
+              goalDiffCorrect: b.goalDiffCorrect ?? null,
+              exactScoreCorrect: b.exactScoreCorrect ?? null,
+            });
       if (v == null) continue;
       valueByUser.set(b.userId, (valueByUser.get(b.userId) ?? 0) + v);
     }
