@@ -5,8 +5,8 @@
 export interface GroupRules {
   tokenPerMatch: number;
   initialTokens: number;
-  bonusGoalDiff: number;
-  bonusExactScore: number;
+  bonusGoalDiffPct: number;
+  bonusExactScorePct: number;
   bonusPodiumMention: number;
   bonusPodiumExact: number;
   oddsBoost: number;
@@ -60,13 +60,13 @@ export function buildRuleSections(rules: GroupRules): RuleSection[] {
         : {}),
     },
   ];
-  if (rules.bonusGoalDiff > 0) {
-    scoringRows.push({ labelKey: "bonusGoalDiff", value: `+${rules.bonusGoalDiff}` });
+  if (rules.bonusGoalDiffPct > 0) {
+    scoringRows.push({ labelKey: "bonusGoalDiff", value: `${rules.bonusGoalDiffPct}%` });
   }
-  if (rules.bonusExactScore > 0) {
+  if (rules.bonusExactScorePct > 0) {
     scoringRows.push({
       labelKey: "bonusExactScore",
-      value: `+${rules.bonusExactScore}`,
+      value: `${rules.bonusExactScorePct}%`,
     });
   }
   sections.push({ titleKey: "rulesScoring", rows: scoringRows });

@@ -95,8 +95,8 @@ export async function getTokenBalance(userId: string, groupId: string): Promise<
  *       ≤ lifetime budget at D'
  *
  * The projected balance is the smallest slack across all such D'. This lets
- * users re-bet won-back stakes plus net winnings (incl. bonusGoalDiff /
- * bonusExactScore, since both are baked into bets.payout by scoring) while
+ * users re-bet won-back stakes plus net winnings (incl. bonusGoalDiffPct /
+ * bonusExactScorePct, since both are baked into bets.payout by scoring) while
  * still preventing future-day bets that would exceed the cumulative budget.
  * See [[../lib/tokens.ts#computeProjectedFromCumulativeBudget]].
  *
@@ -565,8 +565,8 @@ export interface PublicGroupSuggestion {
   memberCount: number;
   tokenPerMatch: number;
   initialTokens: number;
-  bonusGoalDiff: number;
-  bonusExactScore: number;
+  bonusGoalDiffPct: number;
+  bonusExactScorePct: number;
   bonusPodiumMention: number;
   oddsBoost: number;
   lossPercentage: number;
@@ -621,8 +621,8 @@ export async function getTopPublicGroupsForTournament(
       memberCount,
       tokenPerMatch: g.tokenPerMatch,
       initialTokens: g.initialTokens,
-      bonusGoalDiff: g.bonusGoalDiff,
-      bonusExactScore: g.bonusExactScore,
+      bonusGoalDiffPct: g.bonusGoalDiffPct,
+      bonusExactScorePct: g.bonusExactScorePct,
       bonusPodiumMention: g.bonusPodiumMention,
       oddsBoost: g.oddsBoost,
       lossPercentage: g.lossPercentage,

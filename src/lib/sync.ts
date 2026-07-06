@@ -18,8 +18,8 @@ import type { ProviderId } from "@/lib/providers/types";
 import { toProviderConfig } from "@/lib/providers/types";
 import { scheduleMatchFinishCheck } from "@/lib/qstash";
 import { hasApiScheduleImproved, isScheduleBroken } from "@/lib/schedule-override";
-import { calculateBetPayout } from "@/lib/scoring";
-import { getRelevantOdds } from "@/lib/tokens";
+import { calculateBaseBetPayout, computePoolBase, distributeBonusPools } from "@/lib/scoring";
+import { dateToDateNum, getRelevantOdds } from "@/lib/tokens";
 
 // ── Types ──
 
@@ -444,59 +444,139 @@ async function scoreMatch(matchId: string, homeScore: number, awayScore: number)
     with: { group: true },
   });
 
-  for (const bet of pendingBets) {
-    const oddsAtBet = bet.oddsAtBet ? Number.parseFloat(bet.oddsAtBet) : null;
-    const result = calculateBetPayout({
-      predictedHome: bet.predictedHome,
-      predictedAway: bet.predictedAway,
-      actualHome: homeScore,
-      actualAway: awayScore,
-      stake: bet.stake,
-      oddsAtBet,
-      groupSettings: {
-        bonusGoalDiff: bet.group.bonusGoalDiff,
-        bonusExactScore: bet.group.bonusExactScore,
-        oddsBoost: bet.group.oddsBoost,
-        lossPercentage: bet.group.lossPercentage,
-      },
+  if (pendingBets.length > 0) {
+    const match = await db.query.matches.findFirst({
+      where: eq(matches.id, matchId),
+      with: { tournament: true },
     });
-
-    // Atomic claim: only the run that flips `payout` from NULL gets to write
-    // the `win` ledger row. Two concurrent scoreMatch passes (e.g. overlapping
-    // cron ticks) both read this bet with payout IS NULL, but the `WHERE
-    // payout IS NULL` guard means exactly one UPDATE returns a row — the others
-    // get zero and skip, so no duplicate `win` entries can be inserted.
-    const claimed = await db
-      .update(bets)
-      .set({
-        payout: result.payout,
-        result1x2Correct: result.result1x2Correct,
-        goalDiffCorrect: result.goalDiffCorrect,
-        exactScoreCorrect: result.exactScoreCorrect,
-        updatedAt: new Date(),
-      })
-      .where(and(eq(bets.id, bet.id), isNull(bets.payout)))
-      .returning({ id: bets.id });
-
-    if (claimed.length === 0) continue;
-
-    if (result.payout > 0) {
-      const group = await db.query.groups.findFirst({
-        where: eq(groups.id, bet.groupId),
+    if (match) {
+      const timeZone = match.tournament.timezone;
+      const matchDateNum = dateToDateNum(match.scheduledAt, timeZone);
+      const tournamentMatches = await db.query.matches.findMany({
+        where: eq(matches.tournamentId, match.tournamentId),
+        columns: { scheduledAt: true, status: true },
       });
-      if (!group) continue;
+      // A pool-alap "matchesToDate" tagja: hány nem-törölt torna-meccs dátuma
+      // esik M dátumára vagy elé (ennyi per-meccs token-osztás történt eddig).
+      const matchesToDate = tournamentMatches.filter(
+        (m) => m.status !== "cancelled" && dateToDateNum(m.scheduledAt, timeZone) <= matchDateNum,
+      ).length;
 
-      await db.insert(tokenLedger).values({
-        userId: bet.userId,
-        groupId: bet.groupId,
-        tournamentId: group.tournamentId,
-        amount: result.payout,
-        type: "win",
-        referenceId: bet.id,
-      });
+      // A token/pool csoport-szintű, ezért a pending tippeket csoportonként
+      // dolgozzuk fel: minden csoportra külön pool-alap és külön bónusz-szétosztás.
+      const byGroup = new Map<string, typeof pendingBets>();
+      for (const bet of pendingBets) {
+        const arr = byGroup.get(bet.groupId);
+        if (arr) arr.push(bet);
+        else byGroup.set(bet.groupId, [bet]);
+      }
+
+      for (const [groupId, groupBets] of byGroup) {
+        const group = groupBets[0].group;
+
+        const baseResults = groupBets.map((bet) => ({
+          bet,
+          base: calculateBaseBetPayout({
+            predictedHome: bet.predictedHome,
+            predictedAway: bet.predictedAway,
+            actualHome: homeScore,
+            actualAway: awayScore,
+            stake: bet.stake,
+            oddsAtBet: bet.oddsAtBet ? Number.parseFloat(bet.oddsAtBet) : null,
+            oddsBoost: group.oddsBoost,
+            lossPercentage: group.lossPercentage,
+          }),
+        }));
+
+        const goalDiffHitters = baseResults.filter((r) => r.base.goalDiffCorrect).length;
+        const exactScoreHitters = baseResults.filter((r) => r.base.exactScoreCorrect).length;
+
+        const bettorIds = [...new Set(groupBets.map((b) => b.userId))];
+        const netsByUser = await getBettorResolvedNets(groupId, bettorIds, timeZone, matchDateNum);
+        const poolBase = computePoolBase({
+          initialTokens: group.initialTokens,
+          tokenPerMatch: group.tokenPerMatch,
+          matchesToDate,
+          bettorResolvedNets: bettorIds.map((id) => netsByUser.get(id) ?? 0),
+        });
+
+        const { goalDiffPerHitter, exactScorePerHitter } = distributeBonusPools({
+          poolBase,
+          goalDiffHitters,
+          exactScoreHitters,
+          goalDiffPct: group.bonusGoalDiffPct,
+          exactScorePct: group.bonusExactScorePct,
+        });
+
+        for (const { bet, base } of baseResults) {
+          const payout =
+            base.basePayout +
+            (base.goalDiffCorrect ? goalDiffPerHitter : 0) +
+            (base.exactScoreCorrect ? exactScorePerHitter : 0);
+
+          // Atomic claim: only the run that flips `payout` from NULL gets to
+          // write the `win` ledger row. Two concurrent scoreMatch passes both
+          // read this bet with payout IS NULL, but the `WHERE payout IS NULL`
+          // guard means exactly one UPDATE returns a row — the others get zero
+          // and skip, so no duplicate `win` entries can be inserted.
+          const claimed = await db
+            .update(bets)
+            .set({
+              payout,
+              result1x2Correct: base.result1x2Correct,
+              goalDiffCorrect: base.goalDiffCorrect,
+              exactScoreCorrect: base.exactScoreCorrect,
+              updatedAt: new Date(),
+            })
+            .where(and(eq(bets.id, bet.id), isNull(bets.payout)))
+            .returning({ id: bets.id });
+
+          if (claimed.length === 0) continue;
+
+          if (payout > 0) {
+            await db.insert(tokenLedger).values({
+              userId: bet.userId,
+              groupId: bet.groupId,
+              tournamentId: group.tournamentId,
+              amount: payout,
+              type: "win",
+              referenceId: bet.id,
+            });
+          }
+        }
+      }
     }
   }
   await evaluateMatchBadges(matchId);
+}
+
+/**
+ * Tippelőnként a rendezett tét-nettók (payout − stake) összege az M-nél KORÁBBI
+ * dátumú, már lepontozott tippjeikből ebben a csoportban. Dátum-alapú (nem M
+ * saját tipp-/ledger-állapotától függ) → a pool-alap idempotens marad
+ * újrapontozásra és párhuzamos cron-futásokra is.
+ */
+async function getBettorResolvedNets(
+  groupId: string,
+  bettorIds: string[],
+  timeZone: string,
+  matchDateNum: number,
+): Promise<Map<string, number>> {
+  const nets = new Map<string, number>();
+  if (bettorIds.length === 0) return nets;
+
+  const resolved = await db.query.bets.findMany({
+    where: and(eq(bets.groupId, groupId), inArray(bets.userId, bettorIds), isNotNull(bets.payout)),
+    columns: { userId: true, stake: true, payout: true },
+    with: { match: { columns: { scheduledAt: true } } },
+  });
+
+  for (const b of resolved) {
+    if (b.payout == null) continue;
+    if (dateToDateNum(b.match.scheduledAt, timeZone) >= matchDateNum) continue;
+    nets.set(b.userId, (nets.get(b.userId) ?? 0) + (b.payout - b.stake));
+  }
+  return nets;
 }
 
 async function flipBetsForMatch(matchId: string): Promise<void> {

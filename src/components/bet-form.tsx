@@ -30,8 +30,8 @@ export interface GroupBetInfo {
   otherActiveStakes: number;
   oddsBoost: number;
   lossPercentage: number;
-  bonusGoalDiff: number;
-  bonusExactScore: number;
+  bonusGoalDiffPct: number;
+  bonusExactScorePct: number;
   bonusPodiumMention: number;
   bonusPodiumExact: number;
   existingBet: {

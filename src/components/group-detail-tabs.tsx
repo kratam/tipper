@@ -301,8 +301,8 @@ export function GroupDetailTabs({
                         {t("bonusGoalDiff")}
                       </Label>
                       <NumericInput
-                        value={settings.bonusGoalDiff}
-                        onChange={(val) => setSettings({ ...settings, bonusGoalDiff: val })}
+                        value={settings.bonusGoalDiffPct}
+                        onChange={(val) => setSettings({ ...settings, bonusGoalDiffPct: val })}
                         min={0}
                         className="font-mono"
                       />
@@ -312,8 +312,8 @@ export function GroupDetailTabs({
                         {t("bonusExactScore")}
                       </Label>
                       <NumericInput
-                        value={settings.bonusExactScore}
-                        onChange={(val) => setSettings({ ...settings, bonusExactScore: val })}
+                        value={settings.bonusExactScorePct}
+                        onChange={(val) => setSettings({ ...settings, bonusExactScorePct: val })}
                         min={0}
                         className="font-mono"
                       />
