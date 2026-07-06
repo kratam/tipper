@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateBetPayout } from "@/lib/scoring";
+import { calculateBaseBetPayout } from "@/lib/scoring";
 import {
   calculateProjectedBalance,
   canAffordBetStake,
@@ -575,20 +575,20 @@ describe("splitResolvedNets", () => {
 });
 
 describe("90% rule (lossPercentage) end-to-end: scoring → projection → tooltip", () => {
-  const SETTINGS = { bonusGoalDiff: 0, bonusExactScore: 0, oddsBoost: 1, lossPercentage: 90 };
+  const SETTINGS = { oddsBoost: 1, lossPercentage: 90 };
 
   it("a fully-lost bet pays out 10% of the stake under the default 90% rule", () => {
-    const lost = calculateBetPayout({
+    const lost = calculateBaseBetPayout({
       predictedHome: 2, // predicts "1" (home win)
       predictedAway: 0,
       actualHome: 0, // actual "2" (away win) → 1X2 wrong → loss
       actualAway: 2,
       stake: 100,
       oddsAtBet: 1.8,
-      groupSettings: SETTINGS,
+      ...SETTINGS,
     });
     expect(lost.result1x2Correct).toBe(false);
-    expect(lost.payout).toBe(10); // 10% refund, NOT 0
+    expect(lost.basePayout).toBe(10); // 10% refund, NOT 0
   });
 
   it("the 'Tippelhető' tooltip reconciles to the projected balance under the 90% rule", () => {
@@ -602,30 +602,30 @@ describe("90% rule (lossPercentage) end-to-end: scoring → projection → toolt
     const targetDateNum = 20260502;
     const matchDates = [20260501, 20260502, 20260503];
 
-    const lost = calculateBetPayout({
+    const lost = calculateBaseBetPayout({
       predictedHome: 2,
       predictedAway: 0,
       actualHome: 0,
       actualAway: 2,
       stake: 100,
       oddsAtBet: 1.8,
-      groupSettings: SETTINGS,
+      ...SETTINGS,
     });
-    const won = calculateBetPayout({
+    const won = calculateBaseBetPayout({
       predictedHome: 1,
       predictedAway: 0,
       actualHome: 1,
       actualAway: 0,
       stake: 50,
       oddsAtBet: 1.5,
-      groupSettings: SETTINGS,
+      ...SETTINGS,
     });
-    expect(lost.payout - 100).toBe(-90); // 90% rule: net loss is -90, not -100
-    expect(won.payout - 50).toBe(25); // round(50 × 1.5 × 1) - 50 = +25
+    expect(lost.basePayout - 100).toBe(-90); // 90% rule: net loss is -90, not -100
+    expect(won.basePayout - 50).toBe(25); // round(50 × 1.5 × 1) - 50 = +25
 
     const resolvedBetNets = [
-      { netPayout: lost.payout - 100, dateNum: 20260501 },
-      { netPayout: won.payout - 50, dateNum: 20260501 },
+      { netPayout: lost.basePayout - 100, dateNum: 20260501 },
+      { netPayout: won.basePayout - 50, dateNum: 20260501 },
     ];
 
     // Bold total in the tooltip = projected (+ existingBetStake, here 0 for a new bet).
@@ -664,13 +664,15 @@ describe("90% rule (lossPercentage) end-to-end: scoring → projection → toolt
       stake: 100,
       oddsAtBet: 1.8,
     };
-    const lost90 = calculateBetPayout({
+    const lost90 = calculateBaseBetPayout({
       ...base,
-      groupSettings: { ...SETTINGS, lossPercentage: 90 },
+      ...SETTINGS,
+      lossPercentage: 90,
     });
-    const lost100 = calculateBetPayout({
+    const lost100 = calculateBaseBetPayout({
       ...base,
-      groupSettings: { ...SETTINGS, lossPercentage: 100 },
+      ...SETTINGS,
+      lossPercentage: 100,
     });
 
     const project = (net: number) =>
@@ -683,11 +685,11 @@ describe("90% rule (lossPercentage) end-to-end: scoring → projection → toolt
         resolvedBetNets: [{ netPayout: net, dateNum: 20260501 }],
       });
 
-    expect(lost90.payout).toBe(10);
-    expect(lost100.payout).toBe(0);
+    expect(lost90.basePayout).toBe(10);
+    expect(lost100.basePayout).toBe(0);
     // 100 + (10 - 100) = 10  vs  100 + (0 - 100) = 0
-    expect(project(lost90.payout - 100)).toBe(10);
-    expect(project(lost100.payout - 100)).toBe(0);
+    expect(project(lost90.basePayout - 100)).toBe(10);
+    expect(project(lost100.basePayout - 100)).toBe(0);
   });
 });
 

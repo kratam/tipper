@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  calculateBetPayout,
+  calculateBaseBetPayout,
   calculatePodiumPoints,
   classicPointsFromFlags,
+  computePoolBase,
+  distributeBonusPools,
   get1X2,
 } from "@/lib/scoring";
 
@@ -18,246 +20,250 @@ describe("get1X2", () => {
   });
 });
 
-describe("calculateBetPayout", () => {
-  const groupSettings = {
-    bonusGoalDiff: 5,
-    bonusExactScore: 10,
-    oddsBoost: 1.0,
-    lossPercentage: 100,
-  };
-
+describe("calculateBaseBetPayout", () => {
   it("loss with lossPercentage=100 returns 0 (full loss)", () => {
-    const result = calculateBetPayout({
+    const r = calculateBaseBetPayout({
       predictedHome: 3,
       predictedAway: 1,
       actualHome: 0,
       actualAway: 2,
       stake: 50,
       oddsAtBet: 2.5,
-      groupSettings,
+      oddsBoost: 1.0,
+      lossPercentage: 100,
     });
-    expect(result.payout).toBe(0);
-    expect(result.result1x2Correct).toBe(false);
+    expect(r.basePayout).toBe(0);
+    expect(r.result1x2Correct).toBe(false);
   });
 
-  it("returns stake * odds + goal diff bonus when 1X2 and goal diff are correct", () => {
-    const result = calculateBetPayout({
+  it("returns stake * odds and flags goal diff when 1X2 and goal diff are correct", () => {
+    const r = calculateBaseBetPayout({
       predictedHome: 3,
       predictedAway: 1,
       actualHome: 2,
       actualAway: 0,
       stake: 50,
       oddsAtBet: 2.5,
-      groupSettings,
+      oddsBoost: 1.0,
+      lossPercentage: 100,
     });
-    expect(result.payout).toBe(130); // 50*2.5 + 5 (goal diff bonus, both +2)
-    expect(result.result1x2Correct).toBe(true);
-    expect(result.goalDiffCorrect).toBe(true); // both +2
-    expect(result.exactScoreCorrect).toBe(false);
+    expect(r.basePayout).toBe(125); // 50*2.5 (bónusz külön fázisban)
+    expect(r.result1x2Correct).toBe(true);
+    expect(r.goalDiffCorrect).toBe(true);
+    expect(r.exactScoreCorrect).toBe(false);
   });
 
-  it("adds goal diff bonus when goal difference matches", () => {
-    const result = calculateBetPayout({
-      predictedHome: 3,
-      predictedAway: 1,
-      actualHome: 4,
-      actualAway: 2,
-      stake: 50,
-      oddsAtBet: 2.5,
-      groupSettings,
-    });
-    expect(result.payout).toBe(130); // 50*2.5 + 5
-  });
-
-  it("adds both bonuses for exact score", () => {
-    const result = calculateBetPayout({
+  it("flags exact score", () => {
+    const r = calculateBaseBetPayout({
       predictedHome: 3,
       predictedAway: 1,
       actualHome: 3,
       actualAway: 1,
       stake: 50,
       oddsAtBet: 2.5,
-      groupSettings,
+      oddsBoost: 1.0,
+      lossPercentage: 100,
     });
-    expect(result.payout).toBe(140); // 50*2.5 + 5 + 10
+    expect(r.basePayout).toBe(125);
+    expect(r.goalDiffCorrect).toBe(true);
+    expect(r.exactScoreCorrect).toBe(true);
   });
 
   it("handles draws correctly", () => {
-    const result = calculateBetPayout({
+    const r = calculateBaseBetPayout({
       predictedHome: 2,
       predictedAway: 2,
       actualHome: 3,
       actualAway: 3,
       stake: 30,
       oddsAtBet: 5.0,
-      groupSettings,
+      oddsBoost: 1.0,
+      lossPercentage: 100,
     });
-    expect(result.payout).toBe(155); // 30*5 + 5
-    expect(result.goalDiffCorrect).toBe(true);
+    expect(r.basePayout).toBe(150); // 30*5
+    expect(r.goalDiffCorrect).toBe(true);
   });
 
   it("oddsAtBet null with lossPercentage=100 returns 0", () => {
-    const result = calculateBetPayout({
+    const r = calculateBaseBetPayout({
       predictedHome: 3,
       predictedAway: 1,
       actualHome: 3,
       actualAway: 1,
       stake: 50,
       oddsAtBet: null,
-      groupSettings,
+      oddsBoost: 1.0,
+      lossPercentage: 100,
     });
-    expect(result.payout).toBe(0);
+    expect(r.basePayout).toBe(0);
   });
 
-  it("applies oddsBoost to payout", () => {
-    const result = calculateBetPayout({
+  it("applies oddsBoost to the base payout", () => {
+    const r = calculateBaseBetPayout({
       predictedHome: 3,
       predictedAway: 1,
       actualHome: 2,
       actualAway: 0,
       stake: 100,
       oddsAtBet: 2.0,
-      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.5, lossPercentage: 100 },
+      oddsBoost: 1.5,
+      lossPercentage: 100,
     });
-    expect(result.payout).toBe(305); // round(100 * 2.0 * 1.5) + 5 (goalDiff)
-  });
-
-  it("oddsBoost 1.0 does not change payout", () => {
-    const result = calculateBetPayout({
-      predictedHome: 3,
-      predictedAway: 1,
-      actualHome: 2,
-      actualAway: 0,
-      stake: 50,
-      oddsAtBet: 2.5,
-      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0, lossPercentage: 100 },
-    });
-    expect(result.payout).toBe(130); // 50*2.5*1.0 + 5
-  });
-
-  it("oddsBoost does not multiply bonuses", () => {
-    const result = calculateBetPayout({
-      predictedHome: 3,
-      predictedAway: 1,
-      actualHome: 3,
-      actualAway: 1,
-      stake: 100,
-      oddsAtBet: 2.0,
-      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.5, lossPercentage: 100 },
-    });
-    // round(100 * 2.0 * 1.5) = 300, + 5 (goalDiff) + 10 (exactScore) = 315
-    expect(result.payout).toBe(315);
+    expect(r.basePayout).toBe(300); // round(100 * 2.0 * 1.5)
+    expect(r.goalDiffCorrect).toBe(true);
   });
 
   it("oddsBoost has no effect on wrong prediction", () => {
-    const result = calculateBetPayout({
+    const r = calculateBaseBetPayout({
       predictedHome: 3,
       predictedAway: 1,
       actualHome: 0,
       actualAway: 2,
       stake: 100,
       oddsAtBet: 2.0,
-      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 2.0, lossPercentage: 100 },
+      oddsBoost: 2.0,
+      lossPercentage: 100,
     });
-    expect(result.payout).toBe(0);
+    expect(r.basePayout).toBe(0);
   });
 
   it("partial refund: lossPercentage=90 returns 10% of stake when 1X2 is wrong", () => {
-    const result = calculateBetPayout({
+    const r = calculateBaseBetPayout({
       predictedHome: 3,
       predictedAway: 1,
       actualHome: 0,
       actualAway: 2,
       stake: 100,
       oddsAtBet: 2.5,
-      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0, lossPercentage: 90 },
+      oddsBoost: 1.0,
+      lossPercentage: 90,
     });
-    expect(result.payout).toBe(10);
-    expect(result.result1x2Correct).toBe(false);
-    expect(result.goalDiffCorrect).toBe(false);
-    expect(result.exactScoreCorrect).toBe(false);
+    expect(r.basePayout).toBe(10);
+    expect(r.result1x2Correct).toBe(false);
+    expect(r.goalDiffCorrect).toBe(false);
+    expect(r.exactScoreCorrect).toBe(false);
   });
 
   it("partial refund: rounds to nearest integer", () => {
-    const result = calculateBetPayout({
+    const r = calculateBaseBetPayout({
       predictedHome: 3,
       predictedAway: 1,
       actualHome: 0,
       actualAway: 2,
       stake: 33,
       oddsAtBet: 2.5,
-      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0, lossPercentage: 90 },
+      oddsBoost: 1.0,
+      lossPercentage: 90,
     });
     // 100 - 90 = 10; round(33 * 10 / 100) = round(3.3) = 3
-    expect(result.payout).toBe(3);
+    expect(r.basePayout).toBe(3);
   });
 
   it("partial refund: clamps out-of-range lossPercentage to [0, 100]", () => {
-    const lossBeyond100 = calculateBetPayout({
+    const lossBeyond100 = calculateBaseBetPayout({
       predictedHome: 3,
       predictedAway: 1,
       actualHome: 0,
       actualAway: 2,
       stake: 100,
       oddsAtBet: 2.5,
-      // 150 clamps to 100 → full loss, payout = 0 (not negative)
-      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0, lossPercentage: 150 },
+      oddsBoost: 1.0,
+      lossPercentage: 150, // clamps to 100 → full loss, 0 (not negative)
     });
-    expect(lossBeyond100.payout).toBe(0);
+    expect(lossBeyond100.basePayout).toBe(0);
 
-    const lossBelow0 = calculateBetPayout({
+    const lossBelow0 = calculateBaseBetPayout({
       predictedHome: 3,
       predictedAway: 1,
       actualHome: 0,
       actualAway: 2,
       stake: 100,
       oddsAtBet: 2.5,
-      // -10 clamps to 0 → full refund, payout = stake (not greater than stake)
-      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0, lossPercentage: -10 },
+      oddsBoost: 1.0,
+      lossPercentage: -10, // clamps to 0 → full refund, = stake
     });
-    expect(lossBelow0.payout).toBe(100);
-  });
-
-  it("partial refund: lossPercentage=0 returns full stake on loss (full refund)", () => {
-    const result = calculateBetPayout({
-      predictedHome: 3,
-      predictedAway: 1,
-      actualHome: 0,
-      actualAway: 2,
-      stake: 100,
-      oddsAtBet: 2.5,
-      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0, lossPercentage: 0 },
-    });
-    expect(result.payout).toBe(100);
+    expect(lossBelow0.basePayout).toBe(100);
   });
 
   it("partial refund: oddsAtBet null applies the same refund as a regular loss", () => {
-    const result = calculateBetPayout({
+    const r = calculateBaseBetPayout({
       predictedHome: 3,
       predictedAway: 1,
       actualHome: 3,
       actualAway: 1,
       stake: 100,
       oddsAtBet: null,
-      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0, lossPercentage: 90 },
+      oddsBoost: 1.0,
+      lossPercentage: 90,
     });
     // even though the prediction is exact, oddsAtBet=null still counts as loss
-    expect(result.payout).toBe(10);
-    expect(result.result1x2Correct).toBe(false);
+    expect(r.basePayout).toBe(10);
+    expect(r.result1x2Correct).toBe(false);
+  });
+});
+
+describe("computePoolBase", () => {
+  it("összegzi a tippelők lifetime budgetjét (init + tpm×meccsek + nettó)", () => {
+    // 3 tippelő, init=200, tpm=100, matchesToDate=5 → 700 alap fejenként
+    // nettók: [0, 300, -50] → 700*3 + 250 = 2350
+    expect(
+      computePoolBase({
+        initialTokens: 200,
+        tokenPerMatch: 100,
+        matchesToDate: 5,
+        bettorResolvedNets: [0, 300, -50],
+      }),
+    ).toBe(2350);
   });
 
-  it("partial refund: correct 1X2 ignores lossPercentage entirely", () => {
-    const result = calculateBetPayout({
-      predictedHome: 3,
-      predictedAway: 1,
-      actualHome: 3,
-      actualAway: 1,
-      stake: 50,
-      oddsAtBet: 2.5,
-      groupSettings: { bonusGoalDiff: 5, bonusExactScore: 10, oddsBoost: 1.0, lossPercentage: 90 },
+  it("üres tippelő-lista → 0", () => {
+    expect(
+      computePoolBase({
+        initialTokens: 200,
+        tokenPerMatch: 100,
+        matchesToDate: 5,
+        bettorResolvedNets: [],
+      }),
+    ).toBe(0);
+  });
+});
+
+describe("distributeBonusPools", () => {
+  it("egyenlően oszt és lefelé kerekít; a két pool halmozható", () => {
+    // poolBase=100000, gd 2% = 2000 / 3 = 666; ex 3% = 3000 / 2 = 1500
+    const r = distributeBonusPools({
+      poolBase: 100000,
+      goalDiffHitters: 3,
+      exactScoreHitters: 2,
+      goalDiffPct: 2,
+      exactScorePct: 3,
     });
-    // 50 * 2.5 + 5 (goalDiff) + 10 (exactScore) = 140
-    expect(result.payout).toBe(140);
+    expect(r.goalDiffPerHitter).toBe(666);
+    expect(r.exactScorePerHitter).toBe(1500);
+  });
+
+  it("0 találó → 0 bónusz az adott szinten", () => {
+    const r = distributeBonusPools({
+      poolBase: 100000,
+      goalDiffHitters: 0,
+      exactScoreHitters: 1,
+      goalDiffPct: 2,
+      exactScorePct: 3,
+    });
+    expect(r.goalDiffPerHitter).toBe(0);
+    expect(r.exactScorePerHitter).toBe(3000);
+  });
+
+  it("negatív poolBase → 0 (guard)", () => {
+    const r = distributeBonusPools({
+      poolBase: -500,
+      goalDiffHitters: 2,
+      exactScoreHitters: 1,
+      goalDiffPct: 2,
+      exactScorePct: 3,
+    });
+    expect(r.goalDiffPerHitter).toBe(0);
+    expect(r.exactScorePerHitter).toBe(0);
   });
 });
 
