@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { type BetOutcome, deriveBetBonus, predictionToneClass } from "./bet-display";
+import {
+  type BetOutcome,
+  deriveBetBonus,
+  predictionToneClass,
+  splitBetPayout,
+} from "./bet-display";
 
 function makeBet(overrides: Partial<BetOutcome> = {}): BetOutcome {
   return {
@@ -70,5 +75,32 @@ describe("deriveBetBonus", () => {
   it("0 bónusz-beállítás esetén 0 (nem negatív)", () => {
     const bet = makeBet({ goalDiffCorrect: true, stake: 100, payout: 179 });
     expect(deriveBetBonus(bet, 1.1)).toBe(0);
+  });
+});
+
+describe("splitBetPayout", () => {
+  it("telitalálat: odds-nettó és bónusz külön, összegük a nettó profit", () => {
+    // round(300 × 1.63 × 1.1) = 538, payout 588 → bónusz 50, nettó 288, odds-rész 238
+    const bet = makeBet({
+      goalDiffCorrect: true,
+      exactScoreCorrect: true,
+      stake: 300,
+      payout: 588,
+    });
+    expect(splitBetPayout(bet, 1.1)).toEqual({ oddsNet: 238, bonus: 50 });
+  });
+
+  it("csak 1X2 találat: minden az odds-részben, bónusz 0", () => {
+    const bet = makeBet({ stake: 100, payout: 179 });
+    expect(splitBetPayout(bet, 1.1)).toEqual({ oddsNet: 79, bonus: 0 });
+  });
+
+  it("rossz tipp (részleges visszatérítés): negatív odds-rész, bónusz 0", () => {
+    const bet = makeBet({ result1x2Correct: false, stake: 100, payout: 90 });
+    expect(splitBetPayout(bet, 1.1)).toEqual({ oddsNet: -10, bonus: 0 });
+  });
+
+  it("még nem zárult le (payout null) → null", () => {
+    expect(splitBetPayout(makeBet(), 1.1)).toBeNull();
   });
 });

@@ -188,7 +188,10 @@
     "statAvgStake": "Átlag tét",
     "statPlayers": "{count} fő",
     "statPlayersOf": "{count} / {total} fő",
-    "statTipWithCount": "{home}-{away} ({count} fő)"
+    "statTipWithCount": "{home}-{away} ({count} fő)",
+    "oddsWinnings": "Odds-nyeremény",
+    "bonusGoalDiff": "Gólkülönbség bónusz",
+    "bonusExactScore": "Pontos eredmény bónusz"
   },
   "betting": {
     "title": "Tippelés",

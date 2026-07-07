@@ -33,3 +33,19 @@ export function deriveBetBonus(bet: BetOutcome, oddsBoost: number): number {
   const baseWin = Math.round(bet.stake * Number(bet.oddsAtBet) * oddsBoost);
   return Math.max(0, bet.payout - baseWin);
 }
+
+/**
+ * A lezárt tipp nettó nyereményének felbontása: mennyi jött az oddsból és
+ * mennyi a bónuszból. `oddsNet + bonus === payout − stake` (a régi összprofit).
+ * Lezáratlan tippnél (payout == null) `null`. A bónusz csak gólkülönbség/pontos
+ * eredmény találatnál > 0; egyébként az egész nettó az odds-részben van.
+ */
+export function splitBetPayout(
+  bet: BetOutcome,
+  oddsBoost: number,
+): { oddsNet: number; bonus: number } | null {
+  if (bet.payout == null) return null;
+  const bonus = deriveBetBonus(bet, oddsBoost);
+  const netProfit = bet.payout - bet.stake;
+  return { oddsNet: netProfit - bonus, bonus };
+}

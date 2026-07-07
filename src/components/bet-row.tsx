@@ -1,8 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { TokenIcon } from "@/components/token-icon";
 import { UserAvatar } from "@/components/user-avatar";
+import { splitBetPayout } from "@/lib/bet-display";
 import { classify1x2 } from "@/lib/match-stats";
 import { formatEffectiveOdds } from "@/lib/odds-display";
 import { OUTCOME_GRADIENT } from "@/lib/outcome-colors";
@@ -27,8 +29,12 @@ export function BetRow({
   oddsBoost,
   rankLabel,
 }: BetRowProps) {
+  const t = useTranslations("matches");
   const lockedOdds = formatEffectiveOdds(bet.oddsAtBet, oddsBoost);
 
+  // Lezárt tippnél a nettó nyeremény odds-részre és bónusz-részre bontható;
+  // bónusz csak gólkülönbség/pontos eredmény találatnál van (split.bonus > 0).
+  const split = isFinished ? splitBetPayout(bet, oddsBoost) : null;
   const netProfit = bet.payout != null ? bet.payout - bet.stake : null;
   const payoutColor =
     netProfit == null
@@ -85,7 +91,19 @@ export function BetRow({
         </div>
       </div>
       <div className="flex flex-col items-end gap-px">
-        {isFinished && payoutLabel != null ? (
+        {isFinished && split != null && split.bonus > 0 ? (
+          <span className="flex items-baseline gap-1.5 font-bold font-mono text-[13.5px] tabular-nums">
+            <span className="text-win" title={t("oddsWinnings")}>
+              +{split.oddsNet}
+            </span>
+            <span
+              className="text-gold-text"
+              title={bet.exactScoreCorrect ? t("bonusExactScore") : t("bonusGoalDiff")}
+            >
+              +{split.bonus}
+            </span>
+          </span>
+        ) : isFinished && payoutLabel != null ? (
           <span className={`font-bold font-mono text-[13.5px] tabular-nums ${payoutColor}`}>
             {payoutLabel}
           </span>

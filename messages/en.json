@@ -188,7 +188,10 @@
     "statAvgStake": "Average stake",
     "statPlayers": "{count}",
     "statPlayersOf": "{count} / {total}",
-    "statTipWithCount": "{home}-{away} ({count})"
+    "statTipWithCount": "{home}-{away} ({count})",
+    "oddsWinnings": "Odds winnings",
+    "bonusGoalDiff": "Goal difference bonus",
+    "bonusExactScore": "Exact score bonus"
   },
   "betting": {
     "title": "Place Bet",

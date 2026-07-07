@@ -29,6 +29,8 @@ export interface GroupMemberBet {
   stake: number;
   oddsAtBet: string | null;
   result1x2Correct: boolean | null;
+  goalDiffCorrect: boolean | null;
+  exactScoreCorrect: boolean | null;
   payout: number | null;
 }
 
@@ -77,6 +79,8 @@ export async function getGroupBetsForStartedMatch(
       stake: bet.stake,
       oddsAtBet: bet.oddsAtBet,
       result1x2Correct: bet.result1x2Correct,
+      goalDiffCorrect: bet.goalDiffCorrect,
+      exactScoreCorrect: bet.exactScoreCorrect,
       payout: bet.payout,
     });
     betsByGroup.set(bet.groupId, existing);
