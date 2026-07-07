@@ -42,7 +42,7 @@ export function GroupRulesDialog({ groupName, rules, iconOnly = false }: GroupRu
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
+        <DialogContent mobileFullscreen className="max-h-[85vh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-mono text-base">
               {groupName} · {t("rules")}

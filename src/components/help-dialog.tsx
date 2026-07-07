@@ -42,9 +42,12 @@ export function HelpDialog({ open, onOpenChange, showTrigger = true }: HelpDialo
           </button>
         </DialogTrigger>
       )}
-      <DialogContent className="max-h-[85dvh] gap-0 overflow-hidden p-0 sm:max-w-lg">
+      <DialogContent
+        mobileFullscreen
+        className="max-h-[85dvh] gap-0 overflow-hidden p-0 sm:max-w-lg"
+      >
         {/* Hero header — gold gradient wash + crown disc */}
-        <DialogHeader className="flex flex-row items-center gap-3.5 border-border border-b bg-linear-to-br from-gold-soft to-transparent p-5 pr-12 text-left">
+        <DialogHeader className="flex flex-row items-center gap-3.5 border-border border-b bg-linear-to-br from-gold-soft to-transparent p-5 pr-12 text-left max-sm:shrink-0">
           <span className="grid size-10 shrink-0 place-items-center rounded-[11px] bg-linear-to-br from-gold to-gold-2 text-gold-ink">
             <HelpCircle className="size-5" strokeWidth={2} />
           </span>
@@ -55,7 +58,7 @@ export function HelpDialog({ open, onOpenChange, showTrigger = true }: HelpDialo
         </DialogHeader>
 
         {/* Numbered steps */}
-        <div className="max-h-[min(62vh,540px)] overflow-y-auto px-5 py-4">
+        <div className="max-h-[min(62vh,540px)] overflow-y-auto px-5 py-4 max-sm:max-h-none max-sm:min-h-0 max-sm:flex-1">
           {sections.map((section, index) => (
             <section
               key={section.heading}

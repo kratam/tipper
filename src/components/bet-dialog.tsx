@@ -144,7 +144,7 @@ export function BetDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[85vh] gap-2 overflow-y-auto sm:max-w-md">
+        <DialogContent mobileFullscreen className="max-h-[85vh] gap-2 overflow-y-auto sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="sr-only">
               {match.homeTeam.name} – {match.awayTeam.name}

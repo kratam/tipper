@@ -38,13 +38,25 @@ function DialogOverlay({
   );
 }
 
+// On phones a large dialog fills the whole screen so its own footer/links stay
+// reachable (a viewport-fraction max-h leaves the bottom below the fold on short
+// screens). Overrides the top-anchored geometry via max-sm: only — desktop is
+// untouched. Switches to flex-col so a `p-0` dialog can pin a header and let its
+// body flex-1 scroll; content-scrolls dialogs work too (their own overflow-y-auto
+// still applies). Hosts opt in with the `mobileFullscreen` prop.
+const mobileFullscreenClasses =
+  "max-sm:top-0 max-sm:right-0 max-sm:bottom-0 max-sm:left-0 max-sm:w-auto max-sm:max-w-none max-sm:max-h-none max-sm:translate-x-0 max-sm:flex max-sm:flex-col max-sm:rounded-none max-sm:border-0";
+
 function DialogContent({
   className,
   children,
   showCloseButton = true,
+  mobileFullscreen = false,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
+  /** Fill the viewport on phones (max-sm); desktop layout is unchanged. Use for tall/scrolling dialogs. */
+  mobileFullscreen?: boolean;
 }) {
   return (
     <DialogPortal>
@@ -57,6 +69,7 @@ function DialogContent({
           // or tab row. Keeps every dialog consistent; per-dialog max-h/overflow still
           // decide scrolling for tall content.
           "data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-bottom-2 data-closed:fade-out-0 data-closed:zoom-out-95 fixed top-[8dvh] left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 gap-4 rounded-xl border border-border-strong bg-popover p-4 text-popover-foreground text-sm shadow-[0_18px_40px_-24px_rgba(0,0,0,0.85)] outline-none duration-200 data-closed:animate-out data-open:animate-in sm:max-w-[430px]",
+          mobileFullscreen && mobileFullscreenClasses,
           className,
         )}
         {...props}

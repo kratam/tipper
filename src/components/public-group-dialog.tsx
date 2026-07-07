@@ -83,9 +83,13 @@ export function PublicGroupDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="max-w-md overflow-hidden p-0 sm:max-w-md">
+      <DialogContent
+        showCloseButton={false}
+        mobileFullscreen
+        className="max-w-md overflow-hidden p-0 sm:max-w-md"
+      >
         {/* Gradient header */}
-        <div className="relative bg-linear-to-br from-[#1e3a5f] to-[#2d1b69] p-6 after:pointer-events-none after:absolute after:inset-0 after:bg-[radial-gradient(120%_90%_at_88%_-10%,color-mix(in_oklab,var(--gold)_22%,transparent),transparent_55%)]">
+        <div className="relative bg-linear-to-br from-[#1e3a5f] to-[#2d1b69] p-6 after:pointer-events-none after:absolute after:inset-0 after:bg-[radial-gradient(120%_90%_at_88%_-10%,color-mix(in_oklab,var(--gold)_22%,transparent),transparent_55%)] max-sm:shrink-0">
           <DialogClose className="absolute top-3 right-3 z-[1] flex size-7 items-center justify-center rounded-md text-white/70 transition-colors hover:bg-white/10 hover:text-white">
             <X className="size-4" />
             <span className="sr-only">Close</span>
@@ -105,7 +109,7 @@ export function PublicGroupDialog({
         </div>
 
         {/* Body */}
-        <div className="mt-0 p-6 pt-0">
+        <div className="mt-0 p-6 pt-0 max-sm:min-h-0 max-sm:flex-1 max-sm:overflow-y-auto">
           <div className="pt-4">
             {/* Description */}
             {group.description && (
