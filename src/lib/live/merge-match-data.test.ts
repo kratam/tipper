@@ -56,6 +56,7 @@ describe("mergeMatchData", () => {
           {
             betId: "b1",
             matchId: "m1",
+            groupId: "g1",
             result1x2Correct: true,
             goalDiffCorrect: true,
             exactScoreCorrect: true,
