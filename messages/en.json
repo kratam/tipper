@@ -509,7 +509,9 @@
     "avgStake": "Avg stake",
     "maxStake": "Biggest stake",
     "biggestWin": "Biggest win",
-    "biggestLoss": "Biggest loss"
+    "biggestLoss": "Biggest loss",
+    "betsHeading": "Bets",
+    "summaryBetsCount": "{count} bets"
   },
   "help": {
     "title": "How does TippCasino work?",

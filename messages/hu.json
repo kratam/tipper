@@ -509,7 +509,9 @@
     "avgStake": "Átlag tét",
     "maxStake": "Legnagyobb tét",
     "biggestWin": "Legnagyobb nyeremény",
-    "biggestLoss": "Legnagyobb bukó"
+    "biggestLoss": "Legnagyobb bukó",
+    "betsHeading": "Tippek",
+    "summaryBetsCount": "{count} tipp"
   },
   "help": {
     "title": "Hogyan működik a TippCasino?",
