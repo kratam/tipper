@@ -132,6 +132,23 @@ export function dateToDateNum(d: Date, timeZone: string): number {
 }
 
 /**
+ * A pool-alap "matchesToDate" tagja: hány nem-törölt torna-meccs dátuma esik az
+ * adott meccs dátumára vagy elé (ennyi per-meccs token-osztás történt eddig).
+ * Dátum-alapú (nem a lepontozás állapotától függ) → a pool-alap idempotens
+ * marad újrapontozásra. A scoring (sync.ts) és a Statisztika-tab pool-kijelzése
+ * ugyanezt hívja, hogy a megjelenített keret a tényleges kifizetéssel egyezzen.
+ */
+export function computeMatchesToDate(
+  tournamentMatches: readonly { scheduledAt: Date; status: string }[],
+  timeZone: string,
+  matchDateNum: number,
+): number {
+  return tournamentMatches.filter(
+    (m) => m.status !== "cancelled" && dateToDateNum(m.scheduledAt, timeZone) <= matchDateNum,
+  ).length;
+}
+
+/**
  * Split resolved-bet nets into cumulative winnings (positive nets) and losses
  * (negative nets) up to and including the target cutoff date. Mirrors the
  * bet-form "Tippelhető" tooltip breakdown.

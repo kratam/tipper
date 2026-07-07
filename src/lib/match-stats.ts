@@ -226,3 +226,32 @@ export function computeMatchStats(bets: readonly StatBet[], ctx: MatchStatsConte
     winnerCorrectCount,
   };
 }
+
+export interface BonusPoolLevel {
+  /** A szint teljes kerete: `floor(max(0, poolBase) × pct / 100)`. */
+  pool: number;
+  /** Találók száma; `null` élő meccsen (még nincs eredmény). */
+  hitters: number | null;
+  /** Egy találóra eső kifizetés; `null` élőn, `0` ha lezárt de 0 találó. */
+  perHitter: number | null;
+}
+
+/**
+ * Egy bónusz-szint (gólkülönbség VAGY pontos eredmény) pool-kerete és — lezárt
+ * meccsnél — az egy találóra eső kifizetése a Statisztika-tabhoz. A per-találó
+ * képlet a scoring `distributeBonusPools`-ával azonos (floor az osztás után),
+ * így a kijelzett érték a tényleges kifizetéssel egyezik. `pct <= 0` (kikapcsolt
+ * bónusz) → `null`, a sor kimarad. `hitters === null` → élő meccs: csak a keret.
+ */
+export function computeBonusPoolLevel(
+  poolBase: number,
+  pct: number,
+  hitters: number | null,
+): BonusPoolLevel | null {
+  if (pct <= 0) return null;
+  const base = Math.max(0, poolBase);
+  const pool = Math.floor((base * pct) / 100);
+  const perHitter =
+    hitters == null ? null : hitters > 0 ? Math.floor((base * pct) / 100 / hitters) : 0;
+  return { pool, hitters, perHitter };
+}

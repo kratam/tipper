@@ -19,7 +19,8 @@ import { toProviderConfig } from "@/lib/providers/types";
 import { scheduleMatchFinishCheck } from "@/lib/qstash";
 import { hasApiScheduleImproved, isScheduleBroken } from "@/lib/schedule-override";
 import { calculateBaseBetPayout, computePoolBase, distributeBonusPools } from "@/lib/scoring";
-import { dateToDateNum, getRelevantOdds } from "@/lib/tokens";
+import { computeMatchesToDate, dateToDateNum, getRelevantOdds } from "@/lib/tokens";
+import { getBettorResolvedNets } from "@/queries/bonus-pool";
 
 // ── Types ──
 
@@ -456,11 +457,7 @@ async function scoreMatch(matchId: string, homeScore: number, awayScore: number)
         where: eq(matches.tournamentId, match.tournamentId),
         columns: { scheduledAt: true, status: true },
       });
-      // A pool-alap "matchesToDate" tagja: hány nem-törölt torna-meccs dátuma
-      // esik M dátumára vagy elé (ennyi per-meccs token-osztás történt eddig).
-      const matchesToDate = tournamentMatches.filter(
-        (m) => m.status !== "cancelled" && dateToDateNum(m.scheduledAt, timeZone) <= matchDateNum,
-      ).length;
+      const matchesToDate = computeMatchesToDate(tournamentMatches, timeZone, matchDateNum);
 
       // A token/pool csoport-szintű, ezért a pending tippeket csoportonként
       // dolgozzuk fel: minden csoportra külön pool-alap és külön bónusz-szétosztás.
@@ -548,35 +545,6 @@ async function scoreMatch(matchId: string, homeScore: number, awayScore: number)
     }
   }
   await evaluateMatchBadges(matchId);
-}
-
-/**
- * Tippelőnként a rendezett tét-nettók (payout − stake) összege az M-nél KORÁBBI
- * dátumú, már lepontozott tippjeikből ebben a csoportban. Dátum-alapú (nem M
- * saját tipp-/ledger-állapotától függ) → a pool-alap idempotens marad
- * újrapontozásra és párhuzamos cron-futásokra is.
- */
-async function getBettorResolvedNets(
-  groupId: string,
-  bettorIds: string[],
-  timeZone: string,
-  matchDateNum: number,
-): Promise<Map<string, number>> {
-  const nets = new Map<string, number>();
-  if (bettorIds.length === 0) return nets;
-
-  const resolved = await db.query.bets.findMany({
-    where: and(eq(bets.groupId, groupId), inArray(bets.userId, bettorIds), isNotNull(bets.payout)),
-    columns: { userId: true, stake: true, payout: true },
-    with: { match: { columns: { scheduledAt: true } } },
-  });
-
-  for (const b of resolved) {
-    if (b.payout == null) continue;
-    if (dateToDateNum(b.match.scheduledAt, timeZone) >= matchDateNum) continue;
-    nets.set(b.userId, (nets.get(b.userId) ?? 0) + (b.payout - b.stake));
-  }
-  return nets;
 }
 
 async function flipBetsForMatch(matchId: string): Promise<void> {

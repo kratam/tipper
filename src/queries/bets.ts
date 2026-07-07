@@ -6,6 +6,9 @@ import { bets, groupMembers, matches } from "@/db/schema";
 import { pickGoogleAvatarUrl } from "@/lib/avatar-detect";
 import { gravatarHash } from "@/lib/gravatar-hash";
 import type { Locale } from "@/lib/providers/types";
+import { computePoolBase } from "@/lib/scoring";
+import { computeMatchesToDate, dateToDateNum } from "@/lib/tokens";
+import { getBettorResolvedNets } from "@/queries/bonus-pool";
 import { withMatchTeamDisplay } from "@/queries/team-display";
 
 export async function getUserBetsForMatch(userId: string, matchId: string) {
@@ -38,6 +41,12 @@ export interface GroupBetsForMatch {
   groupId: string;
   groupName: string;
   oddsBoost: number;
+  /** A dinamikus bónusz-pool alapja (a meccs tippelőinek játékban lévő tokenjei).
+   *  A Statisztika-tab ebből + a pct-kből számolja a pool-keretet és — lezárt
+   *  meccsnél — az egy főre eső kifizetést. A scoringgal azonos képlet. */
+  poolBase: number;
+  bonusGoalDiffPct: number;
+  bonusExactScorePct: number;
   bets: GroupMemberBet[];
 }
 
@@ -56,6 +65,20 @@ export async function getGroupBetsForStartedMatch(
   });
 
   if (myGroups.length === 0) return [];
+
+  const match = await db.query.matches.findFirst({
+    where: eq(matches.id, matchId),
+    columns: { scheduledAt: true, tournamentId: true },
+    with: { tournament: { columns: { timezone: true } } },
+  });
+  if (!match) return [];
+  const timeZone = match.tournament.timezone;
+  const matchDateNum = dateToDateNum(match.scheduledAt, timeZone);
+  const tournamentMatches = await db.query.matches.findMany({
+    where: eq(matches.tournamentId, match.tournamentId),
+    columns: { scheduledAt: true, status: true },
+  });
+  const matchesToDate = computeMatchesToDate(tournamentMatches, timeZone, matchDateNum);
 
   const groupIds = myGroups.map((m) => m.groupId);
 
@@ -86,14 +109,34 @@ export async function getGroupBetsForStartedMatch(
     betsByGroup.set(bet.groupId, existing);
   }
 
-  return myGroups
-    .map((m) => ({
-      groupId: m.groupId,
-      groupName: m.group.name,
-      oddsBoost: m.group.oddsBoost,
-      bets: betsByGroup.get(m.groupId) ?? [],
-    }))
-    .filter((g) => g.bets.length > 0);
+  // Csak a tippekkel bíró csoportokra számolunk pool-alapot (a getBettorResolvedNets
+  // csoportonként egy lekérdezés). A poolBase a scoringgal azonos képlettel áll
+  // elő, így a Statisztika-tab kerete a tényleges kifizetéssel egyezik.
+  const withBets = myGroups.filter((m) => (betsByGroup.get(m.groupId)?.length ?? 0) > 0);
+
+  return Promise.all(
+    withBets.map(async (m) => {
+      const groupBets = betsByGroup.get(m.groupId) ?? [];
+      const bettorIds = [...new Set(groupBets.map((b) => b.userId))];
+      const netsByUser = await getBettorResolvedNets(m.groupId, bettorIds, timeZone, matchDateNum);
+      const poolBase = computePoolBase({
+        initialTokens: m.group.initialTokens,
+        tokenPerMatch: m.group.tokenPerMatch,
+        matchesToDate,
+        bettorResolvedNets: bettorIds.map((id) => netsByUser.get(id) ?? 0),
+      });
+
+      return {
+        groupId: m.groupId,
+        groupName: m.group.name,
+        oddsBoost: m.group.oddsBoost,
+        poolBase,
+        bonusGoalDiffPct: m.group.bonusGoalDiffPct,
+        bonusExactScorePct: m.group.bonusExactScorePct,
+        bets: groupBets,
+      };
+    }),
+  );
 }
 
 export async function getGroupBetsForFinishedMatches(groupId: string) {

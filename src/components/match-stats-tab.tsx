@@ -4,7 +4,12 @@ import { Crosshair } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { TokenIcon } from "@/components/token-icon";
-import { computeMatchStats, type DistributionSlice } from "@/lib/match-stats";
+import {
+  type BonusPoolLevel,
+  computeBonusPoolLevel,
+  computeMatchStats,
+  type DistributionSlice,
+} from "@/lib/match-stats";
 import { OUTCOME_GRADIENT } from "@/lib/outcome-colors";
 import type { GroupMemberBet } from "@/queries/bets";
 
@@ -13,6 +18,9 @@ interface MatchStatsTabProps {
   homeScore: number | null;
   awayScore: number | null;
   isFinished: boolean;
+  poolBase: number;
+  bonusGoalDiffPct: number;
+  bonusExactScorePct: number;
 }
 
 /** Compact token formatting: 48500 → "48.5k". */
@@ -35,6 +43,31 @@ function KeyValue({ label, children }: { label: string; children: React.ReactNod
       <span className="text-muted-foreground">{label}</span>
       <span className="inline-flex items-center gap-1.5 font-mono font-semibold">{children}</span>
     </div>
+  );
+}
+
+/**
+ * Egy bónusz-pool sora: `keret ◉` élőn, lezártnál `keret ◉ · N fő · +egy főre`.
+ * A kifizetés arany (mint a Tippek-sor bónusza); 0 találónál „nincs találó".
+ */
+function BonusPoolRow({ label, level }: { label: string; level: BonusPoolLevel }) {
+  const t = useTranslations("matches");
+  return (
+    <KeyValue label={label}>
+      {formatTokens(level.pool)}
+      <TokenIcon size={10} />
+      {level.hitters != null &&
+        (level.hitters > 0 ? (
+          <>
+            <span className="font-normal text-muted-foreground">
+              · {t("statPlayers", { count: level.hitters })} ·
+            </span>
+            <span className="text-gold-text">+{formatTokens(level.perHitter ?? 0)}</span>
+          </>
+        ) : (
+          <span className="font-normal text-muted-foreground">· {t("noHitters")}</span>
+        ))}
+    </KeyValue>
   );
 }
 
@@ -73,13 +106,31 @@ function StackedBar({
   );
 }
 
-export function MatchStatsTab({ bets, homeScore, awayScore, isFinished }: MatchStatsTabProps) {
+export function MatchStatsTab({
+  bets,
+  homeScore,
+  awayScore,
+  isFinished,
+  poolBase,
+  bonusGoalDiffPct,
+  bonusExactScorePct,
+}: MatchStatsTabProps) {
   const t = useTranslations("matches");
 
   const stats = useMemo(
     () => computeMatchStats(bets, { homeScore, awayScore, isFinished }),
     [bets, homeScore, awayScore, isFinished],
   );
+
+  // Bónusz-poolok: a keret élőn is fix (a tétek a kezdéskor véglegesednek), az
+  // egy főre eső kifizetés csak lezárt meccsnél ismert. A találókat a scoring
+  // flag-ekből számoljuk; élő meccsen (null) csak a keret látszik.
+  const goalDiffHitters = isFinished ? bets.filter((b) => b.goalDiffCorrect === true).length : null;
+  const exactScoreHitters = isFinished
+    ? bets.filter((b) => b.exactScoreCorrect === true).length
+    : null;
+  const goalDiffPool = computeBonusPoolLevel(poolBase, bonusGoalDiffPct, goalDiffHitters);
+  const exactScorePool = computeBonusPoolLevel(poolBase, bonusExactScorePct, exactScoreHitters);
 
   if (bets.length === 0) {
     return <p className="py-2 text-center text-muted-foreground text-xs">{t("noBetsYet")}</p>;
@@ -169,6 +220,15 @@ export function MatchStatsTab({ bets, homeScore, awayScore, isFinished }: MatchS
           <TokenIcon size={10} />
         </KeyValue>
       </section>
+
+      {/* Bónusz poolok: a keret (élőn is), lezártnál az egy főre eső kifizetés */}
+      {(goalDiffPool || exactScorePool) && (
+        <section>
+          <StatLabel>{t("statBonusPools")}</StatLabel>
+          {goalDiffPool && <BonusPoolRow label={t("poolGoalDiff")} level={goalDiffPool} />}
+          {exactScorePool && <BonusPoolRow label={t("poolExactScore")} level={exactScorePool} />}
+        </section>
+      )}
     </div>
   );
 }

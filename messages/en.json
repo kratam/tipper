@@ -191,7 +191,11 @@
     "statTipWithCount": "{home}-{away} ({count})",
     "oddsWinnings": "Odds winnings",
     "bonusGoalDiff": "Goal difference bonus",
-    "bonusExactScore": "Exact score bonus"
+    "bonusExactScore": "Exact score bonus",
+    "statBonusPools": "Bonus pools",
+    "poolGoalDiff": "Goal difference",
+    "poolExactScore": "Exact score",
+    "noHitters": "no hits"
   },
   "betting": {
     "title": "Place Bet",

@@ -191,7 +191,11 @@
     "statTipWithCount": "{home}-{away} ({count} fő)",
     "oddsWinnings": "Odds-nyeremény",
     "bonusGoalDiff": "Gólkülönbség bónusz",
-    "bonusExactScore": "Pontos eredmény bónusz"
+    "bonusExactScore": "Pontos eredmény bónusz",
+    "statBonusPools": "Bónusz poolok",
+    "poolGoalDiff": "Gólkülönbség",
+    "poolExactScore": "Pontos eredmény",
+    "noHitters": "nincs találó"
   },
   "betting": {
     "title": "Tippelés",

@@ -2,7 +2,7 @@
 
 import { Circle, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { getMatchGroupBets } from "@/actions/live";
 import { BetForm } from "@/components/bet-form";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@/i18n/navigation";
+import { inMatchWindow } from "@/lib/match-poll-window";
 import type { PublicGroupSuggestion } from "@/queries/groups";
 
 interface GroupBetInfo {
@@ -95,10 +96,23 @@ export function BetDialog({
   const matchId = match?.id;
   const shouldFetchGroupBets = !!matchId && open && matchStarted;
 
+  // A kickoff epoch-ms a meccs-ablakhoz (kickoff−10p … +3ó): ezen belül pollozunk,
+  // hogy a nyitva hagyott tabon a lezárás (payout + pool-kifizetés) magától
+  // megjelenjen; ablakon kívül nincs poll (Neon scale-to-zero marad).
+  const matchTimes = useMemo(() => (match ? [Date.parse(match.scheduledAt)] : []), [match]);
+
+  // A `match.status` a kulcs része: live→finished váltáskor friss payout/pool-adatot
+  // fetchelünk (nem ragad be az élő snapshot). Fókuszra és a meccs-ablakban is
+  // revalidálunk, így a meccs kezdete/vége nem hagy stale állapotot.
   const { data: groupBetsData } = useSWR(
-    shouldFetchGroupBets && matchId ? ["match-group-bets", matchId] : null,
+    shouldFetchGroupBets && matchId ? ["match-group-bets", matchId, match?.status] : null,
     () => (matchId ? getMatchGroupBets(matchId) : Promise.resolve([])),
-    { revalidateOnFocus: false, dedupingInterval: 30_000 },
+    {
+      revalidateOnFocus: true,
+      keepPreviousData: true,
+      dedupingInterval: 30_000,
+      refreshInterval: () => (inMatchWindow(matchTimes, Date.now()) ? 60_000 : 0),
+    },
   );
 
   if (!match) return null;

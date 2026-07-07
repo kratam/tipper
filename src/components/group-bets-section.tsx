@@ -47,6 +47,9 @@ export function GroupBetsSection({
           homeScore={homeScore}
           awayScore={awayScore}
           isFinished={isFinished}
+          poolBase={group.poolBase}
+          bonusGoalDiffPct={group.bonusGoalDiffPct}
+          bonusExactScorePct={group.bonusExactScorePct}
         />
       </TabsContent>
     </Tabs>
