@@ -1,13 +1,21 @@
 import "server-only";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { bets, circleMembers, groupMembers, groups, users } from "@/db/schema";
+import {
+  bets,
+  circleMembers,
+  groupMembers,
+  groups,
+  matches,
+  tournaments,
+  users,
+} from "@/db/schema";
 import { pickGoogleAvatarUrl } from "@/lib/avatar-detect";
 import type { StoredBadge } from "@/lib/badges/evaluate";
 import { gravatarHash } from "@/lib/gravatar-hash";
 import type { Locale } from "@/lib/providers/types";
 import { loadBadgesForUsers } from "@/queries/badges";
-import { withTeamDisplay } from "@/queries/team-display";
+import { withMatchTeamDisplay, withTeamDisplay } from "@/queries/team-display";
 
 export interface StatMatchTeam {
   name: string;
@@ -204,6 +212,150 @@ export async function getProfile(
       biggestLossMatch: biggestLoss < 0 && worstLossBet ? toStatMatch(worstLossBet) : null,
     },
   };
+}
+
+export interface TournamentBetSummary {
+  tournamentId: string;
+  name: string;
+  logoUrl: string | null;
+  status: "upcoming" | "active" | "finished";
+  /** Official + befejezett-meccses tétek száma ezen a tornán. */
+  betCount: number;
+  /** Találati arány (1X2) százalékban, egész. Befejezett meccsnél minden tét resolved. */
+  hitRate: number;
+  /** Nettó eredmény: sum(payout) - sum(stake). */
+  profit: number;
+  /** Hány különböző official csoportban van tétje itt (a csoport-badge kapcsolóhoz). */
+  distinctGroupCount: number;
+  /** Az utolsó befejezett meccs ideje — csak rendezéshez (nem jelenik meg). */
+  lastMatchAt: string;
+}
+
+export interface ProfileBetRow {
+  matchId: string;
+  groupId: string;
+  groupName: string;
+  oddsBoost: number;
+  homeTeam: { name: string; logoUrl: string | null };
+  awayTeam: { name: string; logoUrl: string | null };
+  homeScore: number | null;
+  awayScore: number | null;
+  scheduledAt: string;
+  predictedHome: number;
+  predictedAway: number;
+  stake: number;
+  oddsAtBet: string | null;
+  payout: number | null;
+  result1x2Correct: boolean | null;
+  goalDiffCorrect: boolean | null;
+  exactScoreCorrect: boolean | null;
+}
+
+/**
+ * A profil tét-táblázat első lépcsője: tornánként egy olcsó aggregátum a user
+ * official + befejezett-meccses tétjeiből. A tét-sorokat lazyn a
+ * `getProfileTournamentBets` tölti (csak kinyitáskor).
+ *
+ * `null`, ha a viewer nem láthatja a profilt (ugyanaz a gate, mint `getProfile`).
+ */
+export async function getProfileBetSummaries(
+  userId: string,
+  viewerId: string,
+): Promise<TournamentBetSummary[] | null> {
+  const canView = await shareACircleOrLeague(userId, viewerId);
+  if (!canView) return null;
+
+  const rows = await db
+    .select({
+      tournamentId: tournaments.id,
+      name: tournaments.name,
+      logoUrl: tournaments.logoUrl,
+      status: tournaments.status,
+      betCount: sql<number>`cast(count(*) as int)`,
+      won: sql<number>`cast(count(*) filter (where ${bets.result1x2Correct} = true) as int)`,
+      profit: sql<number>`cast(coalesce(sum(${bets.payout}), 0) - coalesce(sum(${bets.stake}), 0) as int)`,
+      distinctGroupCount: sql<number>`cast(count(distinct ${bets.groupId}) as int)`,
+      lastMatchAt: sql<string>`cast(max(${matches.scheduledAt}) as text)`,
+    })
+    .from(bets)
+    .innerJoin(matches, eq(matches.id, bets.matchId))
+    .innerJoin(tournaments, eq(tournaments.id, matches.tournamentId))
+    .innerJoin(groups, and(eq(groups.id, bets.groupId), eq(groups.isOfficial, true)))
+    .where(and(eq(bets.userId, userId), eq(matches.status, "finished")))
+    .groupBy(tournaments.id);
+
+  return rows.map((r) => ({
+    tournamentId: r.tournamentId,
+    name: r.name,
+    logoUrl: r.logoUrl,
+    status: r.status,
+    betCount: r.betCount,
+    hitRate: r.betCount > 0 ? Math.round((100 * r.won) / r.betCount) : 0,
+    profit: r.profit,
+    distinctGroupCount: r.distinctGroupCount,
+    lastMatchAt: r.lastMatchAt,
+  }));
+}
+
+/**
+ * A profil tét-táblázat második lépcsője: egy adott torna official + befejezett
+ * tét-sorai a néző számára. Újra ellenőrzi a láthatóságot, mert a hívó server
+ * action közvetlenül is elérhető (a page-védelem nem elég).
+ *
+ * `null`, ha a viewer nem láthatja a profilt.
+ */
+export async function getProfileTournamentBets(
+  userId: string,
+  tournamentId: string,
+  viewerId: string,
+  locale: Locale,
+): Promise<ProfileBetRow[] | null> {
+  const canView = await shareACircleOrLeague(userId, viewerId);
+  if (!canView) return null;
+
+  const rows = await db.query.bets.findMany({
+    where: and(
+      eq(bets.userId, userId),
+      inArray(
+        bets.matchId,
+        db
+          .select({ id: matches.id })
+          .from(matches)
+          .where(and(eq(matches.tournamentId, tournamentId), eq(matches.status, "finished"))),
+      ),
+      inArray(
+        bets.groupId,
+        db.select({ id: groups.id }).from(groups).where(eq(groups.isOfficial, true)),
+      ),
+    ),
+    with: {
+      match: { with: { homeTeam: true, awayTeam: true, tournament: true } },
+      group: true,
+    },
+  });
+
+  return rows.map((bet) => {
+    const m = withMatchTeamDisplay(bet.match, locale, bet.match.tournament.useFlagFallback);
+    return {
+      matchId: bet.matchId,
+      groupId: bet.groupId,
+      groupName: bet.group.name,
+      oddsBoost: bet.group.oddsBoost,
+      homeTeam: { name: m.homeTeam.name, logoUrl: m.homeTeam.logoUrl },
+      awayTeam: { name: m.awayTeam.name, logoUrl: m.awayTeam.logoUrl },
+      homeScore: bet.match.homeScore,
+      awayScore: bet.match.awayScore,
+      scheduledAt: bet.match.scheduledAt.toISOString(),
+      predictedHome: bet.predictedHome,
+      predictedAway: bet.predictedAway,
+      stake: bet.stake,
+      oddsAtBet: bet.oddsAtBet,
+      payout: bet.payout,
+      result1x2Correct: bet.result1x2Correct,
+      goalDiffCorrect: bet.goalDiffCorrect,
+      exactScoreCorrect: bet.exactScoreCorrect,
+    };
+  });
 }
 
 /**

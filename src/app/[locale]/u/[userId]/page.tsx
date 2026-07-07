@@ -2,13 +2,21 @@ import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { EditDisplayNameButton } from "@/components/edit-display-name-button";
+import { ProfileBetsSection } from "@/components/profile-bets-section";
 import { TeamLogo } from "@/components/team-logo";
 import { TrophyCabinet } from "@/components/trophy-cabinet";
 import { UserAvatar } from "@/components/user-avatar";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
+import type { Locale } from "@/lib/providers/types";
 import { cn } from "@/lib/utils";
-import { getProfile, type StatMatch } from "@/queries/profile";
+import {
+  getProfile,
+  getProfileBetSummaries,
+  getProfileTournamentBets,
+  type ProfileBetRow,
+  type StatMatch,
+} from "@/queries/profile";
 
 export default async function ProfilePage({
   params,
@@ -26,10 +34,28 @@ export default async function ProfilePage({
     return redirect({ href: "/", locale });
   }
 
-  const profile = await getProfile(userId, user.id, locale as "hu" | "en");
+  const [profile, betSummaries] = await Promise.all([
+    getProfile(userId, user.id, locale as Locale),
+    getProfileBetSummaries(userId, user.id),
+  ]);
   if (!profile) notFound();
 
   const { stats } = profile;
+
+  // Az aktív tornák sorait előre betöltjük (nyitva indulnak); a lezártak
+  // lazyn, kattintásra töltődnek a szekció server actionjével.
+  const summaries = betSummaries ?? [];
+  const activeSummaries = summaries.filter((s) => s.status === "active");
+  const initialBetEntries = await Promise.all(
+    activeSummaries.map(
+      async (s) =>
+        [
+          s.tournamentId,
+          (await getProfileTournamentBets(userId, s.tournamentId, user.id, locale as Locale)) ?? [],
+        ] as const,
+    ),
+  );
+  const initialBets: Record<string, ProfileBetRow[]> = Object.fromEntries(initialBetEntries);
 
   return (
     <div className="flex flex-col gap-8">
@@ -81,6 +107,15 @@ export default async function ProfilePage({
           />
         </div>
       </section>
+
+      {/* Tippek versenysorozatonként */}
+      {summaries.length > 0 && (
+        <ProfileBetsSection
+          profileUserId={userId}
+          summaries={summaries}
+          initialBets={initialBets}
+        />
+      )}
     </div>
   );
 }
