@@ -181,7 +181,6 @@
     "statStake": "Stake",
     "statMostCommonTip": "Most common tip",
     "statAvgTip": "Average tip",
-    "statExactCorrect": "Exact score",
     "statWinnerCorrect": "Winner correct",
     "statBiggestStake": "Biggest stake",
     "statTotalStake": "Total stake",
@@ -195,7 +194,7 @@
     "statBonusPools": "Bonus pools",
     "poolGoalDiff": "Goal difference",
     "poolExactScore": "Exact score",
-    "noHitters": "no hits"
+    "noHitters": "nobody"
   },
   "betting": {
     "title": "Place Bet",

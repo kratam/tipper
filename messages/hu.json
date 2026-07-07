@@ -181,7 +181,6 @@
     "statStake": "Tét",
     "statMostCommonTip": "Leggyakoribb tipp",
     "statAvgTip": "Átlag tipp",
-    "statExactCorrect": "Pontos eredmény",
     "statWinnerCorrect": "Győztest eltalálta",
     "statBiggestStake": "Legnagyobb tét",
     "statTotalStake": "Összes tét",
@@ -195,7 +194,7 @@
     "statBonusPools": "Bónusz poolok",
     "poolGoalDiff": "Gólkülönbség",
     "poolExactScore": "Pontos eredmény",
-    "noHitters": "nincs találó"
+    "noHitters": "senki"
   },
   "betting": {
     "title": "Tippelés",

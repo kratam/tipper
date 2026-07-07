@@ -3,6 +3,7 @@ import { calculateBaseBetPayout } from "@/lib/scoring";
 import {
   calculateProjectedBalance,
   canAffordBetStake,
+  computeMatchesToDate,
   computeProjectedFromCumulativeBudget,
   dateToDateNum,
   getEffectiveBudgetForBet,
@@ -743,5 +744,40 @@ describe("canAffordBetStake", () => {
 
   it("rejects new bet when projected is zero and no existing bet", () => {
     expect(canAffordBetStake(0, 0, 1)).toBe(false);
+  });
+});
+
+describe("computeMatchesToDate", () => {
+  const d = (iso: string) => new Date(iso);
+  const tourney = [
+    { scheduledAt: d("2026-07-01T18:00:00Z"), status: "finished" },
+    { scheduledAt: d("2026-07-05T18:00:00Z"), status: "finished" },
+    { scheduledAt: d("2026-07-06T18:00:00Z"), status: "live" }, // a cél-meccs napja
+    { scheduledAt: d("2026-07-09T18:00:00Z"), status: "scheduled" },
+  ];
+
+  it("a cél-meccs dátumára vagy elé eső meccseket számolja (inkluzív)", () => {
+    // 07-06-ig: 07-01, 07-05, 07-06 → 3
+    expect(computeMatchesToDate(tourney, "UTC", 20260706)).toBe(3);
+  });
+
+  it("a törölt meccseket kihagyja", () => {
+    const withCancelled = [
+      ...tourney,
+      { scheduledAt: d("2026-07-03T18:00:00Z"), status: "cancelled" },
+    ];
+    expect(computeMatchesToDate(withCancelled, "UTC", 20260706)).toBe(3);
+  });
+
+  it("a cél-dátum utáni meccsek nem számítanak", () => {
+    // 07-05-ig: 07-01, 07-05 → 2
+    expect(computeMatchesToDate(tourney, "UTC", 20260705)).toBe(2);
+  });
+
+  it("időzóna szerint sorolja a nap-határon lévő meccset", () => {
+    // 07-06T23:00Z Budapesten (UTC+2) már 07-07 → nem <= a 07-06 cél-dátumnak
+    const late = [{ scheduledAt: d("2026-07-06T23:00:00Z"), status: "finished" }];
+    expect(computeMatchesToDate(late, "Europe/Budapest", 20260706)).toBe(0);
+    expect(computeMatchesToDate(late, "UTC", 20260706)).toBe(1);
   });
 });

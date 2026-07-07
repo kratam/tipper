@@ -1,6 +1,5 @@
 "use client";
 
-import { Crosshair } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { TokenIcon } from "@/components/token-icon";
@@ -189,12 +188,6 @@ export function MatchStatsTab({
         <KeyValue label={t("statAvgTip")}>
           {stats.avgTip ? `${stats.avgTip.home} – ${stats.avgTip.away}` : "—"}
         </KeyValue>
-        {stats.exactCorrectCount !== null && (
-          <KeyValue label={t("statExactCorrect")}>
-            {t("statPlayers", { count: stats.exactCorrectCount })}
-            <Crosshair className="size-[13px] text-gold" />
-          </KeyValue>
-        )}
         {stats.winnerCorrectCount !== null && (
           <KeyValue label={t("statWinnerCorrect")}>
             {t("statPlayersOf", { count: stats.winnerCorrectCount, total: stats.betCount })}

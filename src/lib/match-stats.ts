@@ -125,8 +125,6 @@ export interface MatchStats {
   mostCommonTip: { home: number; away: number; count: number } | null;
   avgTip: { home: number; away: number } | null;
   /** Finished matches only; null while the match is live. */
-  exactCorrectCount: number | null;
-  /** Finished matches only; null while the match is live. */
   winnerCorrectCount: number | null;
 }
 
@@ -205,11 +203,6 @@ export function computeMatchStats(bets: readonly StatBet[], ctx: MatchStatsConte
         }
       : null;
 
-  const canScore = ctx.isFinished && ctx.homeScore !== null && ctx.awayScore !== null;
-  const exactCorrectCount = canScore
-    ? bets.filter((b) => b.predictedHome === ctx.homeScore && b.predictedAway === ctx.awayScore)
-        .length
-    : null;
   const winnerCorrectCount = ctx.isFinished
     ? bets.filter((b) => b.result1x2Correct === true).length
     : null;
@@ -222,7 +215,6 @@ export function computeMatchStats(bets: readonly StatBet[], ctx: MatchStatsConte
     biggestStakeBetId: biggest?.betId ?? null,
     mostCommonTip: findMostCommonTip(bets),
     avgTip,
-    exactCorrectCount,
     winnerCorrectCount,
   };
 }

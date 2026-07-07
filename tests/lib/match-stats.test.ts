@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   classify1x2,
+  computeBonusPoolLevel,
   computeMatchStats,
   pickTipsView,
   rankBets,
@@ -196,21 +197,19 @@ describe("computeMatchStats", () => {
     expect(stats.avgTip).toEqual({ home: 4, away: 1.3 });
   });
 
-  it("counts exact-score and winner hits for finished matches", () => {
+  it("counts winner hits for finished matches", () => {
     const bets = [
-      makeBet({ betId: "a", predictedHome: 5, predictedAway: 1, result1x2Correct: true }), // exact + winner
-      makeBet({ betId: "b", predictedHome: 3, predictedAway: 0, result1x2Correct: true }), // winner only
+      makeBet({ betId: "a", predictedHome: 5, predictedAway: 1, result1x2Correct: true }), // winner
+      makeBet({ betId: "b", predictedHome: 3, predictedAway: 0, result1x2Correct: true }), // winner
       makeBet({ betId: "c", predictedHome: 0, predictedAway: 2, result1x2Correct: false }),
     ];
     const stats = computeMatchStats(bets, finishedCtx);
-    expect(stats.exactCorrectCount).toBe(1);
     expect(stats.winnerCorrectCount).toBe(2);
   });
 
   it("omits finished-only counts for a live match", () => {
     const bets = [makeBet({ betId: "a", predictedHome: 2, predictedAway: 0, stake: 100 })];
     const stats = computeMatchStats(bets, { homeScore: 1, awayScore: 0, isFinished: false });
-    expect(stats.exactCorrectCount).toBeNull();
     expect(stats.winnerCorrectCount).toBeNull();
     expect(stats.betCount).toBe(1);
   });
@@ -225,5 +224,45 @@ describe("computeMatchStats", () => {
     expect(stats.avgTip).toBeNull();
     expect(stats.distribution.map((d) => d.count)).toEqual([0, 0, 0]);
     expect(stats.distribution.map((d) => d.totalStake)).toEqual([0, 0, 0]);
+  });
+});
+
+describe("computeBonusPoolLevel", () => {
+  it("kikapcsolt bónusz (pct <= 0) → null", () => {
+    expect(computeBonusPoolLevel(100000, 0, 3)).toBeNull();
+    expect(computeBonusPoolLevel(100000, -1, 3)).toBeNull();
+  });
+
+  it("élő meccs (hitters null): csak a keret, egy főre eső nincs", () => {
+    expect(computeBonusPoolLevel(100000, 2, null)).toEqual({
+      pool: 2000,
+      hitters: null,
+      perHitter: null,
+    });
+  });
+
+  it("lezárt meccs: keret + egy főre eső (floor, a scoringgal egyezik)", () => {
+    // floor(100000 × 2 / 100) = 2000, floor(2000 / 3) = 666
+    expect(computeBonusPoolLevel(100000, 2, 3)).toEqual({
+      pool: 2000,
+      hitters: 3,
+      perHitter: 666,
+    });
+  });
+
+  it("lezárt meccs 0 találóval: keret marad, egy főre eső 0", () => {
+    expect(computeBonusPoolLevel(100000, 3, 0)).toEqual({
+      pool: 3000,
+      hitters: 0,
+      perHitter: 0,
+    });
+  });
+
+  it("negatív pool-alap → 0 keret", () => {
+    expect(computeBonusPoolLevel(-500, 2, null)).toEqual({
+      pool: 0,
+      hitters: null,
+      perHitter: null,
+    });
   });
 });
