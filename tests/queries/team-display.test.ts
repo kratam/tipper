@@ -17,13 +17,13 @@ describe("withTeamDisplay", () => {
     const team = { name: "Hungary", logoUrl: null };
     const result = withTeamDisplay(team, "hu", true);
     expect(result.name).toBe("Magyarország");
-    expect(result.logoUrl).toBe("https://flagcdn.com/w80/hu.png");
+    expect(result.logoUrl).toBe("/flags/3x2/hu.svg");
   });
 
   it("localizes the country name and fills the flag for the en locale", () => {
     const result = withTeamDisplay({ name: "Hungary", logoUrl: null }, "en", true);
     expect(result.name).toBe("Hungary");
-    expect(result.logoUrl).toBe("https://flagcdn.com/w80/hu.png");
+    expect(result.logoUrl).toBe("/flags/3x2/hu.svg");
   });
 
   it("preserves an existing logoUrl and only localizes the name", () => {
@@ -50,9 +50,9 @@ describe("withMatchTeamDisplay", () => {
     const result = withMatchTeamDisplay(match, "hu", true);
     expect(result.id).toBe("m1");
     expect(result.homeTeam.name).toBe("Magyarország");
-    expect(result.homeTeam.logoUrl).toBe("https://flagcdn.com/w80/hu.png");
+    expect(result.homeTeam.logoUrl).toBe("/flags/3x2/hu.svg");
     expect(result.awayTeam.name).toBe("Németország");
-    expect(result.awayTeam.logoUrl).toBe("https://flagcdn.com/w80/de.png");
+    expect(result.awayTeam.logoUrl).toBe("/flags/3x2/de.svg");
   });
 });
 
