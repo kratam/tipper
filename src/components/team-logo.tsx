@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface TeamLogoProps {
@@ -30,14 +33,22 @@ export function isPlainFlag(url: string): boolean {
  */
 export function TeamLogo({ name, logoUrl, size = 28, shape = "square", className }: TeamLogoProps) {
   const rounding = shape === "round" ? "rounded-full" : "rounded-[3px]";
+  // A zászló/logó egy külső CDN-ről (flagcdn / api-sports) töltődik; ha a kérés
+  // elhasal (hálózati hiba, rate-limit, negatív cache), `onError`-rel a monogram
+  // fallbackre esünk vissza az iOS Safarin megmaradó üres doboz helyett.
+  const [failed, setFailed] = useState(false);
+  // Új URL (pl. újrarenderelt sor) esetén adjunk friss esélyt a betöltésnek.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: szándékosan a logoUrl váltásra resetelünk
+  useEffect(() => setFailed(false), [logoUrl]);
 
-  if (logoUrl) {
+  if (logoUrl && !failed) {
     return (
       <Image
         src={logoUrl}
         alt={name}
         width={size}
         height={size}
+        onError={() => setFailed(true)}
         className={cn(
           rounding,
           "object-contain",

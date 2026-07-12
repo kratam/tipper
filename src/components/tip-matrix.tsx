@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getTipMatrixBetInfoAction, type TipMatrixBetInfo } from "@/actions/tip-matrix";
 import { BetDialog } from "@/components/bet-dialog";
 import { LeaderboardBadges } from "@/components/leaderboard-badges";
+import { TeamLogo } from "@/components/team-logo";
 import { TokenIcon } from "@/components/token-icon";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -634,13 +635,7 @@ export function TipMatrix({
 }
 
 function FlagOrLogo({ team }: { team: { name: string; logoUrl: string | null } }) {
-  if (team.logoUrl) {
-    return (
-      // biome-ignore lint/performance/noImgElement: small inline flag/logo, no Next/Image needed
-      <img src={team.logoUrl} alt={team.name} className="h-4 w-4 rounded-[2px] object-contain" />
-    );
-  }
-  return (
-    <span className="text-[10px] text-muted-foreground">{team.name.slice(0, 3).toUpperCase()}</span>
-  );
+  // A közös TeamLogo-t használjuk: next/image (Vercel edge-cache) + onError →
+  // monogram fallback, így egy elhasalt zászló-kérés nem üres dobozként marad.
+  return <TeamLogo name={team.name} logoUrl={team.logoUrl} size={16} />;
 }
