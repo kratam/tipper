@@ -29,17 +29,17 @@ describe("resolveCountryDisplay — UK home nations (non-ISO regions)", () => {
   it("maps Scotland to its subdivision flag + localized name", () => {
     expect(resolveCountryDisplay("Scotland", "hu")).toEqual({
       name: "Skócia",
-      flagUrl: "https://flagcdn.com/w80/gb-sct.png",
+      flagUrl: "/flags/3x2/gb-sct.svg",
     });
     expect(resolveCountryDisplay("Scotland", "en")).toEqual({
       name: "Scotland",
-      flagUrl: "https://flagcdn.com/w80/gb-sct.png",
+      flagUrl: "/flags/3x2/gb-sct.svg",
     });
   });
   it("maps England to its subdivision flag", () => {
     expect(resolveCountryDisplay("England", "hu")).toEqual({
       name: "Anglia",
-      flagUrl: "https://flagcdn.com/w80/gb-eng.png",
+      flagUrl: "/flags/3x2/gb-eng.svg",
     });
   });
 });
@@ -48,11 +48,11 @@ describe("resolveCountryDisplay", () => {
   it("returns localized name + flag url for a country", () => {
     expect(resolveCountryDisplay("Hungary", "hu")).toEqual({
       name: "Magyarország",
-      flagUrl: "https://flagcdn.com/w80/hu.png",
+      flagUrl: "/flags/3x2/hu.svg",
     });
     expect(resolveCountryDisplay("Hungary", "en")).toEqual({
       name: "Hungary",
-      flagUrl: "https://flagcdn.com/w80/hu.png",
+      flagUrl: "/flags/3x2/hu.svg",
     });
   });
   it("returns null for a non-country", () => {

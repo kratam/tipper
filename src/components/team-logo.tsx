@@ -16,11 +16,17 @@ interface TeamLogoProps {
 }
 
 /**
- * Igaz a flagcdn keret nélküli zászlóira. Az api-sports media képeibe már be van
- * égetve egy border, azoknál a ring dupla keretet okozna.
+ * Igaz a keret nélküli zászlókra (bundle-olt /flags SVG vagy régi flagcdn). Az
+ * api-sports media képeibe már be van égetve egy border, azoknál a ring dupla
+ * keretet okozna.
  */
 export function isPlainFlag(url: string): boolean {
-  return url.includes("flagcdn.com");
+  return url.startsWith("/flags/") || url.includes("flagcdn.com");
+}
+
+/** A bundle-olt, same-origin SVG-zászlók (country-flag-icons) útvonala. */
+function isLocalFlag(url: string): boolean {
+  return url.startsWith("/flags/");
 }
 
 /**
@@ -48,6 +54,10 @@ export function TeamLogo({ name, logoUrl, size = 28, shape = "square", className
         alt={name}
         width={size}
         height={size}
+        // A /flags SVG-k same-origin, bundle-olt vektorok: az optimalizálót
+        // kihagyjuk (SVG-t a next/image amúgy sem optimalizál dangerouslyAllowSVG
+        // nélkül), és így nincs harmadik-fél kérés, ami elhasalhatna.
+        unoptimized={isLocalFlag(logoUrl)}
         onError={() => setFailed(true)}
         className={cn(
           rounding,
