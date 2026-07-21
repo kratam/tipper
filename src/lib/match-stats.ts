@@ -53,11 +53,17 @@ export function rankBets<T extends StatBet>(bets: readonly T[], mode: RankMode):
     .map((bet, i) => ({ ...bet, rank: i + 1, profit: betProfit(bet) }));
 }
 
-export interface TipsView<T extends StatBet> {
+/** A `pickTipsView` csak ezt a két mezőt igényli — így dobogó-sorokra is megy. */
+export interface RankedRow {
+  userId: string;
+  rank: number;
+}
+
+export interface TipsView<T extends RankedRow> {
   /** Top-of-the-table rows (the podium). */
-  podium: RankedBet<T>[];
+  podium: T[];
   /** Window of rows around the current user; empty when the user is in the podium or absent. */
-  neighbors: RankedBet<T>[];
+  neighbors: T[];
   /** Count of rows hidden between the podium and the neighbor window (the "⋯ N ⋯" marker). */
   hiddenBetween: number;
   /** Total number of ranked bets. */
@@ -70,9 +76,12 @@ export interface TipsView<T extends StatBet> {
  * Builds the collapsed Tippek view for a finished match: the podium plus a window
  * of `radius` rows on each side of the current user. When the window touches the
  * podium it merges seamlessly (no gap marker).
+ *
+ * Bármilyen rangsorolt soron működik (`userId` + `rank`) — a meccs-tippek
+ * mellett a torna dobogó-tippjeit is ez tördeli.
  */
-export function pickTipsView<T extends StatBet>(
-  ranked: readonly RankedBet<T>[],
+export function pickTipsView<T extends RankedRow>(
+  ranked: readonly T[],
   currentUserId: string,
   opts: { podiumSize?: number; radius?: number } = {},
 ): TipsView<T> {

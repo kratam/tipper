@@ -7,6 +7,7 @@ import { BetDialog } from "@/components/bet-dialog";
 import { GroupTokenSummary } from "@/components/group-token-summary";
 import { MatchCard, type MatchCardData } from "@/components/match-card";
 import { PodiumForm } from "@/components/podium-form";
+import { PodiumResultsPanel } from "@/components/podium-results-panel";
 import { TournamentBoardPanel } from "@/components/tournament-board-panel";
 import {
   Accordion,
@@ -101,6 +102,10 @@ interface TournamentTabsProps {
   podiumLockDate: string;
   teams: TeamOption[];
   existingPodiumBet: ExistingPodiumBet | null;
+  /** A lezárt torna dobogója + a csoport tippjei; `null`, amíg nincs eredmény. */
+  podiumResults: import("@/queries/podium-results").GroupPodiumData | null;
+  /** Csoportonként a kiosztott dobogó-bónusz → a mátrix záró oszlopa. */
+  podiumBonusByGroup?: Record<string, Record<string, number>>;
   groupBetInfosByMatch: Record<string, GroupBetInfo[]>;
   groupLeaderboards: GroupLeaderboardData[];
   currentUserId: string;
@@ -151,6 +156,8 @@ export function TournamentTabs({
   podiumLockDate,
   teams,
   existingPodiumBet,
+  podiumResults,
+  podiumBonusByGroup,
   groupBetInfosByMatch,
   groupLeaderboards,
   currentUserId,
@@ -302,6 +309,7 @@ export function TournamentTabs({
             }}
             userBadges={userBadges}
             userStats={userStats}
+            podiumBonusByGroup={podiumBonusByGroup}
           />
         )}
 
@@ -334,12 +342,18 @@ export function TournamentTabs({
 
         {filter === "podium" ? (
           <div className="flex flex-col gap-4">
-            <PodiumForm
-              tournamentId={tournamentId}
-              teams={teams}
-              existingBet={existingPodiumBet}
-              isLocked={isLocked}
-            />
+            {/* Lezárt torna: a végeredmény + mindenki tippje (a sajátunk kiemelve)
+                lép a tipp-űrlap helyére — az már csak a saját választást mutatná. */}
+            {podiumResults?.actual ? (
+              <PodiumResultsPanel {...podiumResults} currentUserId={currentUserId} />
+            ) : (
+              <PodiumForm
+                tournamentId={tournamentId}
+                teams={teams}
+                existingBet={existingPodiumBet}
+                isLocked={isLocked}
+              />
+            )}
           </div>
         ) : filteredDays.length === 0 ? (
           <p className="py-8 text-center text-muted-foreground">{tMatches("noMatches")}</p>

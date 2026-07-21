@@ -430,6 +430,14 @@ export const betsRelations = relations(bets, ({ one }) => ({
   group: one(groups, { fields: [bets.groupId], references: [groups.id] }),
 }));
 
+export const podiumBetsRelations = relations(podiumBets, ({ one }) => ({
+  user: one(users, { fields: [podiumBets.userId], references: [users.id] }),
+  tournament: one(tournaments, {
+    fields: [podiumBets.tournamentId],
+    references: [tournaments.id],
+  }),
+}));
+
 export const matchScheduleOverridesRelations = relations(matchScheduleOverrides, ({ one }) => ({
   match: one(matches, {
     fields: [matchScheduleOverrides.matchId],

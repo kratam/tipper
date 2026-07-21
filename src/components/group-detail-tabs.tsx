@@ -87,6 +87,8 @@ interface GroupDetailTabsProps {
   initialMatrixRound: TipMatrixRound | null;
   userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
   userStats?: Record<string, { totalBets: number; hitRate: number }>;
+  /** A csoportban kiosztott dobogó-bónusz (lezárt torna) → a mátrix záró oszlopa. */
+  podiumBonusByUser?: Record<string, number>;
 }
 
 export function GroupDetailTabs({
@@ -109,6 +111,7 @@ export function GroupDetailTabs({
   initialMatrixRound,
   userBadges,
   userStats,
+  podiumBonusByUser,
 }: GroupDetailTabsProps) {
   const t = useTranslations("groups");
   const tc = useTranslations("common");
@@ -197,6 +200,7 @@ export function GroupDetailTabs({
           initialRound={initialMatrixRound}
           userBadges={userBadges}
           userStats={userStats}
+          podiumBonusByUser={podiumBonusByUser}
         />
       </TabsContent>
 

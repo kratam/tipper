@@ -26,6 +26,7 @@ import {
 import { getGroupLeaderboard } from "@/queries/leaderboard";
 import { getMatchesForTournament } from "@/queries/matches";
 import { getPodiumBet, getTournamentTeams } from "@/queries/podium";
+import { getGroupPodiumData, getPodiumBonusByGroup } from "@/queries/podium-results";
 import { loadPlayerStatsForUsers } from "@/queries/profile";
 import { matchParticipantsKnown } from "@/queries/team-display";
 import { getTipMatrixRound, type TipMatrixRound } from "@/queries/tip-matrix";
@@ -252,6 +253,18 @@ export default async function TournamentDetailPage({
     ? (groupLeaderboards.find((l) => l.groupId === officialGroup.id)?.rawLeaderboard ?? [])
     : [];
 
+  // A dobogó-fül lezárás utáni nézete a hivatalos csoport tippjeit és
+  // bónusz-egységeit mutatja — ugyanaz a kör, mint a board-panel alap nézete.
+  const podiumResults = officialGroup
+    ? await getGroupPodiumData(tournament.id, officialGroup.id)
+    : null;
+
+  // A mátrix záró oszlopa minden board-tabhoz (tabonként más csoport).
+  const podiumBonusByGroup = await getPodiumBonusByGroup(
+    tournament.id,
+    relevantGroups.map((gm) => gm.group.id),
+  );
+
   // BoardTab összeállítása: hivatalos → saját csoportok → körök
   const groupTabs: BoardTab[] = [];
   // Hivatalos elsőként
@@ -410,6 +423,8 @@ export default async function TournamentDetailPage({
           podiumLockDate={tournament.podiumLockDate.toISOString()}
           teams={tournamentTeams}
           existingPodiumBet={existingPodiumBet}
+          podiumResults={podiumResults}
+          podiumBonusByGroup={podiumBonusByGroup}
           groupBetInfosByMatch={groupBetInfosByMatch}
           groupLeaderboards={groupLeaderboards}
           currentUserId={user.id}

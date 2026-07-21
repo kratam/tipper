@@ -1,12 +1,21 @@
 import "server-only";
 import { and, eq, inArray, isNotNull, isNull, notInArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { bets, groupMembers, groups, matches, tokenLedger, tournaments } from "@/db/schema";
+import {
+  bets,
+  groupMembers,
+  groups,
+  matches,
+  podiumBets,
+  tokenLedger,
+  tournaments,
+} from "@/db/schema";
 import {
   computeProjectedFromCumulativeBudget,
   dateToDateNum,
   splitResolvedNets,
 } from "@/lib/tokens";
+import { resolvedProfitSum } from "@/queries/profit-sql";
 
 export async function getUserGroups(userId: string) {
   // Member rows are NOT loaded here — callers that need a head count use
@@ -277,7 +286,8 @@ export async function getProjectedBalance(
 
 /**
  * Profit from resolved matches: sum of bet/win/refund ledger entries
- * where the linked match is finished or cancelled.
+ * where the linked match is finished or cancelled — plus the podium bonus,
+ * which has no match behind it (lásd resolvedProfitSum).
  * Win: -stake + payout = net gain. Loss: -stake + partialRefund (10% of stake
  * under the default 90% rule; 0 only when lossPercentage=100). Cancelled:
  * -stake + stake = 0.
@@ -285,11 +295,12 @@ export async function getProjectedBalance(
 export async function getUserProfit(userId: string, groupId: string): Promise<number> {
   const result = await db
     .select({
-      profit: sql<number>`COALESCE(SUM(CASE WHEN ${matches.status} IN ('finished', 'cancelled') THEN ${tokenLedger.amount} ELSE 0 END), 0)`,
+      profit: resolvedProfitSum(),
     })
     .from(tokenLedger)
     .leftJoin(bets, eq(tokenLedger.referenceId, bets.id))
     .leftJoin(matches, eq(bets.matchId, matches.id))
+    .leftJoin(podiumBets, eq(tokenLedger.referenceId, podiumBets.id))
     .where(
       and(
         eq(tokenLedger.userId, userId),
@@ -315,11 +326,12 @@ export async function getUserProfitsByGroup(
   const rows = await db
     .select({
       groupId: tokenLedger.groupId,
-      profit: sql<number>`COALESCE(SUM(CASE WHEN ${matches.status} IN ('finished', 'cancelled') THEN ${tokenLedger.amount} ELSE 0 END), 0)`,
+      profit: resolvedProfitSum(),
     })
     .from(tokenLedger)
     .leftJoin(bets, eq(tokenLedger.referenceId, bets.id))
     .leftJoin(matches, eq(bets.matchId, matches.id))
+    .leftJoin(podiumBets, eq(tokenLedger.referenceId, podiumBets.id))
     .where(
       and(
         eq(tokenLedger.userId, userId),

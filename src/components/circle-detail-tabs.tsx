@@ -65,6 +65,8 @@ interface CircleDetailTabsProps {
   initialMatrixRound: TipMatrixRound | null;
   userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
   userStats?: Record<string, { totalBets: number; hitRate: number }>;
+  /** A hivatalos csoportban kiosztott dobogó-bónusz → a mátrix záró oszlopa. */
+  podiumBonusByUser?: Record<string, number>;
 }
 
 export function CircleDetailTabs({
@@ -82,6 +84,7 @@ export function CircleDetailTabs({
   initialMatrixRound,
   userBadges,
   userStats,
+  podiumBonusByUser,
 }: CircleDetailTabsProps) {
   const t = useTranslations("circles");
   const tGroups = useTranslations("groups");
@@ -133,6 +136,7 @@ export function CircleDetailTabs({
           readOnly
           userBadges={userBadges}
           userStats={userStats}
+          podiumBonusByUser={podiumBonusByUser}
         />
       </TabsContent>
 
