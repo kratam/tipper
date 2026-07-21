@@ -335,7 +335,22 @@
     "selectGold": "Pick the champion",
     "selectSilver": "Pick 2nd place",
     "selectBronze": "Pick 3rd place",
-    "pickTeam": "Pick"
+    "pickTeam": "Pick",
+    "finalResult": "Final result",
+    "noPodiumBets": "Nobody in this circle predicted a podium",
+    "hitExact": "Exact position",
+    "hitMention": "On the podium, different place",
+    "hitMiss": "Did not reach the podium",
+    "statTippers": "Predictors",
+    "statBetCount": "Podium predictions",
+    "statGoldCorrect": "Called the champion",
+    "statPerfect": "Called all three",
+    "statTotalPaid": "Bonus paid out",
+    "statPicks": {
+      "gold": "Picked as champion",
+      "silver": "Picked for 2nd",
+      "bronze": "Picked for 3rd"
+    }
   },
   "leaderboard": {
     "rank": "Rank",
@@ -634,7 +649,8 @@
     "showMore": "{count} more players",
     "showLess": "Show less",
     "viewProfile": "View profile →",
-    "statLine": "{bets} bets · {hit}% hit rate"
+    "statLine": "{bets} bets · {hit}% hit rate",
+    "podiumColumn": "Podium"
   },
   "badges": {
     "win_streak": {

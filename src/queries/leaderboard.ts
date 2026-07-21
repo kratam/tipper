@@ -1,8 +1,9 @@
 import "server-only";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { bets, groupMembers, matches, tokenLedger, users } from "@/db/schema";
+import { bets, groupMembers, matches, podiumBets, tokenLedger, users } from "@/db/schema";
 import { gravatarHash } from "@/lib/gravatar-hash";
+import { resolvedProfitSum } from "@/queries/profit-sql";
 
 export async function getGroupLeaderboard(groupId: string) {
   // All group members appear; profit only counts resolved matches.
@@ -17,7 +18,7 @@ export async function getGroupLeaderboard(groupId: string) {
         string | null
       >`CASE WHEN ${users.avatarIsReal} IS NOT FALSE THEN ${users.avatarUrl} END`,
       userEmail: users.email,
-      profit: sql<number>`COALESCE(SUM(CASE WHEN ${matches.status} IN ('finished', 'cancelled') THEN ${tokenLedger.amount} ELSE 0 END), 0)`,
+      profit: resolvedProfitSum(),
       betCount: sql<number>`COUNT(DISTINCT ${bets.id})::int`,
     })
     .from(groupMembers)
@@ -32,6 +33,7 @@ export async function getGroupLeaderboard(groupId: string) {
     )
     .leftJoin(bets, eq(tokenLedger.referenceId, bets.id))
     .leftJoin(matches, eq(bets.matchId, matches.id))
+    .leftJoin(podiumBets, eq(tokenLedger.referenceId, podiumBets.id))
     .where(eq(groupMembers.groupId, groupId))
     .groupBy(
       groupMembers.userId,
@@ -42,11 +44,7 @@ export async function getGroupLeaderboard(groupId: string) {
       users.avatarIsReal,
       users.email,
     )
-    .orderBy(
-      desc(
-        sql`COALESCE(SUM(CASE WHEN ${matches.status} IN ('finished', 'cancelled') THEN ${tokenLedger.amount} ELSE 0 END), 0)`,
-      ),
-    );
+    .orderBy(desc(resolvedProfitSum()));
 
   return rows.map(({ userEmail, ...row }, index) => ({
     ...row,

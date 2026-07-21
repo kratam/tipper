@@ -20,6 +20,7 @@ import { getCircleBySlug, getOfficialGroupByTournamentId } from "@/queries/circl
 import { getGroupClassicPoints } from "@/queries/classic-points";
 import { getGroupLeaderboard } from "@/queries/leaderboard";
 import { getFinishedMatchesForTournament } from "@/queries/matches";
+import { getPodiumBonusByGroup } from "@/queries/podium-results";
 import { loadPlayerStatsForUsers } from "@/queries/profile";
 import { getTipMatrixRound } from "@/queries/tip-matrix";
 import { getTournamentBySlug } from "@/queries/tournaments";
@@ -106,6 +107,11 @@ export default async function CircleDetailPage({
     getGroupClassicPoints(official.id),
   ]);
 
+  // A kör a hivatalos csoport tippjeire épül — a dobogó-bónusz is onnan jön.
+  const podiumBonusByUser = (await getPodiumBonusByGroup(official.tournamentId, [official.id]))[
+    official.id
+  ];
+
   const leaderboard = filterAndRerankLeaderboard(leaderboardRaw, memberIds);
   // Convert Map → plain object before crossing the server→client boundary
   const userBadges = Object.fromEntries(
@@ -165,6 +171,7 @@ export default async function CircleDetailPage({
           }))}
           userBadges={userBadges}
           userStats={userStats}
+          podiumBonusByUser={podiumBonusByUser}
           finishedMatches={finishedMatches.map((m) => ({
             id: m.id,
             homeTeam: { name: m.homeTeam.name, logoUrl: m.homeTeam.logoUrl },

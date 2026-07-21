@@ -59,6 +59,12 @@ interface TipMatrixProps {
   onMatchSelect?: (matchId: string) => void;
   userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
   userStats?: Record<string, { totalBets: number; hitRate: number }>;
+  /**
+   * A dobogó-tippért ténylegesen jóváírt tokenek játékosonként. Csak lezárt
+   * tornán van értelme (a torna végén keletkezik) — ha meg van adva, a mátrix
+   * a meccs-oszlopok UTÁN egy záró dobogó-oszlopot is kirajzol.
+   */
+  podiumBonusByUser?: Record<string, number>;
 }
 
 const cellKey = (userId: string, matchId: string) => `${userId}__${matchId}`;
@@ -161,6 +167,7 @@ export function TipMatrix({
   onMatchSelect,
   userBadges,
   userStats,
+  podiumBonusByUser,
 }: TipMatrixProps) {
   const t = useTranslations("tipMatrix");
   const format = useFormatter();
@@ -380,7 +387,10 @@ export function TipMatrix({
   const curatedSplit = curated
     ? splitCuratedRows(displayRows, currentUserId, { leaders: 3, neighbors: 1 })
     : null;
-  const colCount = 2 + round.matches.length;
+  // A dobogó-oszlop csak akkor kerül ki, ha van egyáltalán kiosztott bónusz —
+  // így a le nem zárt tornákon a mátrix változatlan marad.
+  const showPodiumColumn = podiumBonusByUser != null && Object.keys(podiumBonusByUser).length > 0;
+  const colCount = 2 + round.matches.length + (showPodiumColumn ? 1 : 0);
 
   function renderRow(row: MatrixRowDisplay) {
     const isMe = row.userId === currentUserId;
@@ -420,6 +430,17 @@ export function TipMatrix({
             {renderCell(row, m)}
           </td>
         ))}
+        {showPodiumColumn && (
+          <td className="border-border border-b border-l px-2.5 py-2 text-center">
+            {podiumBonusByUser?.[row.userId] ? (
+              <span className="font-bold text-[13px] text-gold-text">
+                +{podiumBonusByUser[row.userId]}
+              </span>
+            ) : (
+              <span className="text-faint">–</span>
+            )}
+          </td>
+        )}
       </tr>
     );
   }
@@ -568,6 +589,17 @@ export function TipMatrix({
                   <span className="mt-0.5 block">{headerResult(m)}</span>
                 </th>
               ))}
+              {showPodiumColumn && (
+                <th
+                  className={cn(
+                    "border-border border-b border-l bg-surface-2 px-2.5 py-1.5 align-bottom text-[11px] text-muted-foreground",
+                    curated && "sticky top-0 z-[1]",
+                  )}
+                >
+                  <span className="block text-[15px] leading-none">🏆</span>
+                  <span className="mt-0.5 block whitespace-nowrap">{t("podiumColumn")}</span>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>

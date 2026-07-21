@@ -38,6 +38,8 @@ export interface TournamentBoardPanelProps {
   onMatchSelect?: (matchId: string) => void;
   userBadges?: Record<string, Array<{ badgeKey: string; tier: number }>>;
   userStats?: Record<string, { totalBets: number; hitRate: number }>;
+  /** Csoportonként a kiosztott dobogó-bónusz (lezárt torna) → a mátrix záró oszlopa. */
+  podiumBonusByGroup?: Record<string, Record<string, number>>;
 }
 
 export function TournamentBoardPanel({
@@ -52,6 +54,7 @@ export function TournamentBoardPanel({
   onMatchSelect,
   userBadges,
   userStats,
+  podiumBonusByGroup,
 }: TournamentBoardPanelProps) {
   const t = useTranslations("tipMatrix");
   const tGroups = useTranslations("groups");
@@ -173,6 +176,7 @@ export function TournamentBoardPanel({
               onMatchSelect={onMatchSelect}
               userBadges={userBadges}
               userStats={userStats}
+              podiumBonusByUser={podiumBonusByGroup?.[activeTab.groupId]}
             />
           )}
 

@@ -22,6 +22,7 @@ import {
   getTournamentMatchTimes,
   getUpcomingBetSummary,
 } from "@/queries/matches";
+import { getPodiumBonusByGroup } from "@/queries/podium-results";
 import { loadPlayerStatsForUsers } from "@/queries/profile";
 import { getTipMatrixRound } from "@/queries/tip-matrix";
 
@@ -77,6 +78,9 @@ export default async function GroupDetailPage({
     loadPlayerStatsForUsers(memberIds),
     getGroupClassicPoints(group.id),
   ]);
+
+  // Lezárt tornán a mátrix záró oszlopa a kiosztott dobogó-bónuszt mutatja.
+  const podiumBonusByUser = (await getPodiumBonusByGroup(group.tournamentId, [group.id]))[group.id];
 
   const leaderboard = hideInactiveAndRerank(leaderboardRaw);
   // Convert Map → plain object before crossing the server→client boundary
@@ -153,6 +157,7 @@ export default async function GroupDetailPage({
           matchTimes={matchTimes.map((d) => d.getTime())}
           timeZone={group.tournament.timezone}
           initialMatrixRound={initialMatrixRound}
+          podiumBonusByUser={podiumBonusByUser}
           leaderboard={leaderboard.map((row) => ({
             rank: row.rank,
             userId: row.userId,

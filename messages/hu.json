@@ -335,7 +335,22 @@
     "selectGold": "Válaszd ki a bajnokot",
     "selectSilver": "Válaszd ki a 2. helyezettet",
     "selectBronze": "Válaszd ki a 3. helyezettet",
-    "pickTeam": "Válassz"
+    "pickTeam": "Válassz",
+    "finalResult": "Végeredmény",
+    "noPodiumBets": "Ebben a körben senki nem tippelt dobogót",
+    "hitExact": "Pontos helyen",
+    "hitMention": "Dobogós, de más helyen",
+    "hitMiss": "Nem került dobogóra",
+    "statTippers": "Tippelők",
+    "statBetCount": "Dobogós tippek",
+    "statGoldCorrect": "Eltalálta a bajnokot",
+    "statPerfect": "Mind a hármat eltalálta",
+    "statTotalPaid": "Kiosztott bónusz",
+    "statPicks": {
+      "gold": "Kit tippeltek bajnoknak",
+      "silver": "Kit tippeltek 2. helyre",
+      "bronze": "Kit tippeltek 3. helyre"
+    }
   },
   "leaderboard": {
     "rank": "Helyezés",
@@ -634,7 +649,8 @@
     "showMore": "{count} további játékos",
     "showLess": "Kevesebb",
     "viewProfile": "Profil megtekintése →",
-    "statLine": "{bets} tipp · {hit}% találat"
+    "statLine": "{bets} tipp · {hit}% találat",
+    "podiumColumn": "Dobogó"
   },
   "badges": {
     "win_streak": {

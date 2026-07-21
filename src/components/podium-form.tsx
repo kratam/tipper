@@ -86,9 +86,15 @@ const podiumConfig: {
  * Dobogós jelvény — szándékosan eltér a sima {@link TeamLogo}-tól: nagy, fehér
  * korong + árnyék + reszponzív méret. A `ring` itt is elválasztja a korong élét.
  */
-function PodiumBadge({ team, size = "md" }: { team: TeamOption; size?: "sm" | "md" }) {
-  const sizeClass = size === "sm" ? "size-[38px]" : "size-[46px]";
-  const textSize = size === "sm" ? "text-[10px]" : "text-xs";
+export function PodiumBadge({
+  team,
+  size = "md",
+}: {
+  team: TeamOption;
+  size?: "xs" | "sm" | "md";
+}) {
+  const sizeClass = size === "xs" ? "size-[26px]" : size === "sm" ? "size-[38px]" : "size-[46px]";
+  const textSize = size === "xs" ? "text-[8px]" : size === "sm" ? "text-[10px]" : "text-xs";
 
   if (team.logoUrl) {
     return (
