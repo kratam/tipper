@@ -1,8 +1,8 @@
 import "server-only";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { cache } from "react";
 import { db } from "@/db";
-import { tournaments } from "@/db/schema";
+import { matches, tournaments } from "@/db/schema";
 
 export async function getTournaments(opts?: { includeArchived?: boolean }) {
   return db.query.tournaments.findMany({
@@ -26,4 +26,25 @@ export const getActiveTournaments = cache(async () => {
     orderBy: [desc(tournaments.createdAt)],
     columns: { id: true, name: true, slug: true, status: true },
   });
+});
+
+// A legutóbb befejezett versenysorozat — ez a landing default, ha nincs aktív.
+// Nincs finishedAt oszlop, ezért az utolsó meccs kezdete a rendezési kulcs
+// (createdAt fallbackkel, ha egy sorozathoz még nincs meccs).
+export const getLastFinishedTournament = cache(async () => {
+  const rows = await db
+    .select({
+      id: tournaments.id,
+      name: tournaments.name,
+      slug: tournaments.slug,
+      status: tournaments.status,
+    })
+    .from(tournaments)
+    .leftJoin(matches, eq(matches.tournamentId, tournaments.id))
+    .where(and(eq(tournaments.status, "finished"), eq(tournaments.isArchived, false)))
+    .groupBy(tournaments.id)
+    .orderBy(desc(sql`coalesce(max(${matches.scheduledAt}), ${tournaments.createdAt})`))
+    .limit(1);
+
+  return rows[0];
 });

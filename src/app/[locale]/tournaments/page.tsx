@@ -42,7 +42,7 @@ function TourRowInner({ name, status, logoUrl, active }: TourRowProps) {
       </div>
       <div className="flex flex-none flex-col items-end gap-1">
         <TournamentStatusBadge status={status} />
-        {active && <ChevronRight className="size-4 text-faint" />}
+        <ChevronRight className="size-4 text-faint" />
       </div>
     </>
   );
@@ -82,11 +82,15 @@ export default async function TournamentsPage() {
         <div className="flex flex-col gap-3">
           {sorted.map((tournament) => {
             const active = tournament.status === "active";
-            return active ? (
+            return (
               <Link
                 key={tournament.id}
                 href={`/tournaments/${tournament.slug}`}
-                className={cn(rowBase, "transition hover:-translate-y-0.5 hover:border-gold-line")}
+                className={cn(
+                  rowBase,
+                  "transition hover:-translate-y-0.5 hover:border-gold-line",
+                  !active && "opacity-70 hover:opacity-100",
+                )}
               >
                 <TourRowInner
                   name={tournament.name}
@@ -95,15 +99,6 @@ export default async function TournamentsPage() {
                   active={active}
                 />
               </Link>
-            ) : (
-              <div key={tournament.id} className={cn(rowBase, "opacity-70")}>
-                <TourRowInner
-                  name={tournament.name}
-                  status={tournament.status}
-                  logoUrl={tournament.logoUrl}
-                  active={active}
-                />
-              </div>
             );
           })}
         </div>

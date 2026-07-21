@@ -2,7 +2,7 @@ import { getLocale } from "next-intl/server";
 import { LandingContent } from "@/components/landing-content";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth/user-sync";
-import { getActiveTournaments } from "@/queries/tournaments";
+import { getActiveTournaments, getLastFinishedTournament } from "@/queries/tournaments";
 
 export default async function LandingPage() {
   const user = await getCurrentUser();
@@ -14,6 +14,15 @@ export default async function LandingPage() {
 
     if (onlyActive.length === 1) {
       return redirect({ href: `/tournaments/${onlyActive[0].slug}`, locale });
+    }
+
+    // Nincs aktív sorozat: az utoljára befejezett a default (ugyanúgy, mint
+    // amikor pontosan egy aktív van).
+    if (onlyActive.length === 0) {
+      const lastFinished = await getLastFinishedTournament();
+      if (lastFinished) {
+        return redirect({ href: `/tournaments/${lastFinished.slug}`, locale });
+      }
     }
 
     return redirect({ href: "/tournaments", locale });
